@@ -1,0 +1,1523 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Portal de Locação</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;600;700&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+  <style>
+  /* =========================================================
+   * Visual Prumo: azul aço + laranja-telha, IBM Plex, cantos de 8px.
+   * As cores ficam nas variáveis abaixo: o modo escuro só troca os valores.
+   * ========================================================= */
+  :root {
+    --brand: #24578f; --on-brand: #ffffff; --brand-soft: #e3ebf5;
+    --accent: #ea6b2c; --on-accent: #1a0c03;
+    --surface-bg: #f3f4f6; --surface-card: #ffffff;
+    --ink: #16202e; --ink-muted: #5a6474;
+    --line: #d6dae1; --line-strong: #8a93a3;
+    --success: #1f7a4d; --success-soft: #e5f3ec;
+    --warning: #9a5b00; --warning-soft: #fdf1df;
+    --danger: #b42318; --danger-soft: #fbe9e7;
+    --shadow-raised: 0 1px 2px rgba(22,32,46,.08), 0 4px 12px rgba(22,32,46,.06);
+    --font-sans: "IBM Plex Sans", system-ui, sans-serif;
+    --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+    --radius-sm: 6px; --radius-md: 8px; --radius-lg: 12px;
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --brand: #93b8e8; --on-brand: #0d1218; --brand-soft: #1b2a3d;
+      --accent: #ef7a3e;
+      --surface-bg: #11161d; --surface-card: #1a222d;
+      --ink: #e6ebf2; --ink-muted: #9aa6b6;
+      --line: #2a3442; --line-strong: #66748a;
+      --success: #5cc493; --success-soft: #12291f;
+      --warning: #f0b660; --warning-soft: #2b2112;
+      --danger: #f2867a; --danger-soft: #2e1614;
+      --shadow-raised: 0 1px 2px rgba(0,0,0,.4), 0 4px 12px rgba(0,0,0,.3);
+      color-scheme: dark;
+    }
+  }
+
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--surface-bg); color: var(--ink); font: 400 16px/24px var(--font-sans); }
+  a { color: var(--brand); }
+  a:hover { color: var(--ink); }
+  h1 { margin: 0; font: 700 28px/34px var(--font-sans); }
+  h2 { margin: 0; font: 600 22px/28px var(--font-sans); }
+  h3 { margin: 0; font: 600 18px/24px var(--font-sans); }
+  p { margin: 0; }
+  button, input, select, textarea { font: inherit; color: inherit; }
+  [hidden] { display: none !important; }
+  .rotulo { font: 500 12px/16px var(--font-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--ink-muted); }
+  .suave { color: var(--ink-muted); }
+  .pequeno { font-size: 14px; line-height: 20px; }
+  .mono { font-family: var(--font-mono); font-weight: 500; font-variant-numeric: tabular-nums; }
+  .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  :focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+  /* ---------- Topo (menu) ---------- */
+  .topo { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+    padding: 8px 24px; background: var(--brand); color: var(--on-brand); position: sticky; top: 0; z-index: 20; }
+  .topo-esq, .topo-dir { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .topo-esq { gap: 24px; }
+  .marca { display: flex; align-items: center; gap: 8px; font: 700 17px/1 var(--font-sans); color: var(--on-brand);
+    text-decoration: none; min-height: 44px; }
+  .marca:hover { color: var(--on-brand); }
+  .selo { width: 28px; height: 28px; border-radius: var(--radius-sm); background: var(--accent); color: var(--on-accent);
+    display: grid; place-items: center; font: 600 11px/1 var(--font-mono); }
+  .menu { display: flex; gap: 4px; flex-wrap: wrap; }
+  .menu a { color: var(--on-brand); text-decoration: none; font: 500 15px/1 var(--font-sans); padding: 14px 12px;
+    border-radius: var(--radius-sm); opacity: .8; }
+  .menu a[aria-current="page"] { opacity: 1; box-shadow: inset 0 -3px 0 var(--accent); }
+  .menu a:hover { opacity: 1; }
+  .contador { display: inline-block; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 9px; background: var(--accent);
+    color: var(--on-accent); font: 600 11px/18px var(--font-mono); text-align: center; vertical-align: 1px; }
+  .botao-icone { position: relative; width: 44px; height: 44px; border: 0; border-radius: var(--radius-md); background: transparent;
+    color: var(--on-brand); cursor: pointer; display: grid; place-items: center; }
+  .botao-icone:hover { background: rgba(255,255,255,.12); }
+  .botao-icone .contador { position: absolute; top: 3px; right: 2px; }
+  .avatar { width: 36px; height: 36px; border-radius: 50%; background: var(--brand-soft); color: var(--brand);
+    display: grid; place-items: center; font: 600 14px/1 var(--font-sans); border: 0; cursor: pointer; }
+  .so-celular { display: none; }
+
+  /* Painéis que abrem por cima (sininho e menu do usuário) */
+  .flutuante { position: absolute; right: 16px; top: 60px; width: min(380px, calc(100vw - 32px)); max-height: 70vh; overflow: auto;
+    background: var(--surface-card); color: var(--ink); border: 1px solid var(--line); border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-raised); padding: 8px 0; z-index: 30; }
+  .flutuante-topo { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 8px 16px; }
+  .flutuante .vazio { padding: 16px; }
+  .menu-usuario button { width: 100%; text-align: left; min-height: 44px; padding: 0 16px; border: 0; background: none; cursor: pointer; }
+  .menu-usuario button:hover { background: var(--surface-bg); }
+
+  /* ---------- Página ---------- */
+  main { max-width: 1200px; margin: 0 auto; padding: 32px 24px 64px; display: flex; flex-direction: column; gap: 24px; }
+  main.estreito { max-width: 880px; }
+  .titulo-pagina { display: flex; justify-content: space-between; align-items: flex-end; gap: 12px; flex-wrap: wrap; }
+  .titulo-pagina > div { display: flex; flex-direction: column; gap: 4px; }
+  .painel { background: var(--surface-card); border: 1px solid var(--line); border-radius: var(--radius-lg); padding: 20px 24px;
+    display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+  .painel-topo { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+  .colunas { display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start; }
+  .colunas > .larga { flex: 999 1 560px; }
+  .colunas > .estreita { flex: 1 1 320px; }
+
+  /* ---------- Botões ---------- */
+  .pr-btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 0 16px;
+    font: 600 16px/1 var(--font-sans); border-radius: var(--radius-md); border: 2px solid var(--brand); cursor: pointer;
+    text-decoration: none; white-space: nowrap; }
+  .pr-btn--pri { background: var(--brand); color: var(--on-brand); }
+  .pr-btn--pri:hover { color: var(--on-brand); filter: brightness(1.08); }
+  .pr-btn--sec { background: transparent; color: var(--brand); }
+  .pr-btn--acao { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+  .pr-btn--acao:hover { color: var(--on-accent); filter: brightness(1.05); }
+  .pr-btn--perigo { background: transparent; border-color: var(--danger); color: var(--danger); }
+  .pr-btn--texto { border-color: transparent; background: transparent; color: var(--brand); padding: 0 8px; }
+  .pr-btn--pequeno { min-height: 36px; padding: 0 12px; font-size: 14px; }
+  .pr-btn:disabled { opacity: .45; cursor: not-allowed; }
+  .largo { width: 100%; }
+  .acoes { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .acoes.fim { justify-content: flex-end; }
+
+  /* ---------- Campos ---------- */
+  .grade { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; }
+  .pr-field { display: grid; gap: 6px; align-content: start; }
+  .pr-field label { font: 600 14px/20px var(--font-sans); }
+  .pr-field input, .pr-field select, .pr-field textarea, .campo-busca { min-height: 44px; width: 100%; padding: 10px 12px;
+    font: 400 16px/24px var(--font-sans); color: var(--ink); background: var(--surface-card);
+    border: 1.5px solid var(--line-strong); border-radius: var(--radius-md); }
+  .pr-field input[readonly] { background: var(--surface-bg); border-style: dashed; color: var(--ink-muted); }
+  .pr-field small, .dica { font: 400 14px/20px var(--font-sans); color: var(--ink-muted); }
+  .campo-invalido { border-color: var(--danger) !important; }
+  .aviso-campo { font: 400 14px/20px var(--font-sans); color: var(--danger); }
+  .campo-senha { position: relative; }
+  .campo-senha input { padding-right: 48px; }
+  .ver-senha { position: absolute; right: 2px; top: 2px; width: 44px; height: 40px; border: 0; background: none; color: var(--ink-muted); cursor: pointer; }
+  .busca { position: relative; flex: 1 1 280px; max-width: 420px; }
+  .busca svg { position: absolute; left: 12px; top: 12px; color: var(--ink-muted); }
+  .campo-busca { padding-left: 40px; }
+
+  /* ---------- Etiquetas de situação (cores por prazo) ---------- */
+  .st { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border-radius: var(--radius-sm);
+    font: 600 13px/18px var(--font-sans); white-space: nowrap; }
+  .st::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
+  .st--ok { background: var(--success-soft); color: var(--success); }
+  .st--aviso { background: var(--warning-soft); color: var(--warning); }
+  .st--vencido { background: var(--danger-soft); color: var(--danger); }
+  .st--sem-prazo { background: transparent; color: var(--ink-muted); border: 1px solid var(--line); }
+  .etiqueta { display: inline-block; padding: 2px 8px; border-radius: var(--radius-sm); font: 600 13px/18px var(--font-sans);
+    background: var(--brand-soft); color: var(--brand); white-space: nowrap; }
+
+  /* ---------- Filtros ---------- */
+  .filtros { display: flex; gap: 8px; flex-wrap: wrap; }
+  .filtro { min-height: 44px; padding: 0 14px; border-radius: var(--radius-md); border: 1.5px solid var(--line-strong);
+    background: var(--surface-card); color: var(--ink); font: 600 15px/1 var(--font-sans); cursor: pointer; }
+  .filtro[aria-pressed="true"] { background: var(--brand); border-color: var(--brand); color: var(--on-brand); }
+  .filtro .mono { opacity: .75; margin-left: 4px; }
+
+  /* ---------- Totais do painel ---------- */
+  .totais { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; }
+  .total { text-decoration: none; color: var(--ink); background: var(--surface-card); border: 1px solid var(--line);
+    border-radius: var(--radius-md); padding: 16px 20px; display: flex; flex-direction: column; gap: 6px; align-items: flex-start; }
+  .total:hover { color: var(--ink); border-color: var(--line-strong); }
+  .total b { font: 700 36px/40px var(--font-sans); }
+  .total.ok b { color: var(--success); } .total.aviso b { color: var(--warning); } .total.vencido b { color: var(--danger); }
+
+  /* ---------- Cartão de imóvel com o dia do prazo ---------- */
+  .pr-card { display: grid; grid-template-columns: 56px 1fr auto; gap: 12px; align-items: center; padding: 12px 16px;
+    background: var(--surface-card); border: 1px solid var(--line); border-radius: var(--radius-md); color: var(--ink); text-decoration: none; }
+  .pr-card:hover { color: var(--ink); border-color: var(--line-strong); }
+  .pr-card__dia { text-align: center; border: 1.5px solid var(--line); border-radius: var(--radius-sm); padding: 2px 0; font-variant-numeric: tabular-nums; }
+  .pr-card__dia b { display: block; font: 600 20px/24px var(--font-sans); }
+  .pr-card__dia span { font: 500 11px/14px var(--font-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--ink-muted); }
+  .pr-card p { color: var(--ink-muted); font-size: 14px; line-height: 20px; }
+
+  /* ---------- Avisos ---------- */
+  .aviso-item { display: grid; grid-template-columns: 12px 1fr; gap: 12px; padding: 12px 16px; border-bottom: 1px solid var(--line);
+    text-decoration: none; color: var(--ink); }
+  .aviso-item:last-child { border-bottom: 0; }
+  .aviso-item:hover { background: var(--surface-bg); color: var(--ink); }
+  .aviso-item .bolinha { width: 10px; height: 10px; margin-top: 7px; border-radius: 50%; }
+  .aviso-item.vencido .bolinha { background: var(--danger); }
+  .aviso-item.aviso .bolinha { background: var(--warning); }
+  .aviso-item.lido { color: var(--ink-muted); }
+  .aviso-item.lido .bolinha { background: var(--line-strong); }
+  .aviso-item b { font-weight: 600; display: block; }
+  .painel .aviso-item { padding: 12px 0; }
+
+  .pr-alert { display: grid; grid-template-columns: 22px 1fr; gap: 12px; padding: 12px 16px; border-radius: var(--radius-md);
+    border: 1.5px solid; font: 400 15px/22px var(--font-sans); color: var(--ink); }
+  .pr-alert b { display: block; font-weight: 600; }
+  .pr-alert__ic { width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; font: 700 13px/1 var(--font-mono); color: var(--surface-card); }
+  .pr-alert--ok { background: var(--success-soft); border-color: var(--success); } .pr-alert--ok .pr-alert__ic { background: var(--success); }
+  .pr-alert--atencao { background: var(--warning-soft); border-color: var(--warning); } .pr-alert--atencao .pr-alert__ic { background: var(--warning); }
+  .pr-alert--info { background: var(--brand-soft); border-color: var(--brand); } .pr-alert--info .pr-alert__ic { background: var(--brand); }
+
+  /* ---------- Tabela de imóveis (vira cartões no celular) ---------- */
+  .caixa-tabela { background: var(--surface-card); border: 1px solid var(--line); border-radius: var(--radius-lg); overflow-x: auto; }
+  .tabela { width: 100%; border-collapse: collapse; min-width: 960px; }
+  .tabela th { text-align: left; padding: 10px 12px; background: var(--brand-soft); color: var(--brand);
+    font: 500 12px/16px var(--font-mono); letter-spacing: .08em; text-transform: uppercase; white-space: nowrap; }
+  .tabela td { padding: 12px; border-top: 1px solid var(--line); vertical-align: middle; font-size: 15px; line-height: 22px; }
+  .tabela td.data { font: 500 14px/20px var(--font-mono); white-space: nowrap; }
+  .tabela tr.clicavel { cursor: pointer; }
+  .tabela tr.clicavel:hover td { background: var(--surface-bg); }
+  .tabela .nome { font-weight: 600; }
+  .lista-cartoes { display: none; flex-direction: column; gap: 12px; }
+  .cartao-imovel { text-decoration: none; color: var(--ink); background: var(--surface-card); border: 1px solid var(--line);
+    border-radius: var(--radius-md); padding: 12px 14px; display: flex; flex-direction: column; gap: 6px; }
+  .cartao-imovel:hover { color: var(--ink); }
+  .cartao-imovel .linha { display: flex; justify-content: space-between; gap: 8px; align-items: flex-start; }
+  .legenda { display: flex; gap: 8px 16px; flex-wrap: wrap; align-items: center; font-size: 14px; color: var(--ink-muted); }
+  .vazio { padding: 32px 16px; text-align: center; color: var(--ink-muted); }
+
+  /* ---------- Anexos ---------- */
+  .area-envio { min-height: 120px; width: 100%; border: 2px dashed var(--line-strong); border-radius: var(--radius-md); background: var(--surface-bg);
+    color: var(--brand); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; cursor: pointer;
+    font: 600 16px/24px var(--font-sans); padding: 12px; text-align: center; }
+  .area-envio:hover { border-color: var(--brand); }
+  .area-envio span { font: 400 14px/20px var(--font-sans); color: var(--ink-muted); }
+  .fotos { display: flex; gap: 8px; flex-wrap: wrap; }
+  .foto { position: relative; width: 104px; height: 80px; border-radius: var(--radius-sm); overflow: hidden; background: var(--brand-soft);
+    display: grid; place-items: center; font: 500 11px/1 var(--font-mono); color: var(--brand); }
+  .foto img { width: 100%; height: 100%; object-fit: cover; cursor: pointer; }
+  .foto .tirar { position: absolute; top: 4px; right: 4px; width: 28px; height: 28px; border-radius: 50%; border: 0; cursor: pointer;
+    background: rgba(13,18,24,.7); color: #fff; display: grid; place-items: center; }
+  .foto.nova { outline: 2px dashed var(--accent); outline-offset: -2px; }
+  .arquivo { display: flex; align-items: center; gap: 8px; padding: 8px 12px; border: 1px solid var(--line); border-radius: var(--radius-md); font-size: 14px; }
+  .arquivo span { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  /* ---------- Login ---------- */
+  .tela-login { max-width: 420px; margin: 48px auto; background: var(--surface-card); border: 1px solid var(--line); border-radius: var(--radius-lg);
+    padding: 32px 28px; display: flex; flex-direction: column; gap: 16px; }
+  .tela-login form { display: flex; flex-direction: column; gap: 16px; }
+  .separador { display: flex; align-items: center; gap: 12px; color: var(--ink-muted); font-size: 14px; }
+  .separador::before, .separador::after { content: ""; flex: 1; border-top: 1px solid var(--line); }
+
+  /* ---------- Usuários ---------- */
+  .usuario-linha { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-top: 1px solid var(--line); flex-wrap: wrap; }
+  .usuario-linha:first-child { border-top: 0; }
+  .usuario-linha > div { flex: 1 1 220px; min-width: 0; }
+
+  /* ---------- Carregando e mensagens ---------- */
+  .carregando { padding: 64px 16px; text-align: center; color: var(--ink-muted); display: flex; flex-direction: column; align-items: center; gap: 12px; }
+  .girando { width: 32px; height: 32px; border-radius: 50%; border: 3px solid var(--line); border-top-color: var(--brand); animation: girar 0.9s linear infinite; }
+  @keyframes girar { to { transform: rotate(360deg); } }
+  .mensagem { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); max-width: calc(100vw - 32px); z-index: 50;
+    background: var(--ink); color: var(--surface-bg); padding: 12px 20px; border-radius: var(--radius-md); box-shadow: var(--shadow-raised); }
+  .mensagem.erro { background: var(--danger); color: #fff; }
+
+  /* ---------- Celular e tablet em pé ---------- */
+  @media (max-width: 760px) {
+    .topo { padding: 8px 16px; }
+    .topo-esq { gap: 8px; }
+    .so-computador { display: none !important; }
+    .so-celular { display: inline-flex; }
+    main { padding: 20px 16px 96px; gap: 20px; }
+    h1 { font-size: 24px; line-height: 30px; }
+    .caixa-tabela { display: none; }
+    .lista-cartoes { display: flex; }
+    .painel { padding: 16px; }
+    .pr-card { grid-template-columns: 48px 1fr; }
+    .pr-card > .st { grid-column: 2; justify-self: start; }
+    .barra-fixa { position: fixed; left: 0; right: 0; bottom: 0; padding: 12px 16px 16px; background: var(--surface-bg);
+      border-top: 1px solid var(--line); z-index: 15; }
+    .barra-fixa .pr-btn { width: 100%; }
+    .tela-login { margin: 16px auto; padding: 24px 20px; }
+  }
+</style>
+
+</head>
+<body>
+  <header class="topo" id="topo">
+    <div class="topo-esq">
+      <a class="marca" href="#/"><span class="selo">LOC</span>Portal de Locação</a>
+    </div>
+  </header>
+
+  <main id="tela">
+    <div class="carregando"><div class="girando"></div>Carregando…</div>
+  </main>
+
+  <script>
+    // Rede de segurança (JavaScript antigo, para rodar em qualquer navegador):
+    // se o site der erro ao abrir ou não terminar de carregar, mostra o motivo e um botão
+    // para recarregar, em vez de ficar em "Carregando…" para sempre.
+    window.__errosDoSite = [];
+    window.addEventListener('error', function (e) {
+      window.__errosDoSite.push((e.message || 'erro') + (e.lineno ? ' (linha ' + e.lineno + ')' : ''));
+    });
+    window.addEventListener('unhandledrejection', function (e) {
+      window.__errosDoSite.push(String((e.reason && e.reason.message) || e.reason));
+    });
+    function __verificarAbertura(segundos) {
+      var tela = document.getElementById('tela');
+      if (!tela || !tela.querySelector('.carregando')) return;
+      if (segundos < 120 && !window.__errosDoSite.length) return;
+      var erros = window.__errosDoSite.length
+        ? 'Erro no navegador: ' + window.__errosDoSite.slice(0, 3).join(' | ')
+        : 'O servidor do Google não respondeu em 2 minutos.';
+      tela.innerHTML = '<div class="tela-login"><h1>O portal não terminou de abrir</h1>' +
+        '<p class="suave">' + erros.replace(/</g, '&lt;') + '</p>' +
+        '<button class="pr-btn pr-btn--pri largo" onclick="location.reload()">Recarregar</button></div>';
+    }
+    setTimeout(function () { __verificarAbertura(15); }, 15000);
+    setTimeout(function () { __verificarAbertura(120); }, 120000);
+  </script>
+  <script>window.API_URL = 'https://script.google.com/macros/s/AKfycbzWNocKN08ylQNIV3DcIl6FQlIbq8GQW5mdzaNOXHti2Ictha13enE2GFkcZjvQU2-89w/exec';</script>
+<script>
+  /* =========================================================
+   * Estado do site
+   * ========================================================= */
+  const estado = {
+    auth: { token: '' },  // sessão enviada ao servidor em toda chamada
+    usuario: null,        // quem entrou
+    demonstracao: false,
+    pendentes: 0,         // cadastros esperando aprovação (só administrador)
+    avisos: { lista: [], naoLidos: 0 },
+    lista: null,          // imóveis da tela de lista
+    busca: '',
+    filtro: 'todos',
+    form: null,           // imóvel aberto no formulário
+    miniaturas: {},       // url da foto -> endereço da miniatura já baixada
+    loginEmail: ''
+  };
+
+  const NOMES_SITUACAO = { todos: 'Todos', ok: 'Em dia', aviso: 'Vence em 30 dias', vencido: 'Vencidos', 'sem-prazo': 'Sem prazo' };
+  const ORDEM_SITUACAO = { vencido: 0, aviso: 1, ok: 2, 'sem-prazo': 3 };
+
+  /* ---------- Ícones (linha simples, na cor do texto) ---------- */
+  const ic = (d, t = 20) => `<svg width="${t}" height="${t}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
+  const ICONE = {
+    sino: ic('<path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>', 22),
+    lupa: ic('<circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/>'),
+    lapis: ic('<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/>', 16),
+    foto: ic('<rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.1-3.1a2 2 0 0 0-2.8 0L6 21"/>', 26),
+    pdf: ic('<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M12 18v-6M9 15l3-3 3 3"/>', 26),
+    arquivo: ic('<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/>', 18),
+    agenda: ic('<rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>', 18),
+    x: ic('<path d="M18 6 6 18M6 6l12 12"/>', 16),
+    olho: ic('<path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"/><circle cx="12" cy="12" r="3"/>'),
+    olhoFechado: ic('<path d="M17.9 17.9A10.4 10.4 0 0 1 12 19c-7 0-11-7-11-7a18.5 18.5 0 0 1 5.1-5.9M9.9 5.2A9.1 9.1 0 0 1 12 5c7 0 11 7 11 7a18.6 18.6 0 0 1-2.2 3.2M14.1 14.1a3 3 0 1 1-4.2-4.2"/><path d="M1 1l22 22"/>')
+  };
+
+  /* =========================================================
+   * Conversa com o servidor
+   * ========================================================= */
+
+  // Chama uma função do Codigo.gs e devolve uma Promise.
+  // Funciona dentro do Google (google.script.run) e no site do GitHub (endereço API_URL).
+  function chamar(funcao, ...args) {
+    const falhou = erro => {
+      if (String(erro && erro.message).includes('sessão expirou')) { encerrarSessaoLocal(); telaEntrar(); }
+      throw erro;
+    };
+    if (window.API_URL) {
+      // Leituras tentam de novo sozinhas se o Google falhar por um instante.
+      // Gravações não repetem, para não salvar nada em dobro.
+      const leitura = funcao === 'iniciarSessao' || funcao === 'entrar' || funcao.startsWith('abrir') || funcao.startsWith('listar') ||
+        funcao === 'enviarParteArquivo' || funcao === 'baixarArquivo';
+      const comArquivo = args.some(a => a && (a.base64 || a.envio));
+      const envio = idDoEnvio(args);
+      const pesado = funcao === 'enviarParteArquivo' || funcao === 'baixarArquivo';
+      const tempo = comArquivo ? 330000 : pesado ? 120000 : leitura ? 25000 : 45000;
+      return pedirAoServidor(funcao, args, leitura ? TENTATIVAS_LEITURA : 1, tempo)
+        .catch(erro => envio && erro.semResposta ? esperarResposta(envio, erro) : Promise.reject(erro))
+        .catch(falhou);
+    }
+    return new Promise((resolve, reject) => {
+      google.script.run.withSuccessHandler(resolve).withFailureHandler(reject)[funcao](...args);
+    }).catch(falhou);
+  }
+
+  const TENTATIVAS_LEITURA = 4;
+
+  function avisarNovaTentativa(proxima) {
+    const aviso = document.querySelector('#tela .aviso-demora');
+    if (!aviso) return;
+    aviso.hidden = false;
+    aviso.textContent = `O servidor do Google está lento agora. Tentando de novo (${proxima} de ${TENTATIVAS_LEITURA})…`;
+  }
+
+  function idDoEnvio(args) {
+    for (const a of args) for (const x of Array.isArray(a) ? a : [a]) if (x && x.envio) return x.envio;
+    return null;
+  }
+
+  // O Google perdeu a resposta de um envio grande: pergunta a cada 10 s se ele terminou (até 6 min)
+  async function esperarResposta(envio, erroOriginal) {
+    for (let i = 0; i < 36; i++) {
+      mostrarAvisoFixo('Salvando o arquivo no Google Drive… arquivos grandes podem levar alguns minutos.');
+      await new Promise(r => setTimeout(r, 10000));
+      const guardada = await pedirAoServidor('buscarResposta', [envio, auth()], 1).catch(() => null);
+      if (guardada) {
+        if (!guardada.ok) throw new Error(guardada.erro);
+        return guardada.r;
+      }
+    }
+    throw erroOriginal;
+  }
+
+  function pedirAoServidor(funcao, args, tentativas, tempoLimite = 45000) {
+    const controle = new AbortController();
+    const limite = setTimeout(() => controle.abort(), tempoLimite);
+    let falhaDeRede = false;
+    return fetch(window.API_URL, {
+      method: 'POST',
+      signal: controle.signal,
+      // text/plain evita a checagem extra do navegador (CORS) que o Google não aceita
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ fn: funcao, args })
+    })
+      .catch(e => {
+        falhaDeRede = e.name !== 'AbortError';
+        throw new Error(e.name === 'AbortError'
+          ? 'O servidor demorou demais para responder. Tente de novo em alguns segundos.'
+          : 'Não foi possível falar com o servidor do Google agora. Confira a internet e tente de novo.');
+      })
+      .then(r => r.text())
+      .then(texto => {
+        try { return JSON.parse(texto); } catch (e) { /* o Google devolveu uma página de erro */ }
+        falhaDeRede = true;
+        const titulo = (texto.match(/<title>([^<]*)<\/title>/i) || [])[1] || '';
+        if (/Autoriza[çc][ãa]o necess[áa]ria|Authorization (is )?required|needs your permission/i.test(texto)) {
+          throw new Error('O Google bloqueou esta ação porque falta autorizar as permissões do portal. ' +
+            'A administradora precisa abrir a planilha no computador e clicar em Portal de Locação → Autorizar permissões.');
+        }
+        throw new Error('O servidor do Google respondeu com um erro' + (titulo ? ' (' + titulo.trim() + ')' : '') +
+          '. Tente de novo em alguns segundos.');
+      })
+      .finally(() => clearTimeout(limite))
+      .then(d => { if (!d.ok) throw new Error(d.erro); return d.r; })
+      .catch(erro => {
+        const tempoEsgotado = erro.name === 'AbortError' || /demorou demais/.test(erro.message);
+        if ((falhaDeRede || tempoEsgotado) && tentativas > 1) {
+          avisarNovaTentativa(TENTATIVAS_LEITURA - tentativas + 2);
+          return new Promise(r => setTimeout(r, 2000)).then(() => pedirAoServidor(funcao, args, tentativas - 1, tempoLimite));
+        }
+        if (falhaDeRede || tempoEsgotado) erro.semResposta = true;
+        throw erro;
+      });
+  }
+
+  /* =========================================================
+   * Ajudantes
+   * ========================================================= */
+
+  // Evita que um texto digitado vire HTML
+  function esc(texto) {
+    return String(texto ?? '').replace(/[&<>"']/g, c =>
+      ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  }
+
+  // "2026-10-06" -> "06/10/2026"
+  function dataBR(iso) {
+    if (!iso) return '—';
+    const [a, m, d] = iso.split('-');
+    return `${d}/${m}/${a}`;
+  }
+
+  const DIAS_SEMANA = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb'];
+  const MESES = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
+
+  // "2026-10-06" -> "ter, 06/10/2026"
+  function dataComDia(iso) {
+    const [a, m, d] = iso.split('-').map(Number);
+    return `${DIAS_SEMANA[new Date(Date.UTC(a, m - 1, d)).getUTCDay()]}, ${dataBR(iso)}`;
+  }
+
+  // Texto da etiqueta de situação: "Venceu há 5 dias", "Vence em 14 dias", "Em dia"
+  function textoSituacao(i) {
+    if (i.situacao === 'vencido') return i.dias === -1 ? 'Venceu ontem' : `Venceu há ${-i.dias} dias`;
+    if (i.situacao === 'aviso') return i.dias === 0 ? 'Vence hoje' : i.dias === 1 ? 'Vence amanhã' : `Vence em ${i.dias} dias`;
+    return i.situacao === 'sem-prazo' ? 'Sem prazo' : 'Em dia';
+  }
+
+  function etiquetaSituacao(i) {
+    return `<span class="st st--${i.situacao}">${esc(textoSituacao(i))}</span>`;
+  }
+
+  function semAcento(t) {
+    return String(t || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+  }
+
+  function iniciais(nome) {
+    const p = String(nome || '?').trim().split(/\s+/);
+    return ((p[0] || '')[0] + (p.length > 1 ? p[p.length - 1][0] : '')).toUpperCase();
+  }
+
+  function mostrarMensagem(texto, tipo) {
+    document.querySelectorAll('.mensagem').forEach(m => m.remove());
+    const div = document.createElement('div');
+    div.className = 'mensagem' + (tipo === 'erro' ? ' erro' : '');
+    div.setAttribute('role', tipo === 'erro' ? 'alert' : 'status');
+    div.textContent = texto;
+    document.body.appendChild(div);
+    setTimeout(() => div.remove(), tipo === 'erro' ? 7000 : 4000);
+  }
+
+  function mostrarErro(erro) {
+    mostrarMensagem(erro && erro.message ? erro.message : String(erro), 'erro');
+  }
+
+  // Aviso que fica parado enquanto um envio acontece (some com a próxima mensagem)
+  function mostrarAvisoFixo(texto) {
+    let aviso = document.getElementById('progresso-envio');
+    if (!aviso) {
+      document.querySelectorAll('.mensagem').forEach(m => m.remove());
+      aviso = document.createElement('div');
+      aviso.id = 'progresso-envio';
+      aviso.className = 'mensagem';
+      aviso.setAttribute('role', 'status');
+      document.body.appendChild(aviso);
+    }
+    aviso.textContent = texto;
+  }
+
+  function carregando(texto) {
+    document.getElementById('tela').innerHTML =
+      `<div class="carregando"><div class="girando"></div>${esc(texto || 'Carregando…')}
+        <p class="suave pequeno aviso-demora" hidden>O servidor do Google está demorando para responder.
+        O primeiro acesso do dia pode levar até 20 segundos.</p></div>`;
+    clearTimeout(estado.timerDemora);
+    estado.timerDemora = setTimeout(() => {
+      const aviso = document.querySelector('#tela .aviso-demora');
+      if (aviso) aviso.hidden = false;
+    }, 8000);
+  }
+
+  function tela(html, estreito) {
+    const main = document.getElementById('tela');
+    main.className = estreito ? 'estreito' : '';
+    main.innerHTML = html;
+    window.scrollTo(0, 0);
+  }
+
+  // Lê os campos de um formulário: { NomeDoCampo: valor }
+  function lerFormulario(id) {
+    const dados = {};
+    document.querySelectorAll(`#${id} [name]`).forEach(el => { dados[el.name] = el.value.trim(); });
+    return dados;
+  }
+
+  /* ---------- Máscaras: CPF/CNPJ e telefone ----------
+   * A pessoa digita só os números e o campo coloca pontos, barra, traço e parênteses. */
+  const MASCARAS = {
+    documento: { max: 14, exemplo: 'CPF ou CNPJ', formatar: d => d.length <= 11
+      ? d.replace(/^(\d{3})(\d)/, '$1.$2').replace(/^(\d{3})\.(\d{3})(\d)/, '$1.$2.$3').replace(/\.(\d{3})(\d)/, '.$1-$2')
+      : d.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{0,2}).*/, '$1.$2.$3/$4-$5') },
+    telefone: { max: 11, exemplo: '(00) 00000-0000', formatar: d => d.length <= 2 ? d.replace(/^(\d+)/, '($1')
+      : d.length <= 10 ? d.replace(/^(\d{2})(\d{0,4})(\d{0,4}).*/, (_, a, b, c) => `(${a}) ${b}${c ? '-' + c : ''}`)
+      : d.replace(/^(\d{2})(\d{5})(\d{4}).*/, '($1) $2-$3') }
+  };
+
+  function mascara(tipo) {
+    const m = MASCARAS[tipo];
+    return ` data-mascara="${tipo}" inputmode="numeric" autocomplete="off" placeholder="${m.exemplo}" maxlength="18"`;
+  }
+
+  function aplicarMascara(campo) {
+    const m = MASCARAS[campo.dataset.mascara];
+    let d = campo.value.replace(/\D/g, '');
+    if (campo.dataset.mascara === 'telefone' && d.length > 11 && d.startsWith('55')) d = d.slice(2);
+    campo.value = m.formatar(d.slice(0, m.max));
+    conferirDocumento(campo);
+  }
+
+  // CPF e CNPJ: confere os dígitos verificadores e avisa embaixo do campo (não impede salvar)
+  function conferirDocumento(campo) {
+    if (campo.dataset.mascara !== 'documento') return;
+    const d = campo.value.replace(/\D/g, '');
+    const completo = d.length === 11 || d.length === 14;
+    const valido = !completo || (d.length === 11 ? cpfValido(d) : cnpjValido(d));
+    let aviso = campo.parentElement.querySelector('.aviso-campo');
+    if (valido) { if (aviso) aviso.remove(); campo.classList.remove('campo-invalido'); campo.removeAttribute('aria-invalid'); return; }
+    if (!aviso) {
+      aviso = document.createElement('small');
+      aviso.className = 'aviso-campo';
+      aviso.id = campo.id + '-erro';
+      campo.insertAdjacentElement('afterend', aviso);
+      campo.setAttribute('aria-describedby', aviso.id);
+    }
+    aviso.textContent = (d.length === 11 ? 'Este CPF' : 'Este CNPJ') + ' não existe. Confira os números.';
+    campo.classList.add('campo-invalido');
+    campo.setAttribute('aria-invalid', 'true');
+  }
+
+  function cpfValido(d) {
+    if (/^(\d)\1{10}$/.test(d)) return false;
+    const digito = n => { let soma = 0; for (let i = 0; i < n; i++) soma += d[i] * (n + 1 - i); const r = soma * 10 % 11; return r === 10 ? 0 : r; };
+    return digito(9) === Number(d[9]) && digito(10) === Number(d[10]);
+  }
+
+  function cnpjValido(d) {
+    if (/^(\d)\1{13}$/.test(d)) return false;
+    const digito = n => {
+      const pesos = n === 12 ? [5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2] : [6, 5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2];
+      const r = pesos.reduce((s, p, i) => s + d[i] * p, 0) % 11;
+      return r < 2 ? 0 : 11 - r;
+    };
+    return digito(12) === Number(d[12]) && digito(13) === Number(d[13]);
+  }
+
+  document.addEventListener('input', e => {
+    const campo = e.target;
+    if (!campo.dataset || !campo.dataset.mascara) return;
+    // Apagar um ponto ou traço com a tecla de apagar: apaga também o número antes dele
+    const antes = campo.dataset.digitos || '';
+    if (e.inputType && e.inputType.startsWith('delete') && campo.value.replace(/\D/g, '') === antes) {
+      campo.value = antes.slice(0, -1);
+    }
+    aplicarMascara(campo);
+    campo.dataset.digitos = campo.value.replace(/\D/g, '');
+  });
+
+  /* =========================================================
+   * Navegação: #/  #/imoveis  #/novo  #/imovel/ID  #/usuarios  #/usuario/ID
+   * ========================================================= */
+  function irPara(rota) {
+    fecharFlutuantes();
+    if (!estado.usuario) return telaEntrar();
+    const [caminho, busca] = String(rota || '').replace(/^#\/?/, '').split('?');
+    const partes = caminho.split('/').filter(Boolean);
+    desenharTopo(partes[0] || '');
+    if (partes[0] === 'imoveis') return telaImoveis(new URLSearchParams(busca || '').get('f'));
+    if (partes[0] === 'novo') return telaImovel(null);
+    if (partes[0] === 'imovel' && partes[1]) return telaImovel(partes[1]);
+    if (partes[0] === 'usuarios') return telaUsuarios();
+    if (partes[0] === 'usuario' && partes[1]) return telaEditarUsuario(partes[1]);
+    return telaPainel();
+  }
+
+  window.addEventListener('hashchange', () => irPara(location.hash));
+
+  function navegar(rota) {
+    if (location.hash === rota) irPara(rota); else location.hash = rota;
+  }
+
+  /* =========================================================
+   * Topo: menu, sininho e usuário
+   * ========================================================= */
+  function desenharTopo(paginaAtual) {
+    const topo = document.getElementById('topo');
+    const u = estado.usuario;
+    const marca = `<a class="marca" href="#/"><span class="selo">LOC</span><span class="so-computador">Portal de Locação</span></a>`;
+    if (!u) { topo.innerHTML = `<div class="topo-esq">${marca}</div>`; return; }
+    const atual = p => (p === paginaAtual || (p === 'imoveis' && ['imovel', 'novo'].includes(paginaAtual))) ? ' aria-current="page"' : '';
+    const admin = u.Nivel === 'Administrador' && !estado.demonstracao;
+    const n = estado.avisos.naoLidos;
+    topo.innerHTML = `
+      <div class="topo-esq">${marca}
+        <nav class="menu" aria-label="Menu principal">
+          <a href="#/"${atual('')}>Painel</a>
+          <a href="#/imoveis"${atual('imoveis')}>Imóveis</a>
+          ${admin ? `<a href="#/usuarios"${atual('usuarios') || atual('usuario')}>Usuários${estado.pendentes ? ` <span class="contador">${estado.pendentes}</span>` : ''}</a>` : ''}
+        </nav>
+      </div>
+      <div class="topo-dir">
+        <a href="#/novo" class="pr-btn pr-btn--acao so-computador">+ Incluir imóvel</a>
+        <button class="botao-icone" id="botao-sino" onclick="alternarAvisos(event)" aria-haspopup="true" aria-expanded="false"
+          aria-label="Avisos${n ? ': ' + n + (n === 1 ? ' novo' : ' novos') : ''}">${ICONE.sino}${n ? `<span class="contador">${n}</span>` : ''}</button>
+        <button class="avatar" onclick="alternarMenuUsuario(event)" aria-haspopup="true" aria-label="Menu de ${esc(u.Nome)}" title="${esc(u.Nome)}">${esc(iniciais(u.Nome))}</button>
+      </div>`;
+  }
+
+  function fecharFlutuantes() {
+    document.querySelectorAll('.flutuante').forEach(f => f.remove());
+    const sino = document.getElementById('botao-sino');
+    if (sino) sino.setAttribute('aria-expanded', 'false');
+  }
+
+  document.addEventListener('click', e => {
+    if (!e.target.closest('.flutuante') && !e.target.closest('#botao-sino') && !e.target.closest('.avatar')) fecharFlutuantes();
+  });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') fecharFlutuantes(); });
+
+  function textoAviso(a) {
+    if (a.tipo === 'vencido') {
+      return { titulo: 'Contrato vencido', texto: `${a.nome} venceu em ${dataBR(a.prazo)}. Renove ou encerre o contrato.` };
+    }
+    return { titulo: 'Prazo chegando', texto: `${a.nome} vence em ${dataBR(a.prazo)}${a.dias === 0 ? ' (hoje)' : a.dias === 1 ? ' (amanhã)' : ` (em ${a.dias} dias)`}.` };
+  }
+
+  function itemAviso(a) {
+    const t = textoAviso(a);
+    return `<a class="aviso-item ${a.tipo}${a.lido ? ' lido' : ''}" href="#/imovel/${esc(a.ID_Imovel)}">
+      <span class="bolinha" aria-hidden="true"></span>
+      <div><b>${esc(t.titulo)}${a.lido ? '' : ' <span class="sr">(novo)</span>'}</b>${esc(t.texto)}</div></a>`;
+  }
+
+  function alternarAvisos(evento) {
+    evento.stopPropagation();
+    const aberto = document.getElementById('painel-avisos');
+    fecharFlutuantes();
+    if (aberto) return;
+    const av = estado.avisos;
+    const div = document.createElement('div');
+    div.className = 'flutuante';
+    div.id = 'painel-avisos';
+    div.setAttribute('role', 'dialog');
+    div.setAttribute('aria-label', 'Avisos');
+    div.innerHTML = `
+      <div class="flutuante-topo"><h3>Avisos</h3>
+        ${av.naoLidos ? `<button class="pr-btn pr-btn--texto pr-btn--pequeno" onclick="marcarTodosLidos()">Marcar como lidos</button>` : ''}</div>
+      ${av.lista.length ? av.lista.map(itemAviso).join('') : '<p class="vazio">Nenhum prazo vencido ou chegando. Tudo em dia!</p>'}`;
+    document.body.appendChild(div);
+    document.getElementById('botao-sino').setAttribute('aria-expanded', 'true');
+  }
+
+  async function marcarTodosLidos() {
+    try {
+      estado.avisos = await chamar('marcarAvisosLidos', estado.avisos.lista.filter(a => !a.lido).map(a => a.chave), auth());
+      fecharFlutuantes();
+      desenharTopo(paginaAtual());
+      const painel = document.getElementById('avisos-painel');
+      if (painel) painel.outerHTML = blocoAvisos();
+    } catch (erro) { mostrarErro(erro); }
+  }
+
+  function paginaAtual() {
+    return location.hash.replace(/^#\/?/, '').split(/[/?]/)[0];
+  }
+
+  async function atualizarAvisos() {
+    try {
+      estado.avisos = await chamar('listarAvisos', auth());
+      desenharTopo(paginaAtual());
+    } catch (e) { /* o sininho fica como estava */ }
+  }
+
+  function alternarMenuUsuario(evento) {
+    evento.stopPropagation();
+    const aberto = document.getElementById('menu-usuario');
+    fecharFlutuantes();
+    if (aberto) return;
+    const u = estado.usuario;
+    const div = document.createElement('div');
+    div.className = 'flutuante menu-usuario';
+    div.id = 'menu-usuario';
+    div.innerHTML = `
+      <div class="flutuante-topo"><div><b>${esc(u.Nome)}</b><div class="suave pequeno">${esc(estado.demonstracao ? 'Demonstração' : u.Email)} · ${esc(u.Nivel)}</div></div></div>
+      <button onclick="sairDoSistema()">Sair</button>`;
+    document.body.appendChild(div);
+  }
+
+  /* =========================================================
+   * Login e sessão
+   * ========================================================= */
+  function auth() { return estado.auth; }
+
+  function lerLocal(chave) { try { return localStorage.getItem(chave) || ''; } catch (e) { return ''; } }
+  function gravarLocal(chave, valor) {
+    try { valor ? localStorage.setItem(chave, valor) : localStorage.removeItem(chave); } catch (e) {}
+  }
+
+  async function iniciar() {
+    carregando();
+    estado.auth = { token: lerLocal('tokenSessao') };
+    try {
+      await tratarSituacao(await chamar('iniciarSessao', estado.auth.token));
+    } catch (erro) {
+      tela(`<div class="tela-login"><h1>Não foi possível carregar</h1>
+        <p class="suave">${esc(erro.message || erro)}</p>
+        <button class="pr-btn pr-btn--pri largo" onclick="iniciar()">Tentar de novo</button></div>`);
+    }
+  }
+
+  async function tratarSituacao(r) {
+    if (r.token) { estado.auth.token = r.token; gravarLocal('tokenSessao', r.token); }
+    estado.usuario = null;
+    desenharTopo();
+    if (r.situacao === 'sem-login') return telaEntrar();
+    if (r.situacao === 'Pendente') return telaAvisoAcesso('Cadastro aguardando aprovação',
+      'Seu cadastro foi enviado. Assim que o administrador aprovar, você recebe um e-mail e já pode usar o portal.');
+    if (r.situacao === 'Recusado') return telaAvisoAcesso('Cadastro não aprovado', 'Fale com o administrador do portal.');
+    if (r.situacao === 'Inativo') return telaAvisoAcesso('Acesso desativado', 'Fale com o administrador do portal.');
+
+    estado.usuario = r.usuario;
+    estado.demonstracao = !!r.demonstracao;
+    estado.pendentes = r.pendentes || 0;
+    irPara(location.hash);
+    atualizarAvisos();
+  }
+
+  async function sairDoSistema() {
+    fecharFlutuantes();
+    try { await chamar('sair', estado.auth.token); } catch (e) {}
+    encerrarSessaoLocal();
+    telaEntrar();
+  }
+
+  function encerrarSessaoLocal() {
+    gravarLocal('tokenSessao', '');
+    estado.auth = { token: '' };
+    estado.usuario = null;
+    estado.avisos = { lista: [], naoLidos: 0 };
+    desenharTopo();
+  }
+
+  function campoSenha(id, rotulo, auto) {
+    return `<div class="pr-field"><label for="${id}">${rotulo}</label>
+      <div class="campo-senha"><input id="${id}" type="password" minlength="${auto === 'current-password' ? 1 : 6}" required autocomplete="${auto}">
+      <button type="button" class="ver-senha" onclick="alternarSenha('${id}', this)" aria-label="Mostrar senha">${ICONE.olho}</button></div></div>`;
+  }
+
+  function alternarSenha(id, botao) {
+    const campo = document.getElementById(id);
+    const mostrar = campo.type === 'password';
+    campo.type = mostrar ? 'text' : 'password';
+    botao.innerHTML = mostrar ? ICONE.olhoFechado : ICONE.olho;
+    botao.setAttribute('aria-label', mostrar ? 'Esconder senha' : 'Mostrar senha');
+    campo.focus();
+  }
+
+  function telaEntrar() {
+    desenharTopo();
+    tela(`
+      <div class="tela-login">
+        <div><span class="rotulo">Portal de Locação</span><h1>Entrar</h1></div>
+        <form id="form-entrar" onsubmit="event.preventDefault(); fazerLogin()">
+          <div class="pr-field"><label for="login-email">E-mail</label>
+            <input id="login-email" type="text" autocomplete="username" autocapitalize="none" spellcheck="false" required value="${esc(estado.loginEmail || lerLocal('ultimoEmail'))}"></div>
+          ${campoSenha('login-senha', 'Senha', 'current-password')}
+          <button class="pr-btn pr-btn--pri largo" id="btn-entrar">Entrar</button>
+        </form>
+        <div class="separador">Ainda não tem acesso?</div>
+        <button class="pr-btn pr-btn--sec largo" onclick="telaCadastro()">Pedir acesso</button>
+        <p class="suave pequeno">Esqueceu a senha? Fale com o administrador do portal.</p>
+      </div>`, true);
+    document.getElementById(document.getElementById('login-email').value ? 'login-senha' : 'login-email').focus();
+  }
+
+  async function fazerLogin() {
+    const email = document.getElementById('login-email').value.trim();
+    const botao = document.getElementById('btn-entrar');
+    botao.disabled = true; botao.textContent = 'Entrando…';
+    try {
+      const r = await chamar('entrar', email, document.getElementById('login-senha').value);
+      estado.loginEmail = email; gravarLocal('ultimoEmail', email);
+      await tratarSituacao(r);
+    } catch (erro) {
+      mostrarErro(erro);
+      botao.disabled = false; botao.textContent = 'Entrar';
+    }
+  }
+
+  function telaCadastro() {
+    tela(`
+      <div class="tela-login">
+        <div><span class="rotulo">Portal de Locação</span><h1>Pedir acesso</h1></div>
+        <p class="suave">Depois de enviar, o administrador confere o seu cadastro e libera o acesso.</p>
+        <form id="form-cadastro" onsubmit="event.preventDefault(); enviarCadastro()">
+          <div class="pr-field"><label for="cad-nome">Nome completo</label><input id="cad-nome" required autocomplete="name"></div>
+          <div class="pr-field"><label for="cad-email">E-mail</label><input id="cad-email" type="email" required autocomplete="email"></div>
+          <div class="pr-field"><label for="cad-tel">Telefone</label><input id="cad-tel" type="tel"${mascara('telefone')}></div>
+          ${campoSenha('cad-senha', 'Senha (mínimo 6 caracteres)', 'new-password')}
+          ${campoSenha('cad-senha2', 'Repita a senha', 'new-password')}
+          <button class="pr-btn pr-btn--pri largo" id="btn-cadastrar">Enviar pedido</button>
+        </form>
+        <button class="pr-btn pr-btn--texto" onclick="telaEntrar()">Já tenho acesso: entrar</button>
+      </div>`, true);
+    document.getElementById('cad-nome').focus();
+  }
+
+  async function enviarCadastro() {
+    const senha = document.getElementById('cad-senha').value;
+    if (senha !== document.getElementById('cad-senha2').value) return mostrarMensagem('As senhas não são iguais.', 'erro');
+    const botao = document.getElementById('btn-cadastrar');
+    botao.disabled = true; botao.textContent = 'Enviando…';
+    const email = document.getElementById('cad-email').value.trim();
+    try {
+      const r = await chamar('cadastrar', {
+        Nome: document.getElementById('cad-nome').value.trim(), Email: email,
+        Telefone: document.getElementById('cad-tel').value.trim(), Senha: senha
+      });
+      estado.loginEmail = email; gravarLocal('ultimoEmail', email);
+      await tratarSituacao(r);
+    } catch (erro) {
+      mostrarErro(erro);
+      botao.disabled = false; botao.textContent = 'Enviar pedido';
+    }
+  }
+
+  function telaAvisoAcesso(titulo, texto) {
+    tela(`
+      <div class="tela-login">
+        <h1>${esc(titulo)}</h1>
+        <p class="suave">${esc(texto)}</p>
+        <button class="pr-btn pr-btn--pri largo" onclick="iniciar()">Verificar de novo</button>
+        <button class="pr-btn pr-btn--texto" onclick="sairDoSistema()">Sair</button>
+      </div>`, true);
+  }
+
+  /* =========================================================
+   * Painel inicial
+   * ========================================================= */
+  async function telaPainel() {
+    carregando();
+    let p;
+    try { p = await chamar('abrirPainel', auth()); } catch (erro) { return telaErro(erro, '#/'); }
+    if (paginaAtual() !== '') return; // a pessoa mudou de tela enquanto carregava
+    estado.avisos = p.avisos;
+    desenharTopo('');
+    const hora = new Date().getHours();
+    const saudacao = hora < 12 ? 'Bom dia' : hora < 18 ? 'Boa tarde' : 'Boa noite';
+    const primeiroNome = String(estado.usuario.Nome).split(' ')[0];
+    const t = p.totais;
+    const total = (classe, rotulo, numero, etiqueta, filtro) => `
+      <a class="total ${classe}" href="#/imoveis${filtro ? '?f=' + filtro : ''}">
+        <span class="rotulo">${rotulo}</span><b>${numero}</b>${etiqueta}</a>`;
+    tela(`
+      <div class="titulo-pagina"><div>
+        <span class="rotulo">${esc(dataComDia(p.hoje))}</span>
+        <h1>${saudacao}, ${esc(primeiroNome)}! Veja como estão os imóveis</h1>
+      </div></div>
+      <div class="totais">
+        ${total('', 'Imóveis cadastrados', t.todos, '<span class="suave pequeno">Ver todos</span>', '')}
+        ${total('ok', 'Em dia', t.ok, '<span class="st st--ok">Prazo com folga</span>', 'ok')}
+        ${total('aviso', 'Vencem em 30 dias', t.aviso, '<span class="st st--aviso">Hora de renovar</span>', 'aviso')}
+        ${total('vencido', 'Vencidos', t.vencido, '<span class="st st--vencido">Precisa de atenção</span>', 'vencido')}
+      </div>
+      <div class="colunas">
+        <section class="painel larga" aria-labelledby="titulo-prazos">
+          <div class="painel-topo"><h2 id="titulo-prazos">Próximos prazos</h2><a href="#/imoveis">Ver lista completa</a></div>
+          ${p.proximos.length ? p.proximos.map(cartaoPrazo).join('') :
+            `<p class="vazio">Nenhum imóvel com data prazo ainda. <a href="#/novo">Incluir o primeiro imóvel</a></p>`}
+        </section>
+        ${blocoAvisos(p.agenda)}
+      </div>
+      <div class="barra-fixa so-celular"><a href="#/novo" class="pr-btn pr-btn--acao">+ Incluir imóvel</a></div>`);
+  }
+
+  function cartaoPrazo(i) {
+    const [, m, d] = i.DataPrazo.split('-');
+    const detalhes = [i.Localizacao, i.Inquilino].filter(Boolean).join(' · ');
+    return `<a class="pr-card" href="#/imovel/${esc(i.ID_Imovel)}">
+      <div class="pr-card__dia"><b>${d}</b><span>${MESES[Number(m) - 1]}</span></div>
+      <div><h3>${esc(i.Nome)}</h3>${detalhes ? `<p>${esc(detalhes)}</p>` : ''}</div>
+      ${etiquetaSituacao(i)}</a>`;
+  }
+
+  function blocoAvisos(agenda) {
+    if (agenda !== undefined) estado.agendaConectada = agenda;
+    const av = estado.avisos;
+    return `<section class="painel estreita" id="avisos-painel" aria-labelledby="titulo-avisos">
+      <div class="painel-topo"><h2 id="titulo-avisos">Avisos</h2>
+        ${av.naoLidos ? `<button class="pr-btn pr-btn--texto pr-btn--pequeno" onclick="marcarTodosLidos()">Marcar como lidos</button>` : '<span class="rotulo">Nada novo</span>'}</div>
+      <div>${av.lista.length ? av.lista.map(itemAviso).join('') : '<p class="suave">Nenhum prazo vencido ou chegando. Tudo em dia!</p>'}</div>
+      <div class="pr-alert pr-alert--info"><span class="pr-alert__ic">${ICONE.agenda}</span><div>
+        ${estado.agendaConectada ? '<b>Prazos na Agenda Google</b>Cada imóvel salvo com data prazo vai para a agenda “Portal de Locação – Prazos”, com um lembrete 30 dias antes.'
+          : '<b>Agenda Google</b>Quando o primeiro imóvel com data prazo for salvo, a agenda “Portal de Locação – Prazos” é criada.'}</div></div>
+    </section>`;
+  }
+
+  function telaErro(erro, rota) {
+    tela(`<div class="tela-login"><h1>Não foi possível abrir</h1><p class="suave">${esc(erro.message || erro)}</p>
+      <button class="pr-btn pr-btn--pri largo" onclick="navegar('${rota}')">Tentar de novo</button></div>`, true);
+  }
+
+  /* =========================================================
+   * Lista de imóveis
+   * ========================================================= */
+  async function telaImoveis(filtro) {
+    estado.filtro = NOMES_SITUACAO[filtro] ? filtro : 'todos';
+    carregando('Carregando os imóveis…');
+    try { estado.lista = await chamar('listarImoveis', auth()); } catch (erro) { return telaErro(erro, '#/imoveis'); }
+    if (paginaAtual() !== 'imoveis') return;
+    tela(`
+      <div class="titulo-pagina"><div>
+        <span class="rotulo">${estado.lista.imoveis.length} ${estado.lista.imoveis.length === 1 ? 'imóvel' : 'imóveis'}</span>
+        <h1>Imóveis</h1>
+      </div></div>
+      <div class="acoes">
+        <div class="busca">
+          <label for="busca" class="sr">Buscar imóvel</label>${ICONE.lupa}
+          <input id="busca" class="campo-busca" type="search" placeholder="Buscar por imóvel, endereço ou inquilino"
+            value="${esc(estado.busca)}" oninput="estado.busca = this.value; desenharResultados()">
+        </div>
+        <div class="filtros" role="group" aria-label="Filtrar por prazo" id="filtros"></div>
+      </div>
+      <div id="resultados"></div>
+      <div class="legenda"><span class="rotulo">Legenda</span>
+        <span class="st st--ok">Em dia</span><span>mais de 30 dias até o prazo</span>
+        <span class="st st--aviso">Vence em breve</span><span>30 dias ou menos</span>
+        <span class="st st--vencido">Vencido</span><span>o prazo já passou</span></div>
+      <div class="barra-fixa so-celular"><a href="#/novo" class="pr-btn pr-btn--acao">+ Incluir imóvel</a></div>`);
+    desenharResultados();
+  }
+
+  function escolherFiltro(f) {
+    estado.filtro = f;
+    history.replaceState(null, '', '#/imoveis' + (f === 'todos' ? '' : '?f=' + f));
+    desenharResultados();
+  }
+
+  function desenharResultados() {
+    const termo = semAcento(estado.busca).trim();
+    const achados = estado.lista.imoveis.filter(i => !termo ||
+      semAcento([i.Nome, i.Localizacao, i.Inquilino].join(' ')).includes(termo));
+    const conta = s => achados.filter(i => s === 'todos' || i.situacao === s).length;
+    const opcoes = ['todos', 'ok', 'aviso', 'vencido'].concat(conta('sem-prazo') ? ['sem-prazo'] : []);
+    document.getElementById('filtros').innerHTML = opcoes.map(f =>
+      `<button class="filtro" aria-pressed="${estado.filtro === f}" onclick="escolherFiltro('${f}')">${NOMES_SITUACAO[f]}<span class="mono">${conta(f)}</span></button>`).join('');
+
+    const lista = achados.filter(i => estado.filtro === 'todos' || i.situacao === estado.filtro)
+      .sort((a, b) => (ORDEM_SITUACAO[a.situacao] - ORDEM_SITUACAO[b.situacao]) || String(a.DataPrazo).localeCompare(String(b.DataPrazo)));
+    const area = document.getElementById('resultados');
+    if (!lista.length) {
+      area.innerHTML = `<div class="painel"><p class="vazio">${estado.lista.imoveis.length
+        ? 'Nenhum imóvel encontrado com essa busca ou filtro.'
+        : 'Nenhum imóvel cadastrado ainda. <a href="#/novo">Incluir o primeiro imóvel</a>'}</p></div>`;
+      return;
+    }
+    area.innerHTML = `
+      <div class="caixa-tabela">
+        <table class="tabela">
+          <thead><tr><th>Imóvel</th><th>Inquilino</th><th>Assinatura</th><th>Entrada</th><th>Vigente</th><th>Prazo</th><th>Situação</th><th><span class="sr">Ações</span></th></tr></thead>
+          <tbody>${lista.map(i => `
+            <tr class="clicavel" onclick="if (!event.target.closest('a')) navegar('#/imovel/${esc(i.ID_Imovel)}')">
+              <td><div class="nome">${esc(i.Nome)}</div>
+                ${i.Localizacao ? `<div class="suave pequeno">${esc(i.Localizacao)}</div>` : ''}
+                <div class="suave" style="font-size:13px">Cadastrado em ${dataBR(i.DataCadastro)}</div></td>
+              <td>${esc(i.Inquilino) || '<span class="suave">—</span>'}</td>
+              <td class="data">${dataBR(i.DataAssinatura)}</td>
+              <td class="data">${dataBR(i.DataEntrada)}</td>
+              <td class="data">${dataBR(i.DataVigente)}</td>
+              <td class="data"><b>${dataBR(i.DataPrazo)}</b></td>
+              <td>${etiquetaSituacao(i)}</td>
+              <td><a class="pr-btn pr-btn--texto pr-btn--pequeno" href="#/imovel/${esc(i.ID_Imovel)}" aria-label="Editar ${esc(i.Nome)}">${ICONE.lapis}Editar</a></td>
+            </tr>`).join('')}</tbody>
+        </table>
+      </div>
+      <div class="lista-cartoes">${lista.map(i => `
+        <a class="cartao-imovel" href="#/imovel/${esc(i.ID_Imovel)}">
+          <div class="linha"><b>${esc(i.Nome)}</b>${etiquetaSituacao(i)}</div>
+          ${i.Localizacao ? `<span class="suave pequeno">${esc(i.Localizacao)}</span>` : ''}
+          <span class="pequeno">${esc(i.Inquilino || 'Sem inquilino')} · prazo <b class="mono">${dataBR(i.DataPrazo)}</b></span>
+        </a>`).join('')}</div>`;
+  }
+
+  /* =========================================================
+   * Incluir / editar imóvel
+   * ========================================================= */
+  async function telaImovel(id) {
+    estado.form = { imovel: null, fotosNovas: [], contratoNovo: null, podeExcluir: false };
+    if (id) {
+      carregando('Abrindo o imóvel…');
+      let r;
+      try { r = await chamar('abrirImovel', id, auth()); } catch (erro) { return telaErro(erro, '#/imoveis'); }
+      if (location.hash.indexOf(id) === -1) return;
+      estado.form.imovel = r.imovel;
+      estado.form.podeExcluir = r.podeExcluir;
+      estado.form.hoje = r.hoje;
+    }
+    const i = estado.form.imovel || {};
+    const novo = !estado.form.imovel;
+    const hoje = new Date();
+    const hojeISO = `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, '0')}-${String(hoje.getDate()).padStart(2, '0')}`;
+    const campoData = (nome, rotulo, dica) => `<div class="pr-field"><label for="f-${nome}">${rotulo}</label>
+      <input id="f-${nome}" name="${nome}" type="date" value="${esc(i[nome] || '')}"><small>${dica}</small></div>`;
+
+    tela(`
+      <div class="titulo-pagina"><div>
+        <span class="rotulo"><a href="#/imoveis" style="color:inherit">Imóveis</a> › ${novo ? 'Novo' : 'Editar'}</span>
+        <h1>${novo ? 'Incluir imóvel' : esc(i.Nome)}</h1>
+        ${novo ? '<p class="suave">Preencha o que você já sabe. Dá para completar depois.</p>' : `<div>${etiquetaSituacao(i)}</div>`}
+      </div></div>
+      <form id="form-imovel" onsubmit="event.preventDefault(); salvarFormulario()" style="display:flex;flex-direction:column;gap:24px">
+        <section class="painel">
+          <h2>Imóvel</h2>
+          <div class="grade">
+            <div class="pr-field"><label for="f-Nome">Nome do imóvel *</label>
+              <input id="f-Nome" name="Nome" required placeholder="Ex.: Apartamento 302 · Ed. Aurora" value="${esc(i.Nome || '')}"></div>
+            <div class="pr-field"><label for="f-Localizacao">Localização</label>
+              <input id="f-Localizacao" name="Localizacao" placeholder="Rua, número, bairro e cidade" value="${esc(i.Localizacao || '')}">
+              ${i.Localizacao ? `<small><a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(i.Localizacao)}" target="_blank" rel="noopener">Ver no mapa</a></small>` : ''}</div>
+          </div>
+        </section>
+
+        <section class="painel">
+          <h2>Datas do contrato</h2>
+          <div class="grade">
+            <div class="pr-field"><label for="f-DataCadastro">Data do cadastro</label>
+              <input id="f-DataCadastro" type="text" value="${novo ? dataBR(hojeISO) : dataBR(i.DataCadastro)}" readonly><small>Preenchida sozinha.</small></div>
+            ${campoData('DataAssinatura', 'Data de assinatura', 'Quando o contrato foi assinado.')}
+            ${campoData('DataEntrada', 'Data de entrada', 'Quando o inquilino entrou.')}
+            ${campoData('DataVigente', 'Data vigente', 'Quando o contrato começa a valer.')}
+            ${campoData('DataPrazo', 'Data prazo', 'Quando o contrato termina.')}
+          </div>
+          ${i.exemplo
+            ? `<div class="pr-alert pr-alert--atencao"><span class="pr-alert__ic">!</span><div><b>Imóvel de exemplo</b>Os imóveis de exemplo não vão para a Agenda Google.</div></div>`
+            : `<div class="pr-alert pr-alert--info"><span class="pr-alert__ic">${ICONE.agenda}</span><div><b>${i.naAgenda ? 'Está na Agenda Google' : 'Vai para a Agenda Google'}</b>A data prazo vira um evento na agenda “Portal de Locação – Prazos”, com um lembrete 30 dias antes. O sininho também avisa aqui no portal.</div></div>`}
+        </section>
+
+        <section class="painel">
+          <h2>Inquilino</h2>
+          <div class="grade">
+            <div class="pr-field"><label for="f-Inquilino">Nome do inquilino</label>
+              <input id="f-Inquilino" name="Inquilino" placeholder="Nome completo ou da empresa" value="${esc(i.Inquilino || '')}"></div>
+            <div class="pr-field"><label for="f-CPF">CPF ou CNPJ</label>
+              <input id="f-CPF" name="CPF"${mascara('documento')} value="${esc(i.CPF || '')}"></div>
+            <div class="pr-field"><label for="f-Telefone">Telefone</label>
+              <input id="f-Telefone" name="Telefone" type="tel"${mascara('telefone')} value="${esc(i.Telefone || '')}"></div>
+          </div>
+        </section>
+
+        <section class="painel">
+          <h2>Anexos</h2>
+          <div class="grade" id="anexos"></div>
+        </section>
+
+        <div class="acoes fim">
+          ${!novo && estado.form.podeExcluir ? `<button type="button" class="pr-btn pr-btn--perigo" onclick="excluirImovelAtual()" style="margin-right:auto">Excluir imóvel</button>` : ''}
+          <a href="#/imoveis" class="pr-btn pr-btn--sec">Cancelar</a>
+          <button class="pr-btn pr-btn--pri" id="btn-salvar">${novo ? 'Salvar imóvel' : 'Salvar mudanças'}</button>
+        </div>
+      </form>`, true);
+    document.querySelectorAll('#form-imovel [data-mascara]').forEach(c => { c.dataset.digitos = c.value.replace(/\D/g, ''); conferirDocumento(c); });
+    desenharAnexos();
+    if (novo) document.getElementById('f-Nome').focus();
+  }
+
+  function desenharAnexos() {
+    const f = estado.form;
+    const i = f.imovel || { Fotos: [] };
+    const fotosSalvas = i.Fotos.map(foto => `
+      <div class="foto">
+        ${estado.miniaturas[foto.url]
+          ? `<img src="${estado.miniaturas[foto.url]}" alt="${esc(foto.nome)}" onclick="abrirAnexo(event, '${esc(foto.url)}')">`
+          : `<span data-miniatura="${esc(foto.url)}">FOTO</span>`}
+        <button type="button" class="tirar" onclick="tirarFotoSalva('${esc(foto.url)}')" aria-label="Remover a foto ${esc(foto.nome)}">${ICONE.x}</button>
+      </div>`).join('');
+    const fotosNovas = f.fotosNovas.map((foto, n) => `
+      <div class="foto nova" title="Será enviada ao salvar">
+        <img src="${foto.previa}" alt="Foto nova: ${esc(foto.arquivo.name)}">
+        <button type="button" class="tirar" onclick="tirarFotoNova(${n})" aria-label="Não enviar ${esc(foto.arquivo.name)}">${ICONE.x}</button>
+      </div>`).join('');
+    const contratoSalvo = i.ContratoUrl && !f.contratoNovo ? `
+      <div class="arquivo">${ICONE.arquivo}<span>${esc(i.ContratoNome || 'contrato.pdf')}</span>
+        <button type="button" class="pr-btn pr-btn--texto pr-btn--pequeno" onclick="abrirAnexo(event, '${esc(i.ContratoUrl)}')">Abrir</button>
+        <button type="button" class="pr-btn pr-btn--texto pr-btn--pequeno" onclick="tirarContratoSalvo()" aria-label="Remover o contrato">${ICONE.x}</button></div>` : '';
+    const contratoNovo = f.contratoNovo ? `
+      <div class="arquivo">${ICONE.arquivo}<span>${esc(f.contratoNovo.name)}</span><span class="etiqueta" style="flex:none">Novo</span>
+        <button type="button" class="pr-btn pr-btn--texto pr-btn--pequeno" onclick="estado.form.contratoNovo = null; desenharAnexos()" aria-label="Não enviar o contrato">${ICONE.x}</button></div>` : '';
+
+    document.getElementById('anexos').innerHTML = `
+      <div class="pr-field">
+        <span style="font:600 14px/20px var(--font-sans)">Fotos do imóvel</span>
+        <label class="area-envio" for="campo-fotos">${ICONE.foto}Escolher fotos<span>Pode tirar na hora pelo tablet ou celular</span></label>
+        <input id="campo-fotos" type="file" accept="image/*" multiple class="sr" onchange="escolherFotos(this)">
+        ${fotosSalvas || fotosNovas ? `<div class="fotos">${fotosSalvas}${fotosNovas}</div>` : ''}
+        ${f.fotosNovas.length ? `<small>${f.fotosNovas.length === 1 ? 'A foto com borda laranja é enviada' : 'As fotos com borda laranja são enviadas'} ao salvar.</small>` : ''}
+      </div>
+      <div class="pr-field">
+        <span style="font:600 14px/20px var(--font-sans)">Contrato (PDF)</span>
+        <label class="area-envio" for="campo-contrato">${ICONE.pdf}${i.ContratoUrl || f.contratoNovo ? 'Trocar contrato' : 'Enviar contrato'}<span>Fica guardado no Google Drive</span></label>
+        <input id="campo-contrato" type="file" accept="application/pdf" class="sr" onchange="escolherContrato(this)">
+        ${contratoSalvo}${contratoNovo}
+      </div>`;
+    carregarMiniaturas();
+  }
+
+  function escolherFotos(campo) {
+    for (const arquivo of campo.files) {
+      if (!arquivo.type.startsWith('image/')) { mostrarMensagem(`${arquivo.name} não é uma foto.`, 'erro'); continue; }
+      estado.form.fotosNovas.push({ arquivo, previa: URL.createObjectURL(arquivo) });
+    }
+    campo.value = '';
+    desenharAnexos();
+  }
+
+  function tirarFotoNova(n) {
+    const [foto] = estado.form.fotosNovas.splice(n, 1);
+    if (foto) URL.revokeObjectURL(foto.previa);
+    desenharAnexos();
+  }
+
+  function escolherContrato(campo) {
+    const arquivo = campo.files[0];
+    campo.value = '';
+    if (!arquivo) return;
+    if (arquivo.type !== 'application/pdf') return mostrarMensagem('O contrato precisa ser um arquivo PDF.', 'erro');
+    estado.form.contratoNovo = arquivo;
+    desenharAnexos();
+  }
+
+  async function tirarFotoSalva(url) {
+    if (!confirm('Remover esta foto? Ela vai para a lixeira do Google Drive.')) return;
+    try {
+      estado.form.imovel = await chamar('removerFoto', estado.form.imovel.ID_Imovel, url, auth());
+      desenharAnexos();
+      mostrarMensagem('Foto removida.');
+    } catch (erro) { mostrarErro(erro); }
+  }
+
+  async function tirarContratoSalvo() {
+    if (!confirm('Remover o contrato? Ele vai para a lixeira do Google Drive.')) return;
+    try {
+      estado.form.imovel = await chamar('removerContrato', estado.form.imovel.ID_Imovel, auth());
+      desenharAnexos();
+      mostrarMensagem('Contrato removido.');
+    } catch (erro) { mostrarErro(erro); }
+  }
+
+  // As fotos ficam privadas no Drive: as miniaturas são baixadas uma por vez pelo servidor
+  async function carregarMiniaturas() {
+    if (estado.baixandoMiniaturas) return;
+    estado.baixandoMiniaturas = true;
+    try {
+      let lugar;
+      while ((lugar = document.querySelector('#anexos [data-miniatura]:not([data-tentou])'))) {
+        const url = lugar.dataset.miniatura;
+        lugar.dataset.tentou = '1';
+        try {
+          const a = await chamar('baixarArquivo', url, auth());
+          estado.miniaturas[url] = URL.createObjectURL(base64ParaBlob(a.base64, a.tipo));
+          const atual = document.querySelector(`#anexos [data-miniatura="${CSS.escape(url)}"]`);
+          if (atual) atual.outerHTML = `<img src="${estado.miniaturas[url]}" alt="${esc(a.nome)}" onclick="abrirAnexo(event, '${esc(url)}')">`;
+        } catch (e) { /* fica o quadradinho "FOTO" */ }
+      }
+    } finally { estado.baixandoMiniaturas = false; }
+  }
+
+  async function salvarFormulario() {
+    const f = estado.form;
+    const dados = lerFormulario('form-imovel');
+    if (!dados.Nome) return mostrarMensagem('Informe o nome do imóvel.', 'erro');
+    if (dados.DataVigente && dados.DataPrazo && dados.DataPrazo < dados.DataVigente) {
+      return mostrarMensagem('A data prazo não pode ser antes da data vigente.', 'erro');
+    }
+    const botao = document.getElementById('btn-salvar');
+    const textoBotao = botao.textContent;
+    botao.disabled = true; botao.textContent = 'Salvando…';
+    let id = f.imovel && f.imovel.ID_Imovel;
+    try {
+      const r = await chamar('salvarImovel', id || '', dados, auth());
+      id = r.imovel.ID_Imovel;
+      f.imovel = r.imovel;
+      // Depois de salvar os dados, envia os anexos um por vez
+      const total = f.fotosNovas.length;
+      while (f.fotosNovas.length) {
+        const foto = f.fotosNovas[0];
+        mostrarAvisoFixo(`Enviando foto ${total - f.fotosNovas.length + 1} de ${total}…`);
+        f.imovel = await chamar('anexarFoto', id, await lerArquivo(foto.arquivo), auth());
+        URL.revokeObjectURL(foto.previa);
+        f.fotosNovas.shift();
+      }
+      if (f.contratoNovo) {
+        mostrarAvisoFixo('Enviando o contrato…');
+        f.imovel = await chamar('anexarContrato', id, await lerArquivo(f.contratoNovo), auth());
+        f.contratoNovo = null;
+      }
+      document.getElementById('progresso-envio')?.remove();
+      if (r.avisoAgenda) mostrarMensagem(r.avisoAgenda, 'erro'); else mostrarMensagem('Imóvel salvo!');
+      atualizarAvisos();
+      navegar('#/imoveis');
+    } catch (erro) {
+      document.getElementById('progresso-envio')?.remove();
+      botao.disabled = false; botao.textContent = textoBotao;
+      // Os dados já foram salvos, mas um anexo falhou: fica na tela para tentar de novo
+      if (id) {
+        mostrarMensagem('Os dados foram salvos, mas um anexo não foi enviado: ' + (erro.message || erro) + ' Toque em Salvar para tentar de novo.', 'erro');
+        if (location.hash !== '#/imovel/' + id) history.replaceState(null, '', '#/imovel/' + id);
+        desenharAnexos();
+      } else {
+        mostrarErro(erro);
+      }
+    }
+  }
+
+  async function excluirImovelAtual() {
+    const i = estado.form.imovel;
+    if (!confirm(`Excluir "${i.Nome}"? Os eventos da agenda são apagados, e as fotos e o contrato vão para a lixeira do Google Drive.`)) return;
+    try {
+      await chamar('excluirImovel', i.ID_Imovel, auth());
+      mostrarMensagem('Imóvel excluído.');
+      atualizarAvisos();
+      navegar('#/imoveis');
+    } catch (erro) { mostrarErro(erro); }
+  }
+
+  /* =========================================================
+   * Arquivos: reduzir, enviar em pedaços e abrir
+   * ========================================================= */
+  const TAMANHO_ORIGINAL_MB = 100;
+  const TAMANHO_MAXIMO_MB = 50;     // limite do Google para um arquivo
+  const TAMANHO_PEDACO = 1500000;   // caracteres de base64 por pedaço (múltiplo de 4)
+  const LADO_MAXIMO_FOTO = 1600;
+
+  async function lerArquivo(arquivo) {
+    if (arquivo.size > TAMANHO_ORIGINAL_MB * 1024 * 1024) {
+      throw new Error(`O arquivo ${arquivo.name} passa de ${TAMANHO_ORIGINAL_MB} MB. Envie um arquivo menor.`);
+    }
+    arquivo = await reduzirArquivo(arquivo);
+    if (arquivo.size > TAMANHO_MAXIMO_MB * 1024 * 1024) {
+      throw new Error(`Mesmo reduzido, o arquivo passa de ${TAMANHO_MAXIMO_MB} MB. Envie um arquivo menor.`);
+    }
+    const base64 = await new Promise((resolve, reject) => {
+      const leitor = new FileReader();
+      leitor.onload = () => resolve(leitor.result.split(',')[1]);
+      leitor.onerror = () => reject(new Error('Não foi possível ler o arquivo.'));
+      leitor.readAsDataURL(arquivo);
+    });
+    const dados = { nome: arquivo.name, tipo: arquivo.type || 'application/octet-stream' };
+    if (base64.length <= TAMANHO_PEDACO || !window.API_URL) return { ...dados, base64 };
+
+    // Arquivo grande: vai em pedaços, porque o Google falha com pedidos muito grandes
+    const envio = Date.now().toString(36) + Math.random().toString(36).slice(2, 10);
+    const partes = Math.ceil(base64.length / TAMANHO_PEDACO);
+    for (let i = 0; i < partes; i++) {
+      mostrarAvisoFixo(`Enviando ${arquivo.name}… ${Math.round(i / partes * 100)}%`);
+      await chamar('enviarParteArquivo', envio, i, base64.slice(i * TAMANHO_PEDACO, (i + 1) * TAMANHO_PEDACO), auth());
+    }
+    mostrarAvisoFixo('Salvando no Google Drive…');
+    return { ...dados, envio, partes };
+  }
+
+  /* Fotos: no máximo 1600 px no lado maior, em JPEG (uma foto de celular de 3–5 MB vira uns 300 KB).
+   * PDFs escaneados: cada página vira uma imagem mais leve. PDFs com texto, folhas grandes
+   * e PDFs com assinatura digital ficam como estão. Se não ficar menor, vai o original. */
+  async function reduzirArquivo(arquivo) {
+    try {
+      if (/^image\/(jpeg|png|webp)$/i.test(arquivo.type) && arquivo.size > 400 * 1024) return await reduzirImagem(arquivo);
+      if (arquivo.type === 'application/pdf' && arquivo.size > 1.5 * 1024 * 1024) return await reduzirPdf(arquivo);
+    } catch (erro) { console.warn('Não foi possível reduzir o arquivo; vai o original.', erro); }
+    return arquivo;
+  }
+
+  async function reduzirImagem(arquivo) {
+    const endereco = URL.createObjectURL(arquivo);
+    try {
+      const img = new Image();
+      img.src = endereco;
+      await img.decode(); // o navegador já aplica a rotação da câmera
+      const escala = Math.min(1, LADO_MAXIMO_FOTO / Math.max(img.naturalWidth, img.naturalHeight));
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.round(img.naturalWidth * escala);
+      canvas.height = Math.round(img.naturalHeight * escala);
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = '#fff';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      const blob = await new Promise(r => canvas.toBlob(r, 'image/jpeg', 0.78));
+      if (!blob || blob.size >= arquivo.size) return arquivo;
+      return new File([blob], arquivo.name.replace(/\.\w+$/, '') + '.jpg', { type: 'image/jpeg' });
+    } finally { URL.revokeObjectURL(endereco); }
+  }
+
+  async function reduzirPdf(arquivo) {
+    const bytes = new Uint8Array(await arquivo.arrayBuffer());
+    // Assinatura digital (gov.br, certificado, Clicksign…): mexer no arquivo invalidaria a assinatura
+    const amostra = new TextDecoder('latin1').decode(bytes);
+    if (/\/ByteRange|\/Type\s*\/Sig\b/.test(amostra)) return arquivo;
+
+    mostrarAvisoFixo('Reduzindo o PDF…');
+    await carregarScript('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js');
+    await carregarScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js');
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    const pdf = await pdfjsLib.getDocument({ data: bytes }).promise;
+    if (pdf.numPages > 60) return arquivo;
+
+    let comTexto = 0;
+    for (let i = 1; i <= pdf.numPages; i++) {
+      const pagina = await pdf.getPage(i);
+      const v = pagina.getViewport({ scale: 1 });
+      if (Math.max(v.width, v.height) > 1250) return arquivo;
+      const texto = await pagina.getTextContent();
+      if (texto.items.map(t => t.str).join('').trim().length > 80) comTexto++;
+    }
+    if (comTexto > pdf.numPages / 2) return arquivo;
+
+    let doc;
+    const canvas = document.createElement('canvas');
+    for (let i = 1; i <= pdf.numPages; i++) {
+      mostrarAvisoFixo(`Reduzindo o PDF… página ${i} de ${pdf.numPages}`);
+      const pagina = await pdf.getPage(i);
+      const base = pagina.getViewport({ scale: 1 });
+      const vp = pagina.getViewport({ scale: Math.min(2.2, LADO_MAXIMO_FOTO / Math.max(base.width, base.height)) });
+      canvas.width = Math.round(vp.width); canvas.height = Math.round(vp.height);
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+      await pagina.render({ canvasContext: ctx, viewport: vp }).promise;
+      const jpg = canvas.toDataURL('image/jpeg', 0.72);
+      const formato = [base.width, base.height];
+      const orientacao = base.width > base.height ? 'l' : 'p';
+      if (!doc) doc = new jspdf.jsPDF({ orientation: orientacao, unit: 'pt', format: formato });
+      else doc.addPage(formato, orientacao);
+      doc.addImage(jpg, 'JPEG', 0, 0, base.width, base.height);
+    }
+    const blob = doc.output('blob');
+    return blob.size < arquivo.size * 0.8 ? new File([blob], arquivo.name, { type: 'application/pdf' }) : arquivo;
+  }
+
+  const scriptsCarregados = {};
+  function carregarScript(src) {
+    if (!scriptsCarregados[src]) {
+      scriptsCarregados[src] = new Promise((resolve, reject) => {
+        const tag = document.createElement('script');
+        tag.src = src;
+        tag.onload = resolve;
+        tag.onerror = () => { delete scriptsCarregados[src]; reject(new Error('Sem internet para carregar ' + src)); };
+        document.head.appendChild(tag);
+      });
+    }
+    return scriptsCarregados[src];
+  }
+
+  function base64ParaBlob(base64, tipo) {
+    const binario = atob(base64);
+    const bytes = new Uint8Array(binario.length);
+    for (let i = 0; i < binario.length; i++) bytes[i] = binario.charCodeAt(i);
+    return new Blob([bytes], { type: tipo });
+  }
+
+  // Os arquivos ficam privados no Drive: o portal busca pelo servidor e abre numa nova aba
+  async function abrirAnexo(evento, url) {
+    evento.preventDefault();
+    const janela = window.open('', '_blank');
+    if (janela) janela.document.write('<p style="font-family:sans-serif;padding:24px;color:#555">Abrindo o arquivo…</p>');
+    try {
+      const a = await chamar('baixarArquivo', url, auth());
+      const endereco = URL.createObjectURL(base64ParaBlob(a.base64, a.tipo));
+      if (janela && /^(application\/pdf|image\/)/.test(a.tipo)) {
+        janela.location.href = endereco;
+      } else {
+        if (janela) janela.close();
+        const link = document.createElement('a');
+        link.href = endereco; link.download = a.nome;
+        document.body.appendChild(link); link.click(); link.remove();
+      }
+      setTimeout(() => URL.revokeObjectURL(endereco), 120000);
+    } catch (erro) {
+      if (janela) janela.close();
+      mostrarErro(erro);
+    }
+    return false;
+  }
+
+  /* =========================================================
+   * Usuários (só administrador)
+   * ========================================================= */
+  async function telaUsuarios() {
+    carregando('Carregando os usuários…');
+    try { estado.admin = await chamar('listarUsuariosAdmin', auth()); } catch (erro) { return telaErro(erro, '#/'); }
+    if (paginaAtual() !== 'usuarios') return;
+    const us = estado.admin.usuarios;
+    estado.pendentes = us.filter(u => u.Situacao === 'Pendente').length;
+    desenharTopo('usuarios');
+    const pendentes = us.filter(u => u.Situacao === 'Pendente');
+    const outros = us.filter(u => u.Situacao !== 'Pendente');
+    const linha = u => `
+      <div class="usuario-linha">
+        <div><b>${esc(u.Nome)}</b> ${u.Situacao !== 'Ativo' ? `<span class="etiqueta">${esc(u.Situacao)}</span>` : ''}
+          <div class="suave pequeno">${esc(u.Email)} · ${esc(u.Nivel)}${u.UltimoAcesso ? ' · último acesso ' + dataBR(u.UltimoAcesso) : ''}</div></div>
+        <div class="acoes" style="flex:none">
+          ${u.Situacao === 'Pendente' ? `
+            <button class="pr-btn pr-btn--pri pr-btn--pequeno" onclick="decidirCadastro('${esc(u.ID_Usuario)}', 'Ativo')">Aprovar</button>
+            <button class="pr-btn pr-btn--perigo pr-btn--pequeno" onclick="decidirCadastro('${esc(u.ID_Usuario)}', 'Recusado')">Recusar</button>` : ''}
+          <a class="pr-btn pr-btn--sec pr-btn--pequeno" href="#/usuario/${esc(u.ID_Usuario)}">Editar</a>
+        </div>
+      </div>`;
+    tela(`
+      <div class="titulo-pagina"><div><span class="rotulo">${us.length} ${us.length === 1 ? 'pessoa' : 'pessoas'}</span><h1>Usuários</h1></div></div>
+      ${pendentes.length ? `<section class="painel"><h2>Pedidos de acesso</h2>
+        <p class="suave pequeno">Quem for aprovado entra como Equipe: vê, inclui e edita imóveis. Só o Administrador exclui imóveis e cuida dos usuários.</p>
+        <div>${pendentes.map(linha).join('')}</div></section>` : ''}
+      <section class="painel"><h2>Equipe</h2><div>${outros.map(linha).join('')}</div></section>`, true);
+  }
+
+  async function decidirCadastro(id, situacao) {
+    const u = estado.admin.usuarios.find(x => x.ID_Usuario === id);
+    try {
+      await chamar('salvarUsuario', id, { Nome: u.Nome, Telefone: u.Telefone, Nivel: u.Nivel || 'Equipe', Situacao: situacao }, auth());
+      mostrarMensagem(situacao === 'Ativo' ? `${u.Nome} pode entrar no portal.` : 'Pedido recusado.');
+      telaUsuarios();
+    } catch (erro) { mostrarErro(erro); }
+  }
+
+  async function telaEditarUsuario(id) {
+    if (!estado.admin) {
+      carregando();
+      try { estado.admin = await chamar('listarUsuariosAdmin', auth()); } catch (erro) { return telaErro(erro, '#/usuarios'); }
+    }
+    const u = estado.admin.usuarios.find(x => x.ID_Usuario === id);
+    if (!u) return telaErro(new Error('Usuário não encontrado.'), '#/usuarios');
+    const opcoes = (lista, atual) => lista.map(o => `<option${o === atual ? ' selected' : ''}>${esc(o)}</option>`).join('');
+    tela(`
+      <div class="titulo-pagina"><div><span class="rotulo"><a href="#/usuarios" style="color:inherit">Usuários</a> › Editar</span><h1>${esc(u.Nome)}</h1>
+        <p class="suave">${esc(u.Email)}</p></div></div>
+      <form id="form-usuario" class="painel" onsubmit="event.preventDefault(); salvarUsuarioAdmin('${esc(id)}')">
+        <div class="grade">
+          <div class="pr-field"><label for="u-Nome">Nome</label><input id="u-Nome" name="Nome" required value="${esc(u.Nome)}"></div>
+          <div class="pr-field"><label for="u-Telefone">Telefone</label><input id="u-Telefone" name="Telefone" type="tel"${mascara('telefone')} value="${esc(u.Telefone || '')}"></div>
+          <div class="pr-field"><label for="u-Nivel">Nível de acesso</label><select id="u-Nivel" name="Nivel">${opcoes(estado.admin.niveis, u.Nivel)}</select>
+            <small>Equipe vê, inclui e edita imóveis. Administrador também exclui imóveis e cuida dos usuários.</small></div>
+          <div class="pr-field"><label for="u-Situacao">Situação</label><select id="u-Situacao" name="Situacao">${opcoes(estado.admin.situacoes, u.Situacao)}</select>
+            <small>Inativo: a pessoa não consegue mais entrar.</small></div>
+          <div class="pr-field"><label for="u-NovaSenha">Nova senha</label><input id="u-NovaSenha" name="NovaSenha" type="text" autocomplete="off" minlength="6">
+            <small>Só para quem esqueceu a senha. Deixe em branco para não mudar.</small></div>
+        </div>
+        <div class="acoes fim"><a href="#/usuarios" class="pr-btn pr-btn--sec">Cancelar</a><button class="pr-btn pr-btn--pri" id="btn-salvar-usuario">Salvar</button></div>
+      </form>`, true);
+  }
+
+  async function salvarUsuarioAdmin(id) {
+    const botao = document.getElementById('btn-salvar-usuario');
+    botao.disabled = true; botao.textContent = 'Salvando…';
+    try {
+      estado.admin = await chamar('salvarUsuario', id, lerFormulario('form-usuario'), auth());
+      mostrarMensagem('Usuário salvo!');
+      navegar('#/usuarios');
+    } catch (erro) {
+      mostrarErro(erro);
+      botao.disabled = false; botao.textContent = 'Salvar';
+    }
+  }
+
+  iniciar();
+</script>
+
+</body>
+</html>
