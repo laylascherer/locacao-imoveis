@@ -42,6 +42,7 @@
   }
 
   * { box-sizing: border-box; }
+  html { overflow-x: clip; } /* nada pode alargar a página para os lados */
   body { margin: 0; background: var(--surface-bg); color: var(--ink); font: 400 16px/24px var(--font-sans); }
   a { color: var(--brand); }
   a:hover { color: var(--ink); }
@@ -245,7 +246,8 @@
   .carregando { padding: 64px 16px; text-align: center; color: var(--ink-muted); display: flex; flex-direction: column; align-items: center; gap: 12px; }
   .girando { width: 32px; height: 32px; border-radius: 50%; border: 3px solid var(--line); border-top-color: var(--brand); animation: girar 0.9s linear infinite; }
   @keyframes girar { to { transform: rotate(360deg); } }
-  .mensagem { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); max-width: calc(100vw - 32px); z-index: 50;
+  /* Fica entre 16px das bordas: nunca "empurra" a página para o lado (isso fazia o tablet afastar o zoom) */
+  .mensagem { position: fixed; left: 16px; right: 16px; bottom: 24px; margin: 0 auto; width: fit-content; max-width: 640px; z-index: 50;
     background: var(--ink); color: var(--surface-bg); padding: 12px 20px; border-radius: var(--radius-md); box-shadow: var(--shadow-raised); }
   .mensagem.erro { background: var(--danger); color: #fff; }
 
