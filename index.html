@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1">
   <title>Portal de Locação</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;600;700&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
@@ -1501,6 +1501,40 @@
       mostrarErro(erro);
       botao.disabled = false; botao.textContent = 'Salvar';
     }
+  }
+
+  /* ---------- Diagnóstico de tela (só com ?diag no endereço) ----------
+   * Mostra as medidas que o navegador está usando e o que passa da borda da tela,
+   * para achar problemas de layout em aparelhos que não temos aqui. */
+  function mostrarDiagnostico() {
+    const de = document.documentElement, vv = window.visualViewport;
+    const largura = de.clientWidth;
+    const passam = [...document.querySelectorAll('body *')]
+      .map(el => ({ el, r: el.getBoundingClientRect() }))
+      .filter(x => x.r.width && x.r.right > largura + 1)
+      .sort((a, b) => b.r.right - a.r.right).slice(0, 6)
+      .map(x => `${x.el.tagName.toLowerCase()}${x.el.id ? '#' + x.el.id : ''}${typeof x.el.className === 'string' && x.el.className ? '.' + x.el.className.trim().split(/\s+/).join('.') : ''} → ${Math.round(x.r.right)}px`);
+    let caixa = document.getElementById('diagnostico');
+    if (!caixa) {
+      caixa = document.createElement('pre');
+      caixa.id = 'diagnostico';
+      caixa.style.cssText = 'position:fixed;left:8px;bottom:8px;z-index:99;margin:0;max-width:calc(100% - 16px);white-space:pre-wrap;' +
+        'background:#16202e;color:#fff;font:12px/16px monospace;padding:8px 10px;border-radius:8px;opacity:.92';
+      caixa.onclick = mostrarDiagnostico;
+      document.body.appendChild(caixa);
+    }
+    caixa.textContent = [
+      'DIAGNÓSTICO (toque para atualizar)',
+      `janela: ${window.innerWidth} x ${window.innerHeight} · página: ${largura} · conteúdo: ${de.scrollWidth}`,
+      `zoom: ${vv ? vv.scale.toFixed(2) : '?'} · visível: ${vv ? Math.round(vv.width) : '?'} · tela: ${screen.width} x ${screen.height} · dpr: ${window.devicePixelRatio}`,
+      `modo computador: ${/Android|Mobile/.test(navigator.userAgent) ? 'não' : 'SIM'}`,
+      `passam da borda: ${passam.length ? passam.join(' | ') : 'nada'}`,
+      navigator.userAgent
+    ].join('\n');
+  }
+  if (/[?&]diag/.test(location.search)) {
+    setTimeout(mostrarDiagnostico, 2500);
+    window.addEventListener('resize', () => setTimeout(mostrarDiagnostico, 300));
   }
 
   iniciar();
