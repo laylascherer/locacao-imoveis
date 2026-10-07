@@ -41,7 +41,10 @@
   .suave { color: var(--ink-muted); }
   .pequeno { font-size: 14px; line-height: 20px; }
   .mono { font-family: var(--font-mono); font-weight: 500; font-variant-numeric: tabular-nums; }
-  .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  /* Escondido na tela, mas lido pelo leitor de tela. O !important vence regras como ".pr-field input { width: 100% }",
+     que antes deixavam os campos de arquivo escondidos com a largura da tela e empurravam a página para o lado. */
+  .sr { position: absolute !important; width: 1px !important; height: 1px !important; min-height: 0 !important;
+    padding: 0 !important; margin: -1px !important; border: 0 !important; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
   :focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
 
   /* ---------- Topo (menu) ---------- */
