@@ -168,8 +168,22 @@
 
   .cobrancas { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(320px, 100%), 1fr)); gap: 12px; }
 
+  /* ---------- Foto de capa (bolinha ao lado do nome) ---------- */
+  .com-capa { display: flex; align-items: center; gap: 12px; min-width: 0; }
+  .com-capa > div, .com-capa > b { min-width: 0; }
+  .capa { width: 40px; height: 40px; flex: none; border-radius: 50%; object-fit: cover; border: 1px solid var(--line);
+    background: var(--brand-soft); }
+  .capa--iniciais { display: grid; place-items: center; color: var(--brand); font: 600 14px/1 var(--font-sans); letter-spacing: .02em; }
+  .capa--grande { width: 64px; height: 64px; font-size: 22px; }
+  .aviso-item .capa { width: 32px; height: 32px; font-size: 12px; }
+  .foto .estrela { position: absolute; left: 4px; bottom: 4px; height: 30px; padding: 0 8px; border: 0; border-radius: 15px; cursor: pointer;
+    background: rgba(13,18,24,.7); color: #fff; display: inline-flex; align-items: center; gap: 4px; font: 600 12px/1 var(--font-sans); }
+  .foto.foto--capa { outline: 3px solid var(--brand); outline-offset: -3px; }
+  .foto.foto--capa .estrela { background: var(--brand); color: var(--on-brand); }
+  .foto.foto--capa .estrela svg { fill: currentColor; }
+
   /* ---------- Avisos ---------- */
-  .aviso-item { display: grid; grid-template-columns: 12px 1fr; gap: 12px; padding: 12px 16px; border-bottom: 1px solid var(--line);
+  .aviso-item { display: grid; grid-template-columns: 12px 32px minmax(0, 1fr); align-items: start; gap: 12px; padding: 12px 16px; border-bottom: 1px solid var(--line);
     text-decoration: none; color: var(--ink); }
   .aviso-item:last-child { border-bottom: 0; }
   .aviso-item:hover { background: var(--surface-bg); color: var(--ink); }
@@ -335,6 +349,7 @@
     arquivo: ic('<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/>', 18),
     agenda: ic('<rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>', 18),
     x: ic('<path d="M18 6 6 18M6 6l12 12"/>', 16),
+    estrela: ic('<path d="m12 2 3.1 6.3 6.9 1-5 4.9 1.2 6.8L12 17.8 5.8 21l1.2-6.8-5-4.9 6.9-1Z"/>', 14),
     olho: ic('<path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"/><circle cx="12" cy="12" r="3"/>'),
     olhoFechado: ic('<path d="M17.9 17.9A10.4 10.4 0 0 1 12 19c-7 0-11-7-11-7a18.5 18.5 0 0 1 5.1-5.9M9.9 5.2A9.1 9.1 0 0 1 12 5c7 0 11 7 11 7a18.6 18.6 0 0 1-2.2 3.2M14.1 14.1a3 3 0 1 1-4.2-4.2"/><path d="M1 1l22 22"/>')
   };
@@ -526,6 +541,20 @@
 
   function semAcento(t) {
     return String(t || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+  }
+
+  // Bolinha do imóvel: a foto de capa, ou as iniciais do nome quando não tem capa
+  function bolinha(nome, capa, grande) {
+    const classe = 'capa' + (grande ? ' capa--grande' : '');
+    return capa
+      ? `<img class="${classe}" src="${esc(capa)}" alt="">`
+      : `<span class="${classe} capa--iniciais" aria-hidden="true">${esc(iniciaisImovel(nome))}</span>`;
+  }
+
+  // "Casa Jardim das Flores" -> "CJ" (pula "de", "da", "dos"... e símbolos)
+  function iniciaisImovel(nome) {
+    const palavras = String(nome || '').split(/[\s·\-–,]+/).filter(p => p && !/^(d[aeo]s?|e)$/i.test(p));
+    return palavras.slice(0, 2).map(p => p[0]).join('').toUpperCase() || '?';
   }
 
   function iniciais(nome) {
@@ -730,7 +759,7 @@
   function itemAviso(a) {
     const t = textoAviso(a);
     return `<a class="aviso-item ${a.tipo}${a.lido ? ' lido' : ''}" href="#/imovel/${esc(a.ID_Imovel)}">
-      <span class="bolinha" aria-hidden="true"></span>
+      <span class="bolinha" aria-hidden="true"></span>${bolinha(a.nome, a.capa)}
       <div><b>${esc(t.titulo)}${a.lido ? '' : ' <span class="sr">(novo)</span>'}</b>${esc(t.texto)}</div></a>`;
   }
 
@@ -986,7 +1015,7 @@
         const [, m, d] = i.proximaCobranca.split('-');
         return `<a class="pr-card" href="#/imovel/${esc(i.ID_Imovel)}">
           <div class="pr-card__dia"><b>${d}</b><span>${MESES[Number(m) - 1]}</span></div>
-          <div><h3>${esc(i.Nome)}</h3><p>${esc([i.Inquilino, i.ValorAluguel !== '' ? dinheiro(i.ValorAluguel) : ''].filter(Boolean).join(' · '))}</p></div>
+          <div class="com-capa">${bolinha(i.Nome, i.Capa)}<div><h3>${esc(i.Nome)}</h3><p>${esc([i.Inquilino, i.ValorAluguel !== '' ? dinheiro(i.ValorAluguel) : ''].filter(Boolean).join(' · '))}</p></div></div>
           <span class="etiqueta">${quandoCobrar(i.diasCobranca)}</span></a>`;
       }).join('')}</div>` : `<p class="suave">Nenhuma cobrança nos próximos ${dias} dias.</p>`}
     </section>`;
@@ -997,7 +1026,7 @@
     const detalhes = [i.Localizacao, i.Inquilino].filter(Boolean).join(' · ');
     return `<a class="pr-card" href="#/imovel/${esc(i.ID_Imovel)}">
       <div class="pr-card__dia"><b>${d}</b><span>${MESES[Number(m) - 1]}</span></div>
-      <div><h3>${esc(i.Nome)}</h3>${detalhes ? `<p>${esc(detalhes)}</p>` : ''}</div>
+      <div class="com-capa">${bolinha(i.Nome, i.Capa)}<div><h3>${esc(i.Nome)}</h3>${detalhes ? `<p>${esc(detalhes)}</p>` : ''}</div></div>
       ${etiquetaSituacao(i)}</a>`;
   }
 
@@ -1079,9 +1108,9 @@
           <thead><tr><th>Imóvel</th><th>Inquilino</th><th>Assinatura</th><th>Entrada</th><th>Vigente</th><th>Prazo</th><th>Situação</th><th><span class="sr">Ações</span></th></tr></thead>
           <tbody>${lista.map(i => `
             <tr class="clicavel" onclick="if (!event.target.closest('a')) navegar('#/imovel/${esc(i.ID_Imovel)}')">
-              <td><div class="nome">${esc(i.Nome)}</div>
+              <td><div class="com-capa">${bolinha(i.Nome, i.Capa)}<div><div class="nome">${esc(i.Nome)}</div>
                 ${i.Localizacao ? `<div class="suave pequeno">${esc(i.Localizacao)}</div>` : ''}
-                <div class="suave" style="font-size:13px">Cadastrado em ${dataBR(i.DataCadastro)}</div></td>
+                <div class="suave" style="font-size:13px">Cadastrado em ${dataBR(i.DataCadastro)}</div></div></div></td>
               <td>${esc(i.Inquilino) || '<span class="suave">—</span>'}</td>
               <td class="data">${dataBR(i.DataAssinatura)}</td>
               <td class="data">${dataBR(i.DataEntrada)}</td>
@@ -1094,7 +1123,7 @@
       </div>
       <div class="lista-cartoes">${lista.map(i => `
         <a class="cartao-imovel" href="#/imovel/${esc(i.ID_Imovel)}">
-          <div class="linha"><b>${esc(i.Nome)}</b>${etiquetaSituacao(i)}</div>
+          <div class="linha"><div class="com-capa">${bolinha(i.Nome, i.Capa)}<b>${esc(i.Nome)}</b></div>${etiquetaSituacao(i)}</div>
           ${i.Localizacao ? `<span class="suave pequeno">${esc(i.Localizacao)}</span>` : ''}
           <span class="pequeno">${esc(i.Inquilino || 'Sem inquilino')} · prazo <b class="mono">${dataBR(i.DataPrazo)}</b></span>
         </a>`).join('')}</div>`;
@@ -1104,7 +1133,7 @@
    * Incluir / editar imóvel
    * ========================================================= */
   async function telaImovel(id) {
-    estado.form = { imovel: null, fotosNovas: [], contratoNovo: null, podeExcluir: false };
+    estado.form = { imovel: null, fotosNovas: [], contratoNovo: null, podeExcluir: false, capa: null };
     if (id) {
       carregando('Abrindo o imóvel…');
       let r;
@@ -1112,6 +1141,7 @@
       if (location.hash.indexOf(id) === -1) return;
       estado.form.imovel = r.imovel;
       estado.form.podeExcluir = r.podeExcluir;
+      if (r.imovel.CapaUrl) estado.form.capa = { url: r.imovel.CapaUrl };
       estado.form.hoje = r.hoje;
     }
     const i = estado.form.imovel || {};
@@ -1120,11 +1150,11 @@
       <input id="f-${nome}" name="${nome}" type="date" value="${esc(i[nome] || '')}"><small>${dica}</small></div>`;
 
     tela(`
-      <div class="titulo-pagina"><div>
+      <div class="titulo-pagina"><div class="com-capa" id="titulo-capa">${novo ? '' : bolinha(i.Nome, i.Capa, true)}<div>
         <span class="rotulo"><a href="#/imoveis" style="color:inherit">Imóveis</a> › ${novo ? 'Novo' : 'Editar'}</span>
         <h1>${novo ? 'Incluir imóvel' : esc(i.Nome)}</h1>
         ${novo ? '<p class="suave">Preencha o que você já sabe. Dá para completar depois.</p>' : `<div>${etiquetaSituacao(i)}</div>`}
-      </div></div>
+      </div></div></div>
       <form id="form-imovel" onsubmit="event.preventDefault(); salvarFormulario()" style="display:flex;flex-direction:column;gap:24px">
         <section class="painel">
           <h2>Imóvel</h2>
@@ -1237,17 +1267,22 @@
   function desenharAnexos() {
     const f = estado.form;
     const i = f.imovel || { Fotos: [] };
-    const fotosSalvas = i.Fotos.map(foto => `
-      <div class="foto">
+    const ehCapa = foto => !!f.capa && (f.capa.foto ? f.capa.foto === foto : f.capa.url === foto.url);
+    const botaoCapa = (foto, chamada) => `<button type="button" class="estrela" onclick="${chamada}" aria-pressed="${ehCapa(foto)}"
+        aria-label="${ehCapa(foto) ? 'Tirar a capa' : 'Usar como capa'}">${ICONE.estrela}Capa</button>`;
+    const fotosSalvas = i.Fotos.map((foto, n) => `
+      <div class="foto${ehCapa(foto) ? ' foto--capa' : ''}">
         ${estado.miniaturas[foto.url]
           ? `<img src="${estado.miniaturas[foto.url]}" alt="${esc(foto.nome)}" onclick="abrirAnexo(event, '${esc(foto.url)}')">`
           : `<span data-miniatura="${esc(foto.url)}">FOTO</span>`}
         <button type="button" class="tirar" onclick="tirarFotoSalva('${esc(foto.url)}')" aria-label="Remover a foto ${esc(foto.nome)}">${ICONE.x}</button>
+        ${botaoCapa(foto, `escolherCapa('salva', ${n})`)}
       </div>`).join('');
     const fotosNovas = f.fotosNovas.map((foto, n) => `
-      <div class="foto nova" title="Será enviada ao salvar">
+      <div class="foto nova${ehCapa(foto) ? ' foto--capa' : ''}" title="Será enviada ao salvar">
         <img src="${foto.previa}" alt="Foto nova: ${esc(foto.arquivo.name)}">
         <button type="button" class="tirar" onclick="tirarFotoNova(${n})" aria-label="Não enviar ${esc(foto.arquivo.name)}">${ICONE.x}</button>
+        ${botaoCapa(foto, `escolherCapa('nova', ${n})`)}
       </div>`).join('');
     const contratoSalvo = i.ContratoUrl && !f.contratoNovo ? `
       <div class="arquivo">${ICONE.arquivo}<span>${esc(i.ContratoNome || 'contrato.pdf')}</span>
@@ -1263,6 +1298,7 @@
         <label class="area-envio" for="campo-fotos">${ICONE.foto}Escolher fotos<span>Pode tirar na hora pelo tablet ou celular</span></label>
         <input id="campo-fotos" type="file" accept="image/*" multiple class="sr" onchange="escolherFotos(this)">
         ${fotosSalvas || fotosNovas ? `<div class="fotos">${fotosSalvas}${fotosNovas}</div>` : ''}
+        ${fotosSalvas || fotosNovas ? '<small>Toque em <b>Capa</b> para escolher a foto que aparece na bolinha ao lado do nome. Toque de novo para tirar.</small>' : ''}
         ${f.fotosNovas.length ? `<small>${f.fotosNovas.length === 1 ? 'A foto com borda laranja é enviada' : 'As fotos com borda laranja são enviadas'} ao salvar.</small>` : ''}
       </div>
       <div class="pr-field">
@@ -1284,9 +1320,62 @@
   }
 
   function tirarFotoNova(n) {
-    const [foto] = estado.form.fotosNovas.splice(n, 1);
+    const f = estado.form;
+    const [foto] = f.fotosNovas.splice(n, 1);
     if (foto) URL.revokeObjectURL(foto.previa);
+    // Era a capa escolhida: volta para a capa que já estava salva (se tinha)
+    if (f.capa && f.capa.foto === foto) f.capa = f.imovel && f.imovel.CapaUrl ? { url: f.imovel.CapaUrl } : null;
     desenharAnexos();
+  }
+
+  // Marca (ou desmarca) a foto de capa. Vale ao tocar em Salvar.
+  function escolherCapa(tipo, n) {
+    const f = estado.form;
+    const nova = tipo === 'nova' ? { foto: f.fotosNovas[n] } : { url: f.imovel.Fotos[n].url };
+    const mesma = f.capa && (nova.foto ? f.capa.foto === nova.foto : f.capa.url === nova.url);
+    f.capa = mesma ? null : nova;
+    desenharAnexos();
+    const titulo = document.getElementById('titulo-capa');
+    if (titulo && f.imovel) {
+      const atual = titulo.querySelector('.capa');
+      const previa = !f.capa ? '' : f.capa.foto ? f.capa.foto.previa : estado.miniaturas[f.capa.url] || f.imovel.Capa;
+      const html = bolinha(document.getElementById('f-Nome').value, previa, true);
+      if (atual) atual.outerHTML = html; else titulo.insertAdjacentHTML('afterbegin', html);
+    }
+  }
+
+  // Miniatura quadrada e leve (96 px) para a bolinha, feita no próprio aparelho
+  async function gerarMiniatura(endereco) {
+    const img = new Image();
+    img.src = endereco;
+    await img.decode();
+    const lado = Math.min(img.naturalWidth, img.naturalHeight);
+    const canvas = document.createElement('canvas');
+    canvas.width = canvas.height = 96;
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(0, 0, 96, 96);
+    ctx.drawImage(img, (img.naturalWidth - lado) / 2, (img.naturalHeight - lado) / 2, lado, lado, 0, 0, 96, 96);
+    return canvas.toDataURL('image/jpeg', 0.75);
+  }
+
+  // Grava a capa escolhida (depois que as fotos novas já foram enviadas e têm endereço)
+  async function salvarCapa(id) {
+    const f = estado.form;
+    const antes = (f.imovel && f.imovel.CapaUrl) || '';
+    if (!f.capa) {
+      if (antes) f.imovel = await chamar('definirCapa', id, '', '', auth());
+      return;
+    }
+    const url = f.capa.foto ? f.capa.foto.url : f.capa.url;
+    if (!url || url === antes) return;
+    mostrarAvisoFixo('Preparando a foto de capa…');
+    let endereco = f.capa.foto ? f.capa.foto.previa : estado.miniaturas[url];
+    if (!endereco) {
+      const a = await chamar('baixarArquivo', url, auth());
+      endereco = estado.miniaturas[url] = URL.createObjectURL(base64ParaBlob(a.base64, a.tipo));
+    }
+    f.imovel = await chamar('definirCapa', id, url, await gerarMiniatura(endereco), auth());
   }
 
   function escolherContrato(campo) {
@@ -1302,6 +1391,7 @@
     if (!confirm('Remover esta foto? Ela vai para a lixeira do Google Drive.')) return;
     try {
       estado.form.imovel = await chamar('removerFoto', estado.form.imovel.ID_Imovel, url, auth());
+      if (estado.form.capa && estado.form.capa.url === url) estado.form.capa = null;
       desenharAnexos();
       mostrarMensagem('Foto removida.');
     } catch (erro) { mostrarErro(erro); }
@@ -1358,7 +1448,8 @@
         const foto = f.fotosNovas[0];
         mostrarAvisoFixo(`Enviando foto ${total - f.fotosNovas.length + 1} de ${total}…`);
         f.imovel = await chamar('anexarFoto', id, await lerArquivo(foto.arquivo), auth());
-        URL.revokeObjectURL(foto.previa);
+        foto.url = f.imovel.Fotos[f.imovel.Fotos.length - 1].url; // endereço no Drive, para a capa
+        if (!(f.capa && f.capa.foto === foto)) URL.revokeObjectURL(foto.previa);
         f.fotosNovas.shift();
       }
       if (f.contratoNovo) {
@@ -1366,6 +1457,7 @@
         f.imovel = await chamar('anexarContrato', id, await lerArquivo(f.contratoNovo), auth());
         f.contratoNovo = null;
       }
+      await salvarCapa(id);
       document.getElementById('progresso-envio')?.remove();
       if (r.avisoAgenda) mostrarMensagem(r.avisoAgenda, 'erro'); else mostrarMensagem('Imóvel salvo!');
       atualizarAvisos();
