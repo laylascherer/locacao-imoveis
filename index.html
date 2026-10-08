@@ -74,6 +74,15 @@
   .avatar { width: 36px; height: 36px; border-radius: 50%; background: var(--brand-soft); color: var(--brand);
     display: grid; place-items: center; font: 600 14px/1 var(--font-sans); border: 0; cursor: pointer; }
   .so-celular { display: none; }
+  .menu-baixo { display: none; position: fixed; left: 0; right: 0; bottom: 0; z-index: 25; background: var(--surface-card);
+    border-top: 1px solid var(--line); padding: 6px 8px calc(6px + env(safe-area-inset-bottom)); justify-content: space-around; }
+  .menu-baixo a { position: relative; flex: 1; min-height: 52px; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 2px; color: var(--ink-muted); text-decoration: none; font: 600 12px/16px var(--font-sans); border-radius: var(--radius-md); }
+  .menu-baixo a[aria-current="page"] { color: var(--brand); }
+  .menu-baixo a[aria-current="page"]::before { content: ""; position: absolute; top: 0; width: 32px; height: 3px; border-radius: 2px; background: var(--accent); }
+  .menu-baixo a.incluir svg { width: 40px; height: 40px; padding: 8px; border-radius: 50%; background: var(--accent); color: var(--on-accent); }
+  .menu-baixo a.incluir { color: var(--ink); }
+  .menu-baixo .contador { position: absolute; top: 2px; left: calc(50% + 6px); }
 
   /* Painéis que abrem por cima (sininho e menu do usuário) */
   .flutuante { position: fixed; right: 16px; top: 64px; width: min(380px, calc(100vw - 32px)); max-height: 70vh; overflow: auto;
@@ -115,6 +124,7 @@
 
   /* ---------- Campos ---------- */
   .grade { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; }
+  .grade > * { min-width: 0; } /* conteúdo comprido (nome de arquivo) não alarga a coluna */
   .pr-field { display: grid; gap: 6px; align-content: start; }
   .pr-field label { font: 600 14px/20px var(--font-sans); }
   .pr-field input, .pr-field select, .pr-field textarea, .campo-busca { min-height: 44px; width: 100%; padding: 10px 12px;
@@ -236,7 +246,39 @@
     background: rgba(13,18,24,.7); color: #fff; display: grid; place-items: center; }
   .foto.nova { outline: 2px dashed var(--accent); outline-offset: -2px; }
   .arquivo { display: flex; align-items: center; gap: 8px; padding: 8px 12px; border: 1px solid var(--line); border-radius: var(--radius-md); font-size: 14px; }
-  .arquivo span { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .arquivo .arquivo-nome { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  .foto-carregando { width: 100%; height: 100%; border: 0; background: none; color: var(--brand); cursor: pointer;
+    font: 500 11px/1 var(--font-mono); }
+
+  /* ---------- Janela por cima da página (visualizador e enquadramento) ---------- */
+  body.com-janela { overflow: hidden; }
+  .janela-fundo { position: fixed; inset: 0; z-index: 40; background: rgba(13,18,24,.6); display: grid; place-items: center; padding: 16px; }
+  .janela { width: min(520px, 100%); max-height: calc(100vh - 32px); overflow: auto; background: var(--surface-card);
+    border-radius: var(--radius-lg); box-shadow: var(--shadow-raised); padding: 16px 20px 20px; display: flex; flex-direction: column; gap: 16px; }
+  .janela--larga { width: min(960px, 100%); }
+  .janela-topo { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+  .janela-topo h2 { font-size: 18px; line-height: 24px; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .botao-fechar { width: 44px; height: 44px; flex: none; border: 0; border-radius: var(--radius-md); background: var(--surface-bg);
+    color: var(--ink); cursor: pointer; display: grid; place-items: center; }
+  .janela-corpo { display: flex; flex-direction: column; gap: 16px; }
+  .visor { position: relative; display: grid; place-items: center; min-height: 240px; background: #0d1218; border-radius: var(--radius-md); }
+  .visor-img { max-width: 100%; max-height: calc(100vh - 200px); object-fit: contain; display: block; }
+  .visor .carregando { color: #fff; }
+  .visor-seta { position: absolute; top: 50%; transform: translateY(-50%); width: 48px; height: 64px; border: 0; border-radius: var(--radius-md);
+    background: rgba(255,255,255,.85); color: var(--ink); font: 600 36px/1 var(--font-sans); cursor: pointer; }
+  .visor-seta.esquerda { left: 8px; } .visor-seta.direita { right: 8px; }
+  .visor-nome { margin: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .paginas-pdf { display: flex; flex-direction: column; gap: 12px; background: var(--surface-bg); padding: 12px; border-radius: var(--radius-md); }
+  .paginas-pdf canvas { width: 100%; height: auto; background: #fff; box-shadow: var(--shadow-raised); }
+  .recorte { position: relative; width: min(320px, 100%); aspect-ratio: 1; margin: 0 auto; border-radius: var(--radius-md); overflow: hidden;
+    background: var(--surface-bg); display: grid; place-items: center; }
+  .recorte canvas { position: absolute; inset: 0; width: 100%; height: 100%; touch-action: none; cursor: grab; }
+  .recorte canvas:active { cursor: grabbing; }
+  /* Escurece o que fica fora do círculo: só o de dentro vira a bolinha */
+  .recorte-circulo { position: absolute; inset: 0; border-radius: 50%; box-shadow: 0 0 0 999px rgba(13,18,24,.55);
+    outline: 2px solid #fff; outline-offset: -2px; pointer-events: none; }
+  .pr-field input[type="range"] { padding: 0; border: 0; accent-color: var(--brand); }
 
   /* ---------- Login ---------- */
   .tela-login { max-width: 420px; margin: 48px auto; background: var(--surface-card); border: 1px solid var(--line); border-radius: var(--radius-lg);
@@ -272,9 +314,23 @@
     .painel { padding: 16px; }
     .pr-card { grid-template-columns: 48px minmax(0, 1fr); }
     .pr-card > .st { grid-column: 2; justify-self: start; }
-    .barra-fixa { position: fixed; left: 0; right: 0; bottom: 0; padding: 12px 16px 16px; background: var(--surface-bg);
-      border-top: 1px solid var(--line); z-index: 15; }
-    .barra-fixa .pr-btn { width: 100%; }
+    .pr-card > .etiqueta { grid-column: 2; justify-self: start; }
+    .pr-card { padding: 10px 12px; gap: 4px 12px; }
+    .pr-card .capa { width: 32px; height: 32px; font-size: 12px; }
+    .pr-card h3 { font-size: 16px; line-height: 22px; }
+    /* Totais: 2 por linha, compactos */
+    .totais { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+    .total { padding: 12px 14px; gap: 4px; }
+    .total b { font-size: 28px; line-height: 32px; }
+    .total .st { font-size: 12px; padding: 2px 8px; }
+    .titulo-pagina h1 { font-size: 22px; line-height: 28px; }
+    /* Avisos: no painel, só os 3 primeiros (o resto fica no sininho) */
+    .avisos-painel .aviso-item:nth-child(n+4) { display: none; }
+    .ver-todos { width: 100%; }
+    /* Menu de baixo, estilo aplicativo */
+    .menu-baixo { display: flex; }
+    main { padding-bottom: 104px; }
+    .mensagem { bottom: 88px; }
     .tela-login { margin: 16px auto; padding: 24px 20px; }
   }
 </style>
@@ -351,6 +407,10 @@
     x: ic('<path d="M18 6 6 18M6 6l12 12"/>', 16),
     estrela: ic('<path d="m12 2 3.1 6.3 6.9 1-5 4.9 1.2 6.8L12 17.8 5.8 21l1.2-6.8-5-4.9 6.9-1Z"/>', 14),
     olho: ic('<path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"/><circle cx="12" cy="12" r="3"/>'),
+    casa: ic('<path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>', 22),
+    lista: ic('<path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/>', 22),
+    pessoas: ic('<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"/>', 22),
+    mais: ic('<path d="M12 5v14M5 12h14"/>', 24),
     olhoFechado: ic('<path d="M17.9 17.9A10.4 10.4 0 0 1 12 19c-7 0-11-7-11-7a18.5 18.5 0 0 1 5.1-5.9M9.9 5.2A9.1 9.1 0 0 1 12 5c7 0 11 7 11 7a18.6 18.6 0 0 1-2.2 3.2M14.1 14.1a3 3 0 1 1-4.2-4.2"/><path d="M1 1l22 22"/>')
   };
 
@@ -718,13 +778,13 @@
     const topo = document.getElementById('topo');
     const u = estado.usuario;
     const marca = `<a class="marca" href="#/"><span class="selo">LOC</span><span class="so-computador">Portal de Locação</span></a>`;
-    if (!u) { topo.innerHTML = `<div class="topo-esq">${marca}</div>`; return; }
+    if (!u) { topo.innerHTML = `<div class="topo-esq">${marca}</div>`; desenharMenuBaixo(null); return; }
     const atual = p => (p === paginaAtual || (p === 'imoveis' && ['imovel', 'novo'].includes(paginaAtual))) ? ' aria-current="page"' : '';
     const admin = u.Nivel === 'Administrador' && !estado.demonstracao;
     const n = estado.avisos.naoLidos;
     topo.innerHTML = `
       <div class="topo-esq">${marca}
-        <nav class="menu" aria-label="Menu principal">
+        <nav class="menu so-computador" aria-label="Menu principal">
           <a href="#/"${atual('')}>Painel</a>
           <a href="#/imoveis"${atual('imoveis')}>Imóveis</a>
           ${admin ? `<a href="#/usuarios"${atual('usuarios') || atual('usuario')}>Usuários${estado.pendentes ? ` <span class="contador">${estado.pendentes}</span>` : ''}</a>` : ''}
@@ -736,6 +796,25 @@
           aria-label="Avisos${n ? ': ' + n + (n === 1 ? ' novo' : ' novos') : ''}">${ICONE.sino}${n ? `<span class="contador">${n}</span>` : ''}</button>
         <button class="avatar" onclick="alternarMenuUsuario(event)" aria-haspopup="true" aria-label="Menu de ${esc(u.Nome)}" title="${esc(u.Nome)}">${esc(iniciais(u.Nome))}</button>
       </div>`;
+    desenharMenuBaixo(atual, admin);
+  }
+
+  // Celular: menu fixo no rodapé, perto do polegar (no tablet e no computador fica escondido)
+  function desenharMenuBaixo(atual, admin) {
+    let menu = document.getElementById('menu-baixo');
+    if (!atual) { if (menu) menu.remove(); return; }
+    if (!menu) {
+      menu = document.createElement('nav');
+      menu.id = 'menu-baixo';
+      menu.className = 'menu-baixo';
+      menu.setAttribute('aria-label', 'Menu');
+      document.body.appendChild(menu);
+    }
+    menu.innerHTML = `
+      <a href="#/"${atual('')}>${ICONE.casa}<span>Painel</span></a>
+      <a href="#/imoveis"${atual('imoveis')}>${ICONE.lista}<span>Imóveis</span></a>
+      <a href="#/novo" class="incluir">${ICONE.mais}<span>Incluir</span></a>
+      ${admin ? `<a href="#/usuarios"${atual('usuarios') || atual('usuario')}>${ICONE.pessoas}<span>Usuários</span>${estado.pendentes ? `<span class="contador">${estado.pendentes}</span>` : ''}</a>` : ''}`;
   }
 
   function fecharFlutuantes() {
@@ -1002,8 +1081,7 @@
             `<p class="vazio">Nenhum imóvel com data prazo ainda. <a href="#/novo">Incluir o primeiro imóvel</a></p>`}
         </section>
         ${blocoAvisos(p.agenda)}
-      </div>
-      <div class="barra-fixa so-celular"><a href="#/novo" class="pr-btn pr-btn--acao">+ Incluir imóvel</a></div>`);
+      </div>`);
   }
 
   function blocoCobrancas(lista, dias) {
@@ -1036,7 +1114,8 @@
     return `<section class="painel estreita" id="avisos-painel" aria-labelledby="titulo-avisos">
       <div class="painel-topo"><h2 id="titulo-avisos">Avisos</h2>
         ${av.naoLidos ? `<button class="pr-btn pr-btn--texto pr-btn--pequeno" onclick="marcarTodosLidos()">Marcar como lidos</button>` : '<span class="rotulo">Nada novo</span>'}</div>
-      <div>${av.lista.length ? av.lista.map(itemAviso).join('') : '<p class="suave">Nenhum prazo vencido ou chegando. Tudo em dia!</p>'}</div>
+      <div class="avisos-painel">${av.lista.length ? av.lista.map(itemAviso).join('') : '<p class="suave">Nenhum prazo vencido ou chegando. Tudo em dia!</p>'}</div>
+      ${av.lista.length > 3 ? `<button type="button" class="pr-btn pr-btn--sec so-celular ver-todos" onclick="alternarAvisos(event)">Ver todos os ${av.lista.length} avisos</button>` : ''}
       <div class="pr-alert pr-alert--info"><span class="pr-alert__ic">${ICONE.agenda}</span><div>
         ${estado.agendaConectada ? '<b>Prazos na Agenda Google</b>Cada imóvel salvo com data prazo vai para a agenda “Portal de Locação – Prazos”, com um lembrete 30 dias antes.'
           : '<b>Agenda Google</b>Quando o primeiro imóvel com data prazo for salvo, a agenda “Portal de Locação – Prazos” é criada.'}</div></div>
@@ -1073,8 +1152,7 @@
       <div class="legenda"><span class="rotulo">Legenda</span>
         <span class="st st--ok">Em dia</span><span>mais de 30 dias até o prazo</span>
         <span class="st st--aviso">Vence em breve</span><span>30 dias ou menos</span>
-        <span class="st st--vencido">Vencido</span><span>o prazo já passou</span></div>
-      <div class="barra-fixa so-celular"><a href="#/novo" class="pr-btn pr-btn--acao">+ Incluir imóvel</a></div>`);
+        <span class="st st--vencido">Vencido</span><span>o prazo já passou</span></div>`);
     desenharResultados();
   }
 
@@ -1269,36 +1347,36 @@
     const i = f.imovel || { Fotos: [] };
     const ehCapa = foto => !!f.capa && (f.capa.foto ? f.capa.foto === foto : f.capa.url === foto.url);
     const botaoCapa = (foto, chamada) => `<button type="button" class="estrela" onclick="${chamada}" aria-pressed="${ehCapa(foto)}"
-        aria-label="${ehCapa(foto) ? 'Tirar a capa' : 'Usar como capa'}">${ICONE.estrela}Capa</button>`;
+        aria-label="${ehCapa(foto) ? 'Ajustar ou tirar a capa' : 'Usar como capa'}">${ICONE.estrela}Capa</button>`;
     const fotosSalvas = i.Fotos.map((foto, n) => `
       <div class="foto${ehCapa(foto) ? ' foto--capa' : ''}">
         ${estado.miniaturas[foto.url]
-          ? `<img src="${estado.miniaturas[foto.url]}" alt="${esc(foto.nome)}" onclick="abrirAnexo(event, '${esc(foto.url)}')">`
-          : `<span data-miniatura="${esc(foto.url)}">FOTO</span>`}
+          ? `<img src="${estado.miniaturas[foto.url]}" alt="${esc(foto.nome)}" onclick="verFoto(${n})">`
+          : `<button type="button" class="foto-carregando" data-miniatura="${esc(foto.url)}" onclick="verFoto(${n})" aria-label="Ver ${esc(foto.nome)}">FOTO</button>`}
         <button type="button" class="tirar" onclick="tirarFotoSalva('${esc(foto.url)}')" aria-label="Remover a foto ${esc(foto.nome)}">${ICONE.x}</button>
         ${botaoCapa(foto, `escolherCapa('salva', ${n})`)}
       </div>`).join('');
     const fotosNovas = f.fotosNovas.map((foto, n) => `
       <div class="foto nova${ehCapa(foto) ? ' foto--capa' : ''}" title="Será enviada ao salvar">
-        <img src="${foto.previa}" alt="Foto nova: ${esc(foto.arquivo.name)}">
+        <img src="${foto.previa}" alt="Foto nova: ${esc(foto.arquivo.name)}" onclick="verFoto(${i.Fotos.length + n})">
         <button type="button" class="tirar" onclick="tirarFotoNova(${n})" aria-label="Não enviar ${esc(foto.arquivo.name)}">${ICONE.x}</button>
         ${botaoCapa(foto, `escolherCapa('nova', ${n})`)}
       </div>`).join('');
-    const contratoSalvo = i.ContratoUrl && !f.contratoNovo ? `
-      <div class="arquivo">${ICONE.arquivo}<span>${esc(i.ContratoNome || 'contrato.pdf')}</span>
-        <button type="button" class="pr-btn pr-btn--texto pr-btn--pequeno" onclick="abrirAnexo(event, '${esc(i.ContratoUrl)}')">Abrir</button>
-        <button type="button" class="pr-btn pr-btn--texto pr-btn--pequeno" onclick="tirarContratoSalvo()" aria-label="Remover o contrato">${ICONE.x}</button></div>` : '';
-    const contratoNovo = f.contratoNovo ? `
-      <div class="arquivo">${ICONE.arquivo}<span>${esc(f.contratoNovo.name)}</span><span class="etiqueta" style="flex:none">Novo</span>
-        <button type="button" class="pr-btn pr-btn--texto pr-btn--pequeno" onclick="estado.form.contratoNovo = null; desenharAnexos()" aria-label="Não enviar o contrato">${ICONE.x}</button></div>` : '';
+    const linhaArquivo = (nome, extra, acoes) => `
+      <div class="arquivo">${ICONE.arquivo}<span class="arquivo-nome" title="${esc(nomeLegivel(nome))}">${esc(nomeLegivel(nome))}</span>${extra}
+        <button type="button" class="pr-btn pr-btn--sec pr-btn--pequeno" onclick="verContrato()">Ver</button>${acoes}</div>`;
+    const contratoSalvo = i.ContratoUrl && !f.contratoNovo ? linhaArquivo(i.ContratoNome || 'contrato.pdf', '',
+      `<button type="button" class="pr-btn pr-btn--texto pr-btn--pequeno" onclick="tirarContratoSalvo()" aria-label="Remover o contrato">${ICONE.x}</button>`) : '';
+    const contratoNovo = f.contratoNovo ? linhaArquivo(f.contratoNovo.name, '<span class="etiqueta" style="flex:none">Novo</span>',
+      `<button type="button" class="pr-btn pr-btn--texto pr-btn--pequeno" onclick="estado.form.contratoNovo = null; desenharAnexos()" aria-label="Não enviar o contrato">${ICONE.x}</button>`) : '';
 
     document.getElementById('anexos').innerHTML = `
       <div class="pr-field">
         <span style="font:600 14px/20px var(--font-sans)">Fotos do imóvel</span>
         <label class="area-envio" for="campo-fotos">${ICONE.foto}Escolher fotos<span>Pode tirar na hora pelo tablet ou celular</span></label>
-        <input id="campo-fotos" type="file" accept="image/*" multiple class="sr" onchange="escolherFotos(this)">
+        <input id="campo-fotos" type="file" accept="image/*,.heic,.heif" multiple class="sr" onchange="escolherFotos(this)">
         ${fotosSalvas || fotosNovas ? `<div class="fotos">${fotosSalvas}${fotosNovas}</div>` : ''}
-        ${fotosSalvas || fotosNovas ? '<small>Toque em <b>Capa</b> para escolher a foto que aparece na bolinha ao lado do nome. Toque de novo para tirar.</small>' : ''}
+        ${fotosSalvas || fotosNovas ? '<small>Toque numa foto para ver grande. Toque em <b>Capa</b> para escolher e enquadrar a foto da bolinha ao lado do nome.</small>' : ''}
         ${f.fotosNovas.length ? `<small>${f.fotosNovas.length === 1 ? 'A foto com borda laranja é enviada' : 'As fotos com borda laranja são enviadas'} ao salvar.</small>` : ''}
       </div>
       <div class="pr-field">
@@ -1310,12 +1388,41 @@
     carregarMiniaturas();
   }
 
-  function escolherFotos(campo) {
-    for (const arquivo of campo.files) {
-      if (!arquivo.type.startsWith('image/')) { mostrarMensagem(`${arquivo.name} não é uma foto.`, 'erro'); continue; }
+  // Nomes como "Contrato%20s%C3%A9rie.pdf" ficam legíveis ("Contrato série.pdf") quando dá
+  function nomeLegivel(nome) {
+    try { return decodeURIComponent(String(nome)); } catch (e) { return String(nome); }
+  }
+
+  /* ---------- Fotos HEIC (câmera de muitos celulares) ----------
+   * O navegador não mostra HEIC. Ao escolher, a foto é convertida para JPG no próprio aparelho. */
+  function ehHeic(arquivo) {
+    return /image\/hei[cf]/i.test(arquivo.type) || /\.hei[cf]$/i.test(arquivo.name);
+  }
+
+  async function converterHeic(blob, nome) {
+    await carregarScript('https://cdnjs.cloudflare.com/ajax/libs/heic2any/0.0.4/heic2any.min.js');
+    let jpg = await heic2any({ blob, toType: 'image/jpeg', quality: 0.85 });
+    if (Array.isArray(jpg)) jpg = jpg[0]; // fotos "ao vivo" vêm com várias imagens: fica a primeira
+    return new File([jpg], String(nome || 'foto').replace(/\.\w+$/, '') + '.jpg', { type: 'image/jpeg' });
+  }
+
+  async function escolherFotos(campo) {
+    const arquivos = [...campo.files];
+    campo.value = '';
+    for (let arquivo of arquivos) {
+      const heic = ehHeic(arquivo);
+      if (!heic && !arquivo.type.startsWith('image/')) { mostrarMensagem(`${arquivo.name} não é uma foto.`, 'erro'); continue; }
+      if (heic) {
+        mostrarAvisoFixo(`Convertendo ${arquivo.name} para JPG…`);
+        try { arquivo = await converterHeic(arquivo, arquivo.name); } catch (e) {
+          document.getElementById('progresso-envio')?.remove();
+          mostrarMensagem(`Não deu para converter ${arquivo.name}. Tente tirar a foto em JPG.`, 'erro');
+          continue;
+        }
+      }
       estado.form.fotosNovas.push({ arquivo, previa: URL.createObjectURL(arquivo) });
     }
-    campo.value = '';
+    document.getElementById('progresso-envio')?.remove();
     desenharAnexos();
   }
 
@@ -1328,35 +1435,236 @@
     desenharAnexos();
   }
 
-  // Marca (ou desmarca) a foto de capa. Vale ao tocar em Salvar.
-  function escolherCapa(tipo, n) {
+  // Endereço para mostrar uma foto salva no Drive (baixa uma vez e guarda; HEIC antigo vira JPG)
+  async function enderecoDaFoto(url) {
+    if (estado.miniaturas[url]) return estado.miniaturas[url];
+    const a = await chamar('baixarArquivo', url, auth());
+    let blob = base64ParaBlob(a.base64, a.tipo);
+    if (/hei[cf]/i.test(a.tipo) || /\.hei[cf]$/i.test(a.nome)) blob = await converterHeic(blob, a.nome);
+    return (estado.miniaturas[url] = URL.createObjectURL(blob));
+  }
+
+  /* ---------- Janela por cima da página (visualizador e enquadramento) ---------- */
+  function abrirJanela(titulo, conteudo, classe) {
+    fecharJanela();
+    const fundo = document.createElement('div');
+    fundo.className = 'janela-fundo';
+    fundo.id = 'janela';
+    fundo.innerHTML = `<div class="janela ${classe || ''}" role="dialog" aria-modal="true" aria-labelledby="janela-titulo">
+      <div class="janela-topo"><h2 id="janela-titulo">${titulo}</h2>
+        <button type="button" class="botao-fechar" onclick="fecharJanela()" aria-label="Fechar">${ICONE.x}</button></div>
+      <div class="janela-corpo">${conteudo}</div></div>`;
+    fundo.addEventListener('click', e => { if (e.target === fundo) fecharJanela(); });
+    document.body.appendChild(fundo);
+    document.body.classList.add('com-janela');
+    fundo.querySelector('.botao-fechar').focus();
+    return fundo;
+  }
+
+  function fecharJanela() {
+    const j = document.getElementById('janela');
+    if (j) { j.remove(); if (estado.aoFecharJanela) estado.aoFecharJanela(); }
+    estado.aoFecharJanela = null;
+    document.body.classList.remove('com-janela');
+  }
+
+  document.addEventListener('keydown', e => {
+    if (!document.getElementById('janela')) return;
+    if (e.key === 'Escape') fecharJanela();
+    if (estado.visor && e.key === 'ArrowRight') verFoto(estado.visor.n + 1);
+    if (estado.visor && e.key === 'ArrowLeft') verFoto(estado.visor.n - 1);
+  });
+
+  /* ---------- Visualizador de fotos ---------- */
+  function todasAsFotos() {
     const f = estado.form;
-    const nova = tipo === 'nova' ? { foto: f.fotosNovas[n] } : { url: f.imovel.Fotos[n].url };
-    const mesma = f.capa && (nova.foto ? f.capa.foto === nova.foto : f.capa.url === nova.url);
-    f.capa = mesma ? null : nova;
+    return ((f.imovel && f.imovel.Fotos) || []).map(foto => ({ nome: foto.nome, url: foto.url }))
+      .concat(f.fotosNovas.map(foto => ({ nome: foto.arquivo.name, previa: foto.previa })));
+  }
+
+  async function verFoto(n) {
+    const fotos = todasAsFotos();
+    if (!fotos.length) return;
+    n = (n + fotos.length) % fotos.length;
+    estado.visor = { n };
+    const foto = fotos[n];
+    const navegacao = fotos.length > 1 ? `
+      <button type="button" class="visor-seta esquerda" onclick="verFoto(${n - 1})" aria-label="Foto anterior">‹</button>
+      <button type="button" class="visor-seta direita" onclick="verFoto(${n + 1})" aria-label="Próxima foto">›</button>` : '';
+    abrirJanela(`Foto ${n + 1} de ${fotos.length}`, `
+      <div class="visor"><div class="carregando" id="visor-foto"><div class="girando"></div>Abrindo a foto…</div>${navegacao}</div>
+      <p class="suave pequeno visor-nome">${esc(nomeLegivel(foto.nome))}</p>`, 'janela--larga');
+    estado.aoFecharJanela = () => { estado.visor = null; };
+    try {
+      const endereco = foto.previa || await enderecoDaFoto(foto.url);
+      const lugar = document.getElementById('visor-foto');
+      if (lugar && estado.visor && estado.visor.n === n) lugar.outerHTML = `<img class="visor-img" src="${endereco}" alt="${esc(nomeLegivel(foto.nome))}">`;
+      if (foto.url) { const quadro = document.querySelector(`#anexos [data-miniatura="${CSS.escape(foto.url)}"]`); if (quadro) desenharAnexos(); }
+    } catch (erro) {
+      const lugar = document.getElementById('visor-foto');
+      if (lugar) lugar.innerHTML = `<p>${esc(erro.message || erro)}</p>`;
+    }
+  }
+
+  /* ---------- Visualizador do contrato (PDF) ----------
+   * As páginas são desenhadas dentro do portal (no tablet, abrir o PDF em outra aba às vezes só baixa). */
+  const PAGINAS_MAXIMAS = 40;
+
+  async function verContrato() {
+    const f = estado.form;
+    const nome = f.contratoNovo ? f.contratoNovo.name : (f.imovel.ContratoNome || 'contrato.pdf');
+    abrirJanela(esc(nomeLegivel(nome)), `<div class="paginas-pdf" id="paginas-pdf"><div class="carregando"><div class="girando"></div>Abrindo o contrato…</div></div>
+      <div class="acoes fim"><button type="button" class="pr-btn pr-btn--sec" onclick="baixarContrato()">Baixar o PDF</button></div>`, 'janela--larga');
+    let ativo = true;
+    estado.aoFecharJanela = () => { ativo = false; };
+    try {
+      let bytes;
+      if (f.contratoNovo) bytes = new Uint8Array(await f.contratoNovo.arrayBuffer());
+      else {
+        const a = await chamar('baixarArquivo', f.imovel.ContratoUrl, auth());
+        bytes = new Uint8Array(await base64ParaBlob(a.base64, a.tipo).arrayBuffer());
+      }
+      await carregarScript('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js');
+      pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+      const pdf = await pdfjsLib.getDocument({ data: bytes }).promise;
+      const area = document.getElementById('paginas-pdf');
+      if (!ativo || !area) return;
+      area.innerHTML = '';
+      const total = Math.min(pdf.numPages, PAGINAS_MAXIMAS);
+      for (let p = 1; p <= total && ativo; p++) {
+        const pagina = await pdf.getPage(p);
+        const base = pagina.getViewport({ scale: 1 });
+        const largura = Math.min(area.clientWidth || 800, 900);
+        const vp = pagina.getViewport({ scale: largura / base.width * Math.min(window.devicePixelRatio || 1, 2) });
+        const canvas = document.createElement('canvas');
+        canvas.width = Math.round(vp.width); canvas.height = Math.round(vp.height);
+        canvas.setAttribute('aria-label', `Página ${p} de ${pdf.numPages}`);
+        area.appendChild(canvas);
+        await pagina.render({ canvasContext: canvas.getContext('2d'), viewport: vp }).promise;
+      }
+      if (ativo && pdf.numPages > PAGINAS_MAXIMAS) {
+        area.insertAdjacentHTML('beforeend', `<p class="suave">Mostrando as ${PAGINAS_MAXIMAS} primeiras de ${pdf.numPages} páginas. Baixe o PDF para ver tudo.</p>`);
+      }
+    } catch (erro) {
+      const area = document.getElementById('paginas-pdf');
+      if (area) area.innerHTML = `<p>Não deu para mostrar o contrato aqui (${esc(erro.message || erro)}). Use "Baixar o PDF".</p>`;
+    }
+  }
+
+  async function baixarContrato() {
+    const f = estado.form;
+    if (f.contratoNovo) {
+      const endereco = URL.createObjectURL(f.contratoNovo);
+      const link = document.createElement('a');
+      link.href = endereco; link.download = f.contratoNovo.name;
+      document.body.appendChild(link); link.click(); link.remove();
+      setTimeout(() => URL.revokeObjectURL(endereco), 60000);
+      return;
+    }
+    abrirAnexo({ preventDefault() {} }, f.imovel.ContratoUrl);
+  }
+
+  /* ---------- Escolher e enquadrar a foto de capa ----------
+   * Abre a foto com um círculo por cima: arrastar move a foto, o controle aproxima/afasta.
+   * O que fica dentro do círculo vira a miniatura da bolinha (vale ao tocar em Salvar). */
+  const LADO_MINIATURA = 160;
+
+  async function escolherCapa(tipo, n) {
+    const f = estado.form;
+    const escolha = tipo === 'nova' ? { foto: f.fotosNovas[n] } : { url: f.imovel.Fotos[n].url };
+    const jaEra = !!f.capa && (escolha.foto ? f.capa.foto === escolha.foto : f.capa.url === escolha.url);
+    abrirJanela('Enquadrar a foto de capa', `
+      <p class="suave pequeno">Arraste a foto para posicionar e use o controle para aproximar. O que ficar dentro do círculo aparece na bolinha.</p>
+      <div class="recorte" id="recorte"><div class="carregando"><div class="girando"></div>Abrindo a foto…</div></div>
+      <div class="pr-field"><label for="recorte-zoom">Aproximar</label>
+        <input id="recorte-zoom" type="range" min="1" max="4" step="0.01" value="1" disabled></div>
+      <div class="acoes fim">
+        ${jaEra ? '<button type="button" class="pr-btn pr-btn--perigo" onclick="confirmarCapa(\'tirar\')" style="margin-right:auto">Tirar capa</button>' : ''}
+        <button type="button" class="pr-btn pr-btn--sec" onclick="fecharJanela()">Cancelar</button>
+        <button type="button" class="pr-btn pr-btn--pri" id="btn-usar-recorte" onclick="confirmarCapa('usar')" disabled>Usar este enquadramento</button>
+      </div>`);
+    estado.recorte = { escolha };
+    estado.aoFecharJanela = () => { estado.recorte = null; };
+    try {
+      const endereco = escolha.foto ? escolha.foto.previa : await enderecoDaFoto(escolha.url);
+      const img = new Image();
+      img.src = endereco;
+      await img.decode();
+      if (!estado.recorte || estado.recorte.escolha !== escolha) return;
+      montarRecorte(img);
+    } catch (erro) {
+      const lugar = document.getElementById('recorte');
+      if (lugar) lugar.innerHTML = `<p>Não deu para abrir a foto (${esc(erro.message || erro)}).</p>`;
+    }
+  }
+
+  function montarRecorte(img) {
+    const r = estado.recorte;
+    const area = document.getElementById('recorte');
+    area.innerHTML = '<canvas aria-label="Foto para enquadrar"></canvas><div class="recorte-circulo" aria-hidden="true"></div>';
+    const canvas = area.querySelector('canvas');
+    const lado = area.clientWidth || 300;
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    canvas.width = canvas.height = Math.round(lado * dpr);
+    Object.assign(r, { img, lado, dpr, canvas, zoom: 1, x: 0, y: 0,
+      cobrir: lado / Math.min(img.naturalWidth, img.naturalHeight) }); // escala em que a foto cobre o quadro todo
+    const zoom = document.getElementById('recorte-zoom');
+    zoom.disabled = false;
+    zoom.oninput = () => { r.zoom = Number(zoom.value); desenharRecorte(); };
+    document.getElementById('btn-usar-recorte').disabled = false;
+    // Arrastar com o dedo ou o mouse
+    let inicio = null;
+    canvas.onpointerdown = e => { canvas.setPointerCapture(e.pointerId); inicio = { px: e.clientX, py: e.clientY, x: r.x, y: r.y }; };
+    canvas.onpointermove = e => {
+      if (!inicio) return;
+      r.x = inicio.x + (e.clientX - inicio.px);
+      r.y = inicio.y + (e.clientY - inicio.py);
+      desenharRecorte();
+    };
+    canvas.onpointerup = canvas.onpointercancel = () => { inicio = null; };
+    // A roda do mouse também aproxima (no tablet, use o controle "Aproximar")
+    canvas.onwheel = e => {
+      e.preventDefault();
+      r.zoom = Math.min(4, Math.max(1, r.zoom * (e.deltaY < 0 ? 1.08 : 0.92)));
+      zoom.value = r.zoom; desenharRecorte();
+    };
+    desenharRecorte();
+  }
+
+  // Desenha a foto na posição e no zoom atuais (sem deixar sobrar borda vazia)
+  function desenharRecorte(destino, ladoDestino) {
+    const r = estado.recorte;
+    const escala = r.cobrir * r.zoom;
+    const w = r.img.naturalWidth * escala, h = r.img.naturalHeight * escala;
+    r.x = Math.max(-(w - r.lado) / 2, Math.min((w - r.lado) / 2, r.x));
+    r.y = Math.max(-(h - r.lado) / 2, Math.min((h - r.lado) / 2, r.y));
+    const canvas = destino || r.canvas;
+    const fator = (ladoDestino || r.lado * r.dpr) / r.lado;
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(r.img, ((r.lado - w) / 2 + r.x) * fator, ((r.lado - h) / 2 + r.y) * fator, w * fator, h * fator);
+  }
+
+  function confirmarCapa(acao) {
+    const f = estado.form, r = estado.recorte;
+    if (acao === 'tirar') f.capa = null;
+    else {
+      if (!r || !r.img) return;
+      const saida = document.createElement('canvas');
+      saida.width = saida.height = LADO_MINIATURA;
+      desenharRecorte(saida, LADO_MINIATURA);
+      f.capa = { ...r.escolha, miniatura: saida.toDataURL('image/jpeg', 0.8) };
+    }
+    fecharJanela();
     desenharAnexos();
     const titulo = document.getElementById('titulo-capa');
     if (titulo && f.imovel) {
       const atual = titulo.querySelector('.capa');
-      const previa = !f.capa ? '' : f.capa.foto ? f.capa.foto.previa : estado.miniaturas[f.capa.url] || f.imovel.Capa;
-      const html = bolinha(document.getElementById('f-Nome').value, previa, true);
+      const html = bolinha(document.getElementById('f-Nome').value, f.capa ? f.capa.miniatura : '', true);
       if (atual) atual.outerHTML = html; else titulo.insertAdjacentHTML('afterbegin', html);
     }
-  }
-
-  // Miniatura quadrada e leve (96 px) para a bolinha, feita no próprio aparelho
-  async function gerarMiniatura(endereco) {
-    const img = new Image();
-    img.src = endereco;
-    await img.decode();
-    const lado = Math.min(img.naturalWidth, img.naturalHeight);
-    const canvas = document.createElement('canvas');
-    canvas.width = canvas.height = 96;
-    const ctx = canvas.getContext('2d');
-    ctx.fillStyle = '#fff';
-    ctx.fillRect(0, 0, 96, 96);
-    ctx.drawImage(img, (img.naturalWidth - lado) / 2, (img.naturalHeight - lado) / 2, lado, lado, 0, 0, 96, 96);
-    return canvas.toDataURL('image/jpeg', 0.75);
+    mostrarMensagem(acao === 'tirar' ? 'Capa tirada. Toque em Salvar para confirmar.' : 'Capa escolhida. Toque em Salvar para confirmar.');
   }
 
   // Grava a capa escolhida (depois que as fotos novas já foram enviadas e têm endereço)
@@ -1367,15 +1675,10 @@
       if (antes) f.imovel = await chamar('definirCapa', id, '', '', auth());
       return;
     }
+    if (!f.capa.miniatura) return; // capa que já estava salva, sem mudança
     const url = f.capa.foto ? f.capa.foto.url : f.capa.url;
-    if (!url || url === antes) return;
-    mostrarAvisoFixo('Preparando a foto de capa…');
-    let endereco = f.capa.foto ? f.capa.foto.previa : estado.miniaturas[url];
-    if (!endereco) {
-      const a = await chamar('baixarArquivo', url, auth());
-      endereco = estado.miniaturas[url] = URL.createObjectURL(base64ParaBlob(a.base64, a.tipo));
-    }
-    f.imovel = await chamar('definirCapa', id, url, await gerarMiniatura(endereco), auth());
+    if (!url) return;
+    f.imovel = await chamar('definirCapa', id, url, f.capa.miniatura, auth());
   }
 
   function escolherContrato(campo) {
@@ -1416,14 +1719,14 @@
         const url = lugar.dataset.miniatura;
         lugar.dataset.tentou = '1';
         try {
-          const a = await chamar('baixarArquivo', url, auth());
-          estado.miniaturas[url] = URL.createObjectURL(base64ParaBlob(a.base64, a.tipo));
+          const endereco = await enderecoDaFoto(url);
           const atual = document.querySelector(`#anexos [data-miniatura="${CSS.escape(url)}"]`);
-          if (atual) atual.outerHTML = `<img src="${estado.miniaturas[url]}" alt="${esc(a.nome)}" onclick="abrirAnexo(event, '${esc(url)}')">`;
+          if (atual) atual.outerHTML = `<img src="${endereco}" alt="" onclick="${atual.getAttribute('onclick')}">`;
         } catch (e) { /* fica o quadradinho "FOTO" */ }
       }
     } finally { estado.baixandoMiniaturas = false; }
   }
+
 
   async function salvarFormulario() {
     const f = estado.form;
