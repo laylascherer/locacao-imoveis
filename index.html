@@ -2111,24 +2111,38 @@
     return !!(window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true;
   }
 
+  // O Samsung Internet empacota o PWA num APK antigo, que o Google Play Protect bloqueia ("App de risco").
+  // Por isso, nele o portal não oferece a instalação e indica o Chrome.
+  function ehSamsungInternet() {
+    return /SamsungBrowser/i.test(navigator.userAgent);
+  }
+
   async function instalarApp() {
     fecharFlutuantes();
-    if (pedidoInstalar) {
+    if (pedidoInstalar && !ehSamsungInternet()) {
       pedidoInstalar.prompt(); // o navegador mostra a pergunta "Instalar app?"
       await pedidoInstalar.userChoice;
       pedidoInstalar = null;
       return;
     }
-    // O navegador não ofereceu a instalação direta: mostra o caminho manual
+    const link = location.origin + location.pathname;
     abrirJanela('Instalar o app', `
+      ${ehSamsungInternet() ? `<div class="pr-alert pr-alert--atencao"><span class="pr-alert__ic">!</span><div><b>Use o Chrome para instalar</b>
+        Instalado pelo Samsung Internet, o app é bloqueado pelo Google Play Protect ("App de risco bloqueado").
+        Pelo Chrome, a instalação é aceita normalmente.</div></div>` : ''}
       <p>Assim o portal ganha um ícone na tela inicial e abre direto, sem a barra do navegador.</p>
-      <div class="painel"><h3>Android (Chrome)</h3>
-        <p>Toque nos <b>três pontinhos ⋮</b> no canto de cima e depois em <b>Instalar app</b> ou <b>Adicionar à tela inicial</b>.</p></div>
-      <div class="painel"><h3>Samsung Internet</h3>
-        <p>Toque no <b>menu ☰</b> embaixo e depois em <b>Adicionar página a → Tela inicial</b>.</p></div>
-      <div class="painel"><h3>iPhone ou iPad (Safari)</h3>
-        <p>Toque em <b>Compartilhar</b> (o quadrado com a seta para cima) e depois em <b>Adicionar à Tela de Início</b>.</p></div>`,
+      <div class="painel"><h3>Android</h3>
+        <p>Abra o portal no <b>Chrome</b>, toque nos <b>três pontinhos ⋮</b> no canto de cima e depois em <b>Instalar app</b> (ou <b>Adicionar à tela inicial</b>).</p>
+        <div class="acoes"><button type="button" class="pr-btn pr-btn--sec pr-btn--pequeno" onclick="copiarLink('${esc(link)}')">Copiar o link do portal</button>
+          <span class="suave pequeno">e cole na barra de endereço do Chrome</span></div></div>
+      <div class="painel"><h3>iPhone ou iPad</h3>
+        <p>Abra o portal no <b>Safari</b>, toque em <b>Compartilhar</b> (o quadrado com a seta para cima) e depois em <b>Adicionar à Tela de Início</b>.</p></div>`,
       '', '<button type="button" class="pr-btn pr-btn--pri" onclick="fecharJanela()">Entendi</button>');
+  }
+
+  async function copiarLink(link) {
+    try { await navigator.clipboard.writeText(link); mostrarMensagem('Link copiado! Agora cole no Chrome.'); }
+    catch (e) { prompt('Copie o link do portal:', link); }
   }
 
   // O ajudante só funciona no site do GitHub (no endereço do Google não dá para instalar)
