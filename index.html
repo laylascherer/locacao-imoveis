@@ -4,6 +4,8 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1">
   <title>Portal de Locação</title>
+  <!-- "só claro": impede o navegador do celular de escurecer o site sozinho -->
+  <meta name="color-scheme" content="only light">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;600;700&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
   <style>
@@ -24,7 +26,7 @@
     --font-sans: "IBM Plex Sans", system-ui, sans-serif;
     --font-mono: "IBM Plex Mono", ui-monospace, monospace;
     --radius-sm: 6px; --radius-md: 8px; --radius-lg: 12px;
-    color-scheme: light;
+    color-scheme: only light; /* o navegador não pode escurecer o portal sozinho */
   }
   * { box-sizing: border-box; }
   html { overflow-x: clip; } /* nada pode alargar a página para os lados */
@@ -125,7 +127,7 @@
   /* ---------- Campos ---------- */
   .grade { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; }
   .grade > * { min-width: 0; } /* conteúdo comprido (nome de arquivo) não alarga a coluna */
-  .pr-field { display: grid; gap: 6px; align-content: start; }
+  .pr-field { display: grid; grid-template-columns: minmax(0, 1fr); gap: 6px; align-content: start; } /* a coluna nunca estica por causa de um nome comprido */
   .pr-field label { font: 600 14px/20px var(--font-sans); }
   .pr-field input, .pr-field select, .pr-field textarea, .campo-busca { min-height: 44px; width: 100%; padding: 10px 12px;
     font: 400 16px/24px var(--font-sans); color: var(--ink); background: var(--surface-card);
@@ -330,6 +332,9 @@
     /* Avisos: no painel, só os 3 primeiros (o resto fica no sininho) */
     .avisos-painel .aviso-item:nth-child(n+4) { display: none; }
     .ver-todos { width: 100%; }
+    /* Botões do fim do formulário: um embaixo do outro, Salvar primeiro */
+    .acoes.fim { flex-direction: column-reverse; align-items: stretch; }
+    .acoes.fim .pr-btn { width: 100%; margin-right: 0 !important; }
     /* Menu de baixo, estilo aplicativo */
     .menu-baixo { display: flex; }
     main { padding-bottom: 104px; }
@@ -620,9 +625,10 @@
     return palavras.slice(0, 2).map(p => p[0]).join('').toUpperCase() || '?';
   }
 
+  // "Visitante (protótipo)" -> "VP": só conta letras (parênteses e símbolos ficam de fora)
   function iniciais(nome) {
-    const p = String(nome || '?').trim().split(/\s+/);
-    return ((p[0] || '')[0] + (p.length > 1 ? p[p.length - 1][0] : '')).toUpperCase();
+    const p = String(nome || '').match(/\p{L}[\p{L}'-]*/gu) || ['?'];
+    return (p[0][0] + (p.length > 1 ? p[p.length - 1][0] : '')).toUpperCase();
   }
 
   function mostrarMensagem(texto, tipo) {
