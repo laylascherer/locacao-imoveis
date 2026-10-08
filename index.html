@@ -35,6 +35,13 @@
     --radius-sm: 6px; --radius-md: 8px; --radius-lg: 12px;
     color-scheme: only light; /* o navegador não pode escurecer o portal sozinho */
   }
+  /* "Tema escuro" com as MESMAS cores claras, de propósito. Alguns navegadores (Samsung Internet,
+     Chrome com o escurecimento forçado) escurecem à força os sites que não têm tema escuro próprio.
+     Ao achar esta media query, eles entendem que o site já cuida disso e não mexem nas cores. */
+  @media (prefers-color-scheme: dark) {
+    :root { color-scheme: only light; }
+    html, body { background: #f3f4f6; color: #16202e; }
+  }
   * { box-sizing: border-box; }
   html { overflow-x: clip; } /* nada pode alargar a página para os lados */
   body { margin: 0; background: var(--surface-bg); color: var(--ink); font: 400 16px/24px var(--font-sans); }
@@ -623,8 +630,8 @@
     return String(t || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
   }
 
-  // Bolinha do imóvel: a foto de capa, ou as iniciais do nome quando não tem capa
-  function bolinha(nome, capa, grande) {
+  // Avatar do imóvel: a thumbnail da foto de perfil, ou as iniciais do nome (fallback) quando não tem
+  function avatarImovel(nome, capa, grande) {
     const classe = 'capa' + (grande ? ' capa--grande' : '');
     return capa
       ? `<img class="${classe}" src="${esc(capa)}" alt="">`
@@ -859,7 +866,7 @@
   function itemAviso(a) {
     const t = textoAviso(a);
     return `<a class="aviso-item ${a.tipo}${a.lido ? ' lido' : ''}" href="#/imovel/${esc(a.ID_Imovel)}">
-      <span class="bolinha" aria-hidden="true"></span>${bolinha(a.nome, a.capa)}
+      <span class="bolinha" aria-hidden="true"></span>${avatarImovel(a.nome, a.capa)}
       <div><b>${esc(t.titulo)}${a.lido ? '' : ' <span class="sr">(novo)</span>'}</b>${esc(t.texto)}</div></a>`;
   }
 
@@ -1115,7 +1122,7 @@
         const [, m, d] = i.proximaCobranca.split('-');
         return `<a class="pr-card" href="#/imovel/${esc(i.ID_Imovel)}">
           <div class="pr-card__dia"><b>${d}</b><span>${MESES[Number(m) - 1]}</span></div>
-          <div class="com-capa">${bolinha(i.Nome, i.Capa)}<div><h3>${esc(i.Nome)}</h3><p>${esc([i.Inquilino, i.ValorAluguel !== '' ? dinheiro(i.ValorAluguel) : ''].filter(Boolean).join(' · '))}</p></div></div>
+          <div class="com-capa">${avatarImovel(i.Nome, i.Capa)}<div><h3>${esc(i.Nome)}</h3><p>${esc([i.Inquilino, i.ValorAluguel !== '' ? dinheiro(i.ValorAluguel) : ''].filter(Boolean).join(' · '))}</p></div></div>
           <span class="etiqueta">${quandoCobrar(i.diasCobranca)}</span></a>`;
       }).join('')}</div>` : `<p class="suave">Nenhuma cobrança nos próximos ${dias} dias.</p>`}
     </section>`;
@@ -1126,7 +1133,7 @@
     const detalhes = [i.Localizacao, i.Inquilino].filter(Boolean).join(' · ');
     return `<a class="pr-card" href="#/imovel/${esc(i.ID_Imovel)}">
       <div class="pr-card__dia"><b>${d}</b><span>${MESES[Number(m) - 1]}</span></div>
-      <div class="com-capa">${bolinha(i.Nome, i.Capa)}<div><h3>${esc(i.Nome)}</h3>${detalhes ? `<p>${esc(detalhes)}</p>` : ''}</div></div>
+      <div class="com-capa">${avatarImovel(i.Nome, i.Capa)}<div><h3>${esc(i.Nome)}</h3>${detalhes ? `<p>${esc(detalhes)}</p>` : ''}</div></div>
       ${etiquetaSituacao(i)}</a>`;
   }
 
@@ -1208,7 +1215,7 @@
           <thead><tr><th>Imóvel</th><th>Inquilino</th><th>Assinatura</th><th>Entrada</th><th>Vigente</th><th>Prazo</th><th>Situação</th><th><span class="sr">Ações</span></th></tr></thead>
           <tbody>${lista.map(i => `
             <tr class="clicavel" onclick="if (!event.target.closest('a')) navegar('#/imovel/${esc(i.ID_Imovel)}')">
-              <td><div class="com-capa">${bolinha(i.Nome, i.Capa)}<div><div class="nome">${esc(i.Nome)}</div>
+              <td><div class="com-capa">${avatarImovel(i.Nome, i.Capa)}<div><div class="nome">${esc(i.Nome)}</div>
                 ${i.Localizacao ? `<div class="suave pequeno">${esc(i.Localizacao)}</div>` : ''}
                 <div class="suave" style="font-size:13px">Cadastrado em ${dataBR(i.DataCadastro)}</div></div></div></td>
               <td>${esc(i.Inquilino) || '<span class="suave">—</span>'}</td>
@@ -1223,7 +1230,7 @@
       </div>
       <div class="lista-cartoes">${lista.map(i => `
         <a class="cartao-imovel" href="#/imovel/${esc(i.ID_Imovel)}">
-          <div class="linha"><div class="com-capa">${bolinha(i.Nome, i.Capa)}<b>${esc(i.Nome)}</b></div>${etiquetaSituacao(i)}</div>
+          <div class="linha"><div class="com-capa">${avatarImovel(i.Nome, i.Capa)}<b>${esc(i.Nome)}</b></div>${etiquetaSituacao(i)}</div>
           ${i.Localizacao ? `<span class="suave pequeno">${esc(i.Localizacao)}</span>` : ''}
           <span class="pequeno">${esc(i.Inquilino || 'Sem inquilino')} · prazo <b class="mono">${dataBR(i.DataPrazo)}</b></span>
         </a>`).join('')}</div>`;
@@ -1250,7 +1257,7 @@
       <input id="f-${nome}" name="${nome}" type="date" value="${esc(i[nome] || '')}"><small>${dica}</small></div>`;
 
     tela(`
-      <div class="titulo-pagina"><div class="com-capa" id="titulo-capa">${novo ? '' : bolinha(i.Nome, i.Capa, true)}<div>
+      <div class="titulo-pagina"><div class="com-capa" id="titulo-capa">${novo ? '' : avatarImovel(i.Nome, i.Capa, true)}<div>
         <span class="rotulo"><a href="#/imoveis" style="color:inherit">Imóveis</a> › ${novo ? 'Novo' : 'Editar'}</span>
         <h1>${novo ? 'Incluir imóvel' : esc(i.Nome)}</h1>
         ${novo ? '<p class="suave">Preencha o que você já sabe. Dá para completar depois.</p>' : `<div>${etiquetaSituacao(i)}</div>`}
@@ -1369,7 +1376,7 @@
     const i = f.imovel || { Fotos: [] };
     const ehCapa = foto => !!f.capa && (f.capa.foto ? f.capa.foto === foto : f.capa.url === foto.url);
     const botaoCapa = (foto, chamada) => `<button type="button" class="estrela" onclick="${chamada}" aria-pressed="${ehCapa(foto)}"
-        aria-label="${ehCapa(foto) ? 'Ajustar ou tirar a capa' : 'Usar como capa'}">${ICONE.estrela}Capa</button>`;
+        aria-label="${ehCapa(foto) ? 'Ajustar ou tirar a foto de perfil' : 'Usar como foto de perfil'}">${ICONE.estrela}Perfil</button>`;
     const fotosSalvas = i.Fotos.map((foto, n) => `
       <div class="foto${ehCapa(foto) ? ' foto--capa' : ''}">
         ${estado.miniaturas[foto.url]
@@ -1407,7 +1414,7 @@
         <label class="area-envio" for="campo-fotos">${ICONE.foto}Escolher fotos<span>Pode tirar na hora pelo tablet ou celular</span></label>
         <input id="campo-fotos" type="file" accept="image/*,.heic,.heif" multiple class="sr" onchange="escolherFotos(this)">
         ${fotosSalvas || fotosNovas ? `<div class="fotos">${fotosSalvas}${fotosNovas}</div>` : ''}
-        ${fotosSalvas || fotosNovas ? '<small>Toque numa foto para ver grande. Toque em <b>Capa</b> para escolher e enquadrar a foto da bolinha ao lado do nome.</small>' : ''}
+        ${fotosSalvas || fotosNovas ? '<small>Toque numa foto para ver grande. Toque em <b>Perfil</b> para escolher e enquadrar a foto de perfil do imóvel, que aparece ao lado do nome.</small>' : ''}
         ${f.fotosNovas.length ? `<small>${f.fotosNovas.length === 1 ? 'A foto com borda laranja é enviada' : 'As fotos com borda laranja são enviadas'} ao salvar.</small>` : ''}
       </div>
       <div class="pr-field">
@@ -1598,21 +1605,21 @@
 
   /* ---------- Escolher e enquadrar a foto de capa ----------
    * Abre a foto com um círculo por cima: arrastar move a foto, o controle aproxima/afasta.
-   * O que fica dentro do círculo vira a miniatura da bolinha (vale ao tocar em Salvar). */
-  const LADO_MINIATURA = 200; // nítida até a bolinha grande do título (96 px em telas de alta definição)
+   * O que fica dentro do círculo vira a thumbnail do avatar (crop com pan e zoom). */
+  const LADO_MINIATURA = 200; // nítida até o avatar grande do título (96 px em telas de alta definição)
 
   async function escolherCapa(tipo, n) {
     const f = estado.form;
     const escolha = tipo === 'nova' ? { foto: f.fotosNovas[n] } : { url: f.imovel.Fotos[n].url };
     const jaEra = !!f.capa && (escolha.foto ? f.capa.foto === escolha.foto : f.capa.url === escolha.url);
-    abrirJanela('Enquadrar a foto de capa', `
-      <p class="suave pequeno">Arraste a foto para posicionar e use o controle para aproximar. O que ficar dentro do círculo aparece na bolinha.</p>
+    abrirJanela('Enquadrar a foto de perfil', `
+      <p class="suave pequeno">Arraste a foto para posicionar e use o controle para aproximar. O que ficar dentro do círculo vira a foto de perfil do imóvel.</p>
       <div class="recorte" id="recorte"><div class="carregando"><div class="girando"></div>Abrindo a foto…</div></div>
       <div class="pr-field"><label for="recorte-zoom">Aproximar</label>
         <input id="recorte-zoom" type="range" min="1" max="4" step="0.01" value="1" disabled></div>`, '', `
-        ${jaEra ? '<button type="button" class="pr-btn pr-btn--perigo" onclick="confirmarCapa(\'tirar\')" style="margin-right:auto">Tirar capa</button>' : ''}
+        ${jaEra ? '<button type="button" class="pr-btn pr-btn--perigo" onclick="confirmarCapa(\'tirar\')" style="margin-right:auto">Tirar foto de perfil</button>' : ''}
         <button type="button" class="pr-btn pr-btn--sec" onclick="fecharJanela()">Cancelar</button>
-        <button type="button" class="pr-btn pr-btn--pri" id="btn-usar-recorte" onclick="confirmarCapa('usar')" disabled>Salvar capa</button>`);
+        <button type="button" class="pr-btn pr-btn--pri" id="btn-usar-recorte" onclick="confirmarCapa('usar')" disabled>Salvar foto de perfil</button>`);
     estado.recorte = { escolha };
     estado.aoFecharJanela = () => { estado.recorte = null; };
     try {
@@ -1697,7 +1704,7 @@
         f.capa = f.imovel.CapaUrl ? { url: f.imovel.CapaUrl } : null;
       } catch (erro) {
         document.querySelectorAll('.janela-rodape button').forEach(b => { b.disabled = false; });
-        if (botao) botao.textContent = 'Salvar capa';
+        if (botao) botao.textContent = 'Salvar foto de perfil';
         return mostrarErro(erro);
       }
     } else {
@@ -1708,11 +1715,11 @@
     const titulo = document.getElementById('titulo-capa');
     if (titulo && f.imovel) {
       const atual = titulo.querySelector('.capa');
-      const html = bolinha(document.getElementById('f-Nome').value, gravarAgora ? f.imovel.Capa : (f.capa ? f.capa.miniatura : ''), true);
+      const html = avatarImovel(document.getElementById('f-Nome').value, gravarAgora ? f.imovel.Capa : (f.capa ? f.capa.miniatura : ''), true);
       if (atual) atual.outerHTML = html; else titulo.insertAdjacentHTML('afterbegin', html);
     }
-    mostrarMensagem(gravarAgora ? (escolha ? 'Capa salva!' : 'Capa tirada.')
-      : 'A capa será salva junto com as fotos quando você tocar em Salvar.');
+    mostrarMensagem(gravarAgora ? (escolha ? 'Foto de perfil salva!' : 'Foto de perfil tirada.')
+      : 'A foto de perfil será salva junto com as fotos quando você tocar em Salvar.');
   }
 
   // Grava a capa escolhida (depois que as fotos novas já foram enviadas e têm endereço)
