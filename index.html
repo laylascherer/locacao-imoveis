@@ -254,16 +254,19 @@
   /* ---------- Janela por cima da página (visualizador e enquadramento) ---------- */
   body.com-janela { overflow: hidden; }
   .janela-fundo { position: fixed; inset: 0; z-index: 40; background: rgba(13,18,24,.6); display: grid; place-items: center; padding: 16px; }
-  .janela { width: min(520px, 100%); max-height: calc(100vh - 32px); overflow: auto; background: var(--surface-card);
-    border-radius: var(--radius-lg); box-shadow: var(--shadow-raised); padding: 16px 20px 20px; display: flex; flex-direction: column; gap: 16px; }
+  /* A janela cabe na tela: o meio rola e o rodapé com os botões fica sempre à vista */
+  .janela { width: min(520px, 100%); max-height: calc(100vh - 32px); max-height: calc(100dvh - 32px); overflow: hidden;
+    background: var(--surface-card); border-radius: var(--radius-lg); box-shadow: var(--shadow-raised); display: flex; flex-direction: column; }
   .janela--larga { width: min(960px, 100%); }
-  .janela-topo { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+  .janela-topo { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 12px 20px; flex: none; }
   .janela-topo h2 { font-size: 18px; line-height: 24px; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .botao-fechar { width: 44px; height: 44px; flex: none; border: 0; border-radius: var(--radius-md); background: var(--surface-bg);
     color: var(--ink); cursor: pointer; display: grid; place-items: center; }
-  .janela-corpo { display: flex; flex-direction: column; gap: 16px; }
+  .janela-corpo { display: flex; flex-direction: column; gap: 16px; padding: 0 20px 16px; overflow: auto; min-height: 0; }
+  .janela-rodape { flex: none; display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; padding: 12px 20px;
+    border-top: 1px solid var(--line); background: var(--surface-card); }
   .visor { position: relative; display: grid; place-items: center; min-height: 240px; background: #0d1218; border-radius: var(--radius-md); }
-  .visor-img { max-width: 100%; max-height: calc(100vh - 200px); object-fit: contain; display: block; }
+  .visor-img { max-width: 100%; max-height: calc(100vh - 220px); max-height: calc(100dvh - 220px); object-fit: contain; display: block; }
   .visor .carregando { color: #fff; }
   .visor-seta { position: absolute; top: 50%; transform: translateY(-50%); width: 48px; height: 64px; border: 0; border-radius: var(--radius-md);
     background: rgba(255,255,255,.85); color: var(--ink); font: 600 36px/1 var(--font-sans); cursor: pointer; }
@@ -271,7 +274,7 @@
   .visor-nome { margin: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .paginas-pdf { display: flex; flex-direction: column; gap: 12px; background: var(--surface-bg); padding: 12px; border-radius: var(--radius-md); }
   .paginas-pdf canvas { width: 100%; height: auto; background: #fff; box-shadow: var(--shadow-raised); }
-  .recorte { position: relative; width: min(320px, 100%); aspect-ratio: 1; margin: 0 auto; border-radius: var(--radius-md); overflow: hidden;
+  .recorte { position: relative; width: min(320px, 100%, 45vh); width: min(320px, 100%, 45dvh); aspect-ratio: 1; flex: none; margin: 0 auto; border-radius: var(--radius-md); overflow: hidden;
     background: var(--surface-bg); display: grid; place-items: center; }
   .recorte canvas { position: absolute; inset: 0; width: 100%; height: 100%; touch-action: none; cursor: grab; }
   .recorte canvas:active { cursor: grabbing; }
@@ -1445,7 +1448,7 @@
   }
 
   /* ---------- Janela por cima da página (visualizador e enquadramento) ---------- */
-  function abrirJanela(titulo, conteudo, classe) {
+  function abrirJanela(titulo, conteudo, classe, rodape) {
     fecharJanela();
     const fundo = document.createElement('div');
     fundo.className = 'janela-fundo';
@@ -1453,7 +1456,7 @@
     fundo.innerHTML = `<div class="janela ${classe || ''}" role="dialog" aria-modal="true" aria-labelledby="janela-titulo">
       <div class="janela-topo"><h2 id="janela-titulo">${titulo}</h2>
         <button type="button" class="botao-fechar" onclick="fecharJanela()" aria-label="Fechar">${ICONE.x}</button></div>
-      <div class="janela-corpo">${conteudo}</div></div>`;
+      <div class="janela-corpo">${conteudo}</div>${rodape ? `<div class="janela-rodape">${rodape}</div>` : ''}</div>`;
     fundo.addEventListener('click', e => { if (e.target === fundo) fecharJanela(); });
     document.body.appendChild(fundo);
     document.body.classList.add('com-janela');
@@ -1513,8 +1516,9 @@
   async function verContrato() {
     const f = estado.form;
     const nome = f.contratoNovo ? f.contratoNovo.name : (f.imovel.ContratoNome || 'contrato.pdf');
-    abrirJanela(esc(nomeLegivel(nome)), `<div class="paginas-pdf" id="paginas-pdf"><div class="carregando"><div class="girando"></div>Abrindo o contrato…</div></div>
-      <div class="acoes fim"><button type="button" class="pr-btn pr-btn--sec" onclick="baixarContrato()">Baixar o PDF</button></div>`, 'janela--larga');
+    abrirJanela(esc(nomeLegivel(nome)), `<div class="paginas-pdf" id="paginas-pdf"><div class="carregando"><div class="girando"></div>Abrindo o contrato…</div></div>`,
+      'janela--larga', `<button type="button" class="pr-btn pr-btn--sec" onclick="baixarContrato()">Baixar o PDF</button>
+      <button type="button" class="pr-btn pr-btn--pri" onclick="fecharJanela()">Fechar</button>`);
     let ativo = true;
     estado.aoFecharJanela = () => { ativo = false; };
     try {
@@ -1577,12 +1581,10 @@
       <p class="suave pequeno">Arraste a foto para posicionar e use o controle para aproximar. O que ficar dentro do círculo aparece na bolinha.</p>
       <div class="recorte" id="recorte"><div class="carregando"><div class="girando"></div>Abrindo a foto…</div></div>
       <div class="pr-field"><label for="recorte-zoom">Aproximar</label>
-        <input id="recorte-zoom" type="range" min="1" max="4" step="0.01" value="1" disabled></div>
-      <div class="acoes fim">
+        <input id="recorte-zoom" type="range" min="1" max="4" step="0.01" value="1" disabled></div>`, '', `
         ${jaEra ? '<button type="button" class="pr-btn pr-btn--perigo" onclick="confirmarCapa(\'tirar\')" style="margin-right:auto">Tirar capa</button>' : ''}
         <button type="button" class="pr-btn pr-btn--sec" onclick="fecharJanela()">Cancelar</button>
-        <button type="button" class="pr-btn pr-btn--pri" id="btn-usar-recorte" onclick="confirmarCapa('usar')" disabled>Usar este enquadramento</button>
-      </div>`);
+        <button type="button" class="pr-btn pr-btn--pri" id="btn-usar-recorte" onclick="confirmarCapa('usar')" disabled>Salvar capa</button>`);
     estado.recorte = { escolha };
     estado.aoFecharJanela = () => { estado.recorte = null; };
     try {
@@ -1646,25 +1648,43 @@
     ctx.drawImage(r.img, ((r.lado - w) / 2 + r.x) * fator, ((r.lado - h) / 2 + r.y) * fator, w * fator, h * fator);
   }
 
-  function confirmarCapa(acao) {
+  async function confirmarCapa(acao) {
     const f = estado.form, r = estado.recorte;
-    if (acao === 'tirar') f.capa = null;
-    else {
+    let escolha = null;
+    if (acao !== 'tirar') {
       if (!r || !r.img) return;
       const saida = document.createElement('canvas');
       saida.width = saida.height = LADO_MINIATURA;
       desenharRecorte(saida, LADO_MINIATURA);
-      f.capa = { ...r.escolha, miniatura: saida.toDataURL('image/jpeg', 0.8) };
+      escolha = { ...r.escolha, miniatura: saida.toDataURL('image/jpeg', 0.8) };
+    }
+    const botao = document.getElementById('btn-usar-recorte');
+    // Foto que já está no portal (ou tirar a capa): grava agora, sem depender do Salvar do formulário
+    const gravarAgora = f.imovel && f.imovel.ID_Imovel && (escolha ? !escolha.foto : !!f.imovel.CapaUrl);
+    if (gravarAgora) {
+      document.querySelectorAll('.janela-rodape button').forEach(b => { b.disabled = true; });
+      if (botao) botao.textContent = 'Salvando…';
+      try {
+        f.imovel = await chamar('definirCapa', f.imovel.ID_Imovel, escolha ? escolha.url : '', escolha ? escolha.miniatura : '', auth());
+        f.capa = f.imovel.CapaUrl ? { url: f.imovel.CapaUrl } : null;
+      } catch (erro) {
+        document.querySelectorAll('.janela-rodape button').forEach(b => { b.disabled = false; });
+        if (botao) botao.textContent = 'Salvar capa';
+        return mostrarErro(erro);
+      }
+    } else {
+      f.capa = escolha; // foto nova: a capa vai junto quando as fotos forem enviadas
     }
     fecharJanela();
     desenharAnexos();
     const titulo = document.getElementById('titulo-capa');
     if (titulo && f.imovel) {
       const atual = titulo.querySelector('.capa');
-      const html = bolinha(document.getElementById('f-Nome').value, f.capa ? f.capa.miniatura : '', true);
+      const html = bolinha(document.getElementById('f-Nome').value, gravarAgora ? f.imovel.Capa : (f.capa ? f.capa.miniatura : ''), true);
       if (atual) atual.outerHTML = html; else titulo.insertAdjacentHTML('afterbegin', html);
     }
-    mostrarMensagem(acao === 'tirar' ? 'Capa tirada. Toque em Salvar para confirmar.' : 'Capa escolhida. Toque em Salvar para confirmar.');
+    mostrarMensagem(gravarAgora ? (escolha ? 'Capa salva!' : 'Capa tirada.')
+      : 'A capa será salva junto com as fotos quando você tocar em Salvar.');
   }
 
   // Grava a capa escolhida (depois que as fotos novas já foram enviadas e têm endereço)
