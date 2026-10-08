@@ -166,6 +166,8 @@
   .pr-card__dia span { font: 500 11px/14px var(--font-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--ink-muted); }
   .pr-card p { color: var(--ink-muted); font-size: 14px; line-height: 20px; }
 
+  .cobrancas { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(320px, 100%), 1fr)); gap: 12px; }
+
   /* ---------- Avisos ---------- */
   .aviso-item { display: grid; grid-template-columns: 12px 1fr; gap: 12px; padding: 12px 16px; border-bottom: 1px solid var(--line);
     text-decoration: none; color: var(--ink); }
@@ -471,6 +473,55 @@
 
   function etiquetaSituacao(i) {
     return `<span class="st st--${i.situacao}">${esc(textoSituacao(i))}</span>`;
+  }
+
+  function dinheiro(valor) {
+    if (valor === '' || valor == null) return '';
+    return Number(valor).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+  }
+
+  // "1.500,00" / "1500" -> 1500 (para mostrar a prévia; o servidor confere de novo)
+  function lerValor(texto) {
+    let t = String(texto || '').replace(/[R$\s]/g, '');
+    if (!t) return '';
+    if (t.includes(',')) t = t.replace(/\./g, '').replace(',', '.');
+    else if (/^\d{1,3}(\.\d{3})+$/.test(t)) t = t.replace(/\./g, '');
+    const n = Number(t);
+    return isFinite(n) && n >= 0 ? n : NaN;
+  }
+
+  function hojeISO() {
+    const h = new Date();
+    return `${h.getFullYear()}-${String(h.getMonth() + 1).padStart(2, '0')}-${String(h.getDate()).padStart(2, '0')}`;
+  }
+
+  function somarDias(iso, dias) {
+    const [a, m, d] = iso.split('-').map(Number);
+    return new Date(Date.UTC(a, m - 1, d + dias)).toISOString().slice(0, 10);
+  }
+
+  function diasEntre(a, b) {
+    const utc = t => { const [x, y, z] = t.split('-').map(Number); return Date.UTC(x, y - 1, z); };
+    return Math.round((utc(b) - utc(a)) / 864e5);
+  }
+
+  // Mesma conta do servidor: "A cada 30 dias" soma 30 em 30; "Todo mês no mesmo dia" repete o dia
+  // (em mês mais curto, cai no último dia do mês)
+  function proximaCobranca(tipo, inicio, hoje) {
+    if (!inicio) return '';
+    if (inicio >= hoje) return inicio;
+    if (tipo === 'A cada 30 dias') return somarDias(inicio, 30 * Math.ceil(diasEntre(inicio, hoje) / 30));
+    const [a, m, d] = inicio.split('-').map(Number);
+    const [ha, hm] = hoje.split('-').map(Number);
+    for (let meses = (ha - a) * 12 + (hm - m); ; meses++) {
+      const ultimo = new Date(Date.UTC(a, m - 1 + meses + 1, 0)).getUTCDate();
+      const data = new Date(Date.UTC(a, m - 1 + meses, Math.min(d, ultimo))).toISOString().slice(0, 10);
+      if (data >= hoje) return data;
+    }
+  }
+
+  function quandoCobrar(dias) {
+    return dias === 0 ? 'Hoje' : dias === 1 ? 'Amanhã' : `Em ${dias} dias`;
   }
 
   function semAcento(t) {
@@ -914,6 +965,7 @@
         ${total('aviso', 'Vencem em 30 dias', t.aviso, '<span class="st st--aviso">Hora de renovar</span>', 'aviso')}
         ${total('vencido', 'Vencidos', t.vencido, '<span class="st st--vencido">Precisa de atenção</span>', 'vencido')}
       </div>
+      ${blocoCobrancas(p.cobrancas, p.diasCobrancas)}
       <div class="colunas">
         <section class="painel larga" aria-labelledby="titulo-prazos">
           <div class="painel-topo"><h2 id="titulo-prazos">Próximos prazos</h2><a href="#/imoveis">Ver lista completa</a></div>
@@ -923,6 +975,21 @@
         ${blocoAvisos(p.agenda)}
       </div>
       <div class="barra-fixa so-celular"><a href="#/novo" class="pr-btn pr-btn--acao">+ Incluir imóvel</a></div>`);
+  }
+
+  function blocoCobrancas(lista, dias) {
+    const total = lista.reduce((s, i) => s + (Number(i.ValorAluguel) || 0), 0);
+    return `<section class="painel" aria-labelledby="titulo-cobrancas">
+      <div class="painel-topo"><h2 id="titulo-cobrancas">Cobranças dos próximos ${dias} dias</h2>
+        ${total ? `<span class="rotulo">Total ${esc(dinheiro(total))}</span>` : ''}</div>
+      ${lista.length ? `<div class="cobrancas">${lista.map(i => {
+        const [, m, d] = i.proximaCobranca.split('-');
+        return `<a class="pr-card" href="#/imovel/${esc(i.ID_Imovel)}">
+          <div class="pr-card__dia"><b>${d}</b><span>${MESES[Number(m) - 1]}</span></div>
+          <div><h3>${esc(i.Nome)}</h3><p>${esc([i.Inquilino, i.ValorAluguel !== '' ? dinheiro(i.ValorAluguel) : ''].filter(Boolean).join(' · '))}</p></div>
+          <span class="etiqueta">${quandoCobrar(i.diasCobranca)}</span></a>`;
+      }).join('')}</div>` : `<p class="suave">Nenhuma cobrança nos próximos ${dias} dias.</p>`}
+    </section>`;
   }
 
   function cartaoPrazo(i) {
@@ -1049,8 +1116,6 @@
     }
     const i = estado.form.imovel || {};
     const novo = !estado.form.imovel;
-    const hoje = new Date();
-    const hojeISO = `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, '0')}-${String(hoje.getDate()).padStart(2, '0')}`;
     const campoData = (nome, rotulo, dica) => `<div class="pr-field"><label for="f-${nome}">${rotulo}</label>
       <input id="f-${nome}" name="${nome}" type="date" value="${esc(i[nome] || '')}"><small>${dica}</small></div>`;
 
@@ -1076,7 +1141,7 @@
           <h2>Datas do contrato</h2>
           <div class="grade">
             <div class="pr-field"><label for="f-DataCadastro">Data do cadastro</label>
-              <input id="f-DataCadastro" type="text" value="${novo ? dataBR(hojeISO) : dataBR(i.DataCadastro)}" readonly><small>Preenchida sozinha.</small></div>
+              <input id="f-DataCadastro" type="text" value="${novo ? dataBR(hojeISO()) : dataBR(i.DataCadastro)}" readonly><small>Preenchida sozinha.</small></div>
             ${campoData('DataAssinatura', 'Data de assinatura', 'Quando o contrato foi assinado.')}
             ${campoData('DataEntrada', 'Data de entrada', 'Quando o inquilino entrou.')}
             ${campoData('DataVigente', 'Data vigente', 'Quando o contrato começa a valer.')}
@@ -1100,6 +1165,29 @@
         </section>
 
         <section class="painel">
+          <h2>Cobrança</h2>
+          <div class="grade">
+            <div class="pr-field"><label for="f-Cobrar">Cobrar este imóvel?</label>
+              <select id="f-Cobrar" name="Cobrar" onchange="atualizarCobranca()">
+                <option${i.Cobrar ? ' selected' : ''}>Sim</option><option${i.Cobrar ? '' : ' selected'}>Não</option></select>
+              <small>Imóvel vago ou sem aluguel: escolha Não.</small></div>
+            <div class="pr-field so-cobranca"><label for="f-TipoCobranca">Como cobrar</label>
+              <select id="f-TipoCobranca" name="TipoCobranca" onchange="atualizarCobranca()">
+                ${['Todo mês no mesmo dia', 'A cada 30 dias'].map(t => `<option${(i.TipoCobranca || 'Todo mês no mesmo dia') === t ? ' selected' : ''}>${t}</option>`).join('')}</select>
+              <small id="dica-tipo"></small></div>
+            <div class="pr-field so-cobranca"><label for="f-InicioCobranca">Dia em que a cobrança começa</label>
+              <input id="f-InicioCobranca" name="InicioCobranca" type="date" value="${esc(i.InicioCobranca || '')}" oninput="atualizarCobranca()">
+              <small>A data da primeira cobrança.</small></div>
+            <div class="pr-field so-cobranca"><label for="f-ValorAluguel">Valor do aluguel</label>
+              <input id="f-ValorAluguel" name="ValorAluguel" inputmode="decimal" placeholder="R$ 0,00" autocomplete="off"
+                value="${i.ValorAluguel !== '' && i.ValorAluguel != null ? esc(Number(i.ValorAluguel).toLocaleString('pt-BR', { minimumFractionDigits: 2 })) : ''}"
+                oninput="atualizarCobranca()" onblur="formatarValor(this)">
+              <small>Ex.: 1.500,00</small></div>
+          </div>
+          <div class="pr-alert pr-alert--info so-cobranca" id="previa-cobranca" aria-live="polite"></div>
+        </section>
+
+        <section class="painel">
           <h2>Anexos</h2>
           <div class="grade" id="anexos"></div>
         </section>
@@ -1112,7 +1200,38 @@
       </form>`, true);
     document.querySelectorAll('#form-imovel [data-mascara]').forEach(c => { c.dataset.digitos = c.value.replace(/\D/g, ''); conferirDocumento(c); });
     desenharAnexos();
+    atualizarCobranca();
     if (novo) document.getElementById('f-Nome').focus();
+  }
+
+  // Mostra ou esconde os campos de cobrança e calcula as próximas datas na hora
+  function atualizarCobranca() {
+    const sim = document.getElementById('f-Cobrar').value === 'Sim';
+    document.querySelectorAll('.so-cobranca').forEach(el => { el.hidden = !sim; });
+    if (!sim) return;
+    const tipo = document.getElementById('f-TipoCobranca').value;
+    const inicio = document.getElementById('f-InicioCobranca').value;
+    document.getElementById('dica-tipo').textContent = tipo === 'A cada 30 dias'
+      ? 'Conta 30 dias corridos: o dia do mês vai mudando.'
+      : 'Sempre no mesmo dia. Em mês mais curto, cai no último dia.';
+    const previa = document.getElementById('previa-cobranca');
+    if (!inicio) {
+      previa.innerHTML = `<span class="pr-alert__ic">${ICONE.agenda}</span><div><b>Próxima cobrança</b>Escolha o dia em que a cobrança começa.</div>`;
+      return;
+    }
+    const hoje = hojeISO();
+    const datas = [proximaCobranca(tipo, inicio, hoje)];
+    for (let n = 0; n < 2; n++) datas.push(proximaCobranca(tipo, inicio, somarDias(datas[datas.length - 1], 1)));
+    const valor = lerValor(document.getElementById('f-ValorAluguel').value);
+    previa.innerHTML = `<span class="pr-alert__ic">${ICONE.agenda}</span><div>
+      <b>Próxima cobrança: ${dataComDia(datas[0])} (${quandoCobrar(diasEntre(hoje, datas[0])).toLowerCase()})${valor ? ' · ' + esc(dinheiro(valor)) : ''}</b>
+      Depois: ${datas.slice(1).map(dataBR).join(' e ')}.
+      ${Number.isNaN(valor) ? '<br><span class="aviso-campo">Valor inválido. Use, por exemplo, 1.500,00.</span>' : ''}</div>`;
+  }
+
+  function formatarValor(campo) {
+    const v = lerValor(campo.value);
+    if (v !== '' && !Number.isNaN(v)) campo.value = v.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   }
 
   function desenharAnexos() {
@@ -1223,6 +1342,8 @@
     if (dados.DataVigente && dados.DataPrazo && dados.DataPrazo < dados.DataVigente) {
       return mostrarMensagem('A data prazo não pode ser antes da data vigente.', 'erro');
     }
+    if (dados.Cobrar === 'Sim' && !dados.InicioCobranca) return mostrarMensagem('Informe o dia em que a cobrança começa.', 'erro');
+    if (dados.Cobrar === 'Sim' && Number.isNaN(lerValor(dados.ValorAluguel))) return mostrarMensagem('Valor do aluguel inválido. Use, por exemplo, 1.500,00.', 'erro');
     const botao = document.getElementById('btn-salvar');
     const textoBotao = botao.textContent;
     botao.disabled = true; botao.textContent = 'Salvando…';
