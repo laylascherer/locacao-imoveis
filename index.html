@@ -246,6 +246,7 @@
   .cartao-imovel .linha { display: flex; justify-content: space-between; gap: 8px; align-items: flex-start; }
   .cartao-imovel .linha b { min-width: 0; }
   .legenda { display: flex; gap: 8px 16px; flex-wrap: wrap; align-items: center; font-size: 14px; color: var(--ink-muted); }
+  .valor-aluguel { font: 600 14px/20px var(--font-sans); color: var(--ink); font-variant-numeric: tabular-nums; }
   .vazio { padding: 32px 16px; text-align: center; color: var(--ink-muted); }
 
   /* ---------- Anexos ---------- */
@@ -620,6 +621,12 @@
       const data = new Date(Date.UTC(a, m - 1 + meses, Math.min(d, ultimo))).toISOString().slice(0, 10);
       if (data >= hoje) return data;
     }
+  }
+
+  // "R$ 2.400,00 por mês" / "R$ 950,00 a cada 30 dias" (vazio se não tem valor)
+  function textoAluguel(i) {
+    if (i.ValorAluguel === '' || i.ValorAluguel == null) return '';
+    return dinheiro(i.ValorAluguel) + (i.TipoCobranca === 'A cada 30 dias' ? ' a cada 30 dias' : ' por mês');
   }
 
   function quandoCobrar(dias) {
@@ -1130,7 +1137,7 @@
 
   function cartaoPrazo(i) {
     const [, m, d] = i.DataPrazo.split('-');
-    const detalhes = [i.Localizacao, i.Inquilino].filter(Boolean).join(' · ');
+    const detalhes = [i.Localizacao, i.Inquilino, textoAluguel(i)].filter(Boolean).join(' · ');
     return `<a class="pr-card" href="#/imovel/${esc(i.ID_Imovel)}">
       <div class="pr-card__dia"><b>${d}</b><span>${MESES[Number(m) - 1]}</span></div>
       <div class="com-capa">${avatarImovel(i.Nome, i.Capa)}<div><h3>${esc(i.Nome)}</h3>${detalhes ? `<p>${esc(detalhes)}</p>` : ''}</div></div>
@@ -1217,6 +1224,7 @@
             <tr class="clicavel" onclick="if (!event.target.closest('a')) navegar('#/imovel/${esc(i.ID_Imovel)}')">
               <td><div class="com-capa">${avatarImovel(i.Nome, i.Capa)}<div><div class="nome">${esc(i.Nome)}</div>
                 ${i.Localizacao ? `<div class="suave pequeno">${esc(i.Localizacao)}</div>` : ''}
+                ${textoAluguel(i) ? `<div class="valor-aluguel">${esc(textoAluguel(i))}</div>` : ''}
                 <div class="suave" style="font-size:13px">Cadastrado em ${dataBR(i.DataCadastro)}</div></div></div></td>
               <td>${esc(i.Inquilino) || '<span class="suave">—</span>'}</td>
               <td class="data">${dataBR(i.DataAssinatura)}</td>
@@ -1232,6 +1240,7 @@
         <a class="cartao-imovel" href="#/imovel/${esc(i.ID_Imovel)}">
           <div class="linha"><div class="com-capa">${avatarImovel(i.Nome, i.Capa)}<b>${esc(i.Nome)}</b></div>${etiquetaSituacao(i)}</div>
           ${i.Localizacao ? `<span class="suave pequeno">${esc(i.Localizacao)}</span>` : ''}
+          ${textoAluguel(i) ? `<span class="valor-aluguel">${esc(textoAluguel(i))}</span>` : ''}
           <span class="pequeno">${esc(i.Inquilino || 'Sem inquilino')} · prazo <b class="mono">${dataBR(i.DataPrazo)}</b></span>
         </a>`).join('')}</div>`;
   }
