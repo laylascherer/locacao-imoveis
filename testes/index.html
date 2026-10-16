@@ -187,6 +187,12 @@
 
   .cobrancas { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(320px, 100%), 1fr)); gap: 12px; }
 
+  /* ---------- Mapa da localização ---------- */
+  .mapa:empty { display: none; }
+  .mapa { display: flex; flex-direction: column; gap: 8px; }
+  .mapa iframe { width: 100%; height: 260px; border: 1px solid var(--line); border-radius: var(--radius-md); background: var(--surface-bg); }
+  @media (max-width: 760px) { .mapa iframe { height: 220px; } }
+
   /* ---------- Foto de capa (bolinha ao lado do nome) ---------- */
   .com-capa { display: flex; align-items: center; gap: 12px; min-width: 0; }
   .com-capa > div, .com-capa > b { min-width: 0; }
@@ -1272,9 +1278,11 @@
             <div class="pr-field"><label for="f-Nome">Nome do imóvel *</label>
               <input id="f-Nome" name="Nome" required placeholder="Ex.: Apartamento 302 · Ed. Aurora" value="${esc(i.Nome || '')}"></div>
             <div class="pr-field"><label for="f-Localizacao">Localização</label>
-              <input id="f-Localizacao" name="Localizacao" placeholder="Rua, número, bairro e cidade" value="${esc(i.Localizacao || '')}">
-              ${i.Localizacao ? `<small><a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(i.Localizacao)}" target="_blank" rel="noopener">Ver no mapa</a></small>` : ''}</div>
+              <input id="f-Localizacao" name="Localizacao" placeholder="Rua, número, bairro e cidade" value="${esc(i.Localizacao || '')}"
+                oninput="agendarMapa()" onchange="atualizarMapa()">
+              <small>Com número e cidade, o mapa acerta melhor.</small></div>
           </div>
+          <div id="mapa-local" class="mapa" aria-live="polite"></div>
         </section>
 
         <section class="painel">
@@ -1341,7 +1349,36 @@
     document.querySelectorAll('#form-imovel [data-mascara]').forEach(c => { c.dataset.digitos = c.value.replace(/\D/g, ''); conferirDocumento(c); });
     desenharAnexos();
     atualizarCobranca();
+    atualizarMapa();
     if (novo) document.getElementById('f-Nome').focus();
+  }
+
+  /* ---------- Mapa da localização (Google Maps incorporado) ----------
+   * Um iframe com o modo "embed" do Google Maps: gratuito e sem chave de API.
+   * Atualiza 1 segundo depois que a pessoa para de digitar (debounce), ou ao sair do campo. */
+  function agendarMapa() {
+    clearTimeout(estado.timerMapa);
+    estado.timerMapa = setTimeout(atualizarMapa, 1000);
+  }
+
+  function atualizarMapa() {
+    clearTimeout(estado.timerMapa);
+    const campo = document.getElementById('f-Localizacao');
+    const area = document.getElementById('mapa-local');
+    if (!campo || !area) return;
+    const endereco = campo.value.trim();
+    if (endereco === area.dataset.endereco) return; // o mesmo endereço: não recarrega o mapa
+    area.dataset.endereco = endereco;
+    if (endereco.length < 5) { area.innerHTML = ''; return; }
+    const q = encodeURIComponent(endereco);
+    area.innerHTML = `
+      <iframe src="https://www.google.com/maps?q=${q}&output=embed&hl=pt-BR" title="Mapa: ${esc(endereco)}"
+        loading="lazy" referrerpolicy="no-referrer-when-downgrade" allowfullscreen></iframe>
+      <div class="acoes">
+        <a class="pr-btn pr-btn--sec pr-btn--pequeno" href="https://www.google.com/maps/search/?api=1&query=${q}" target="_blank" rel="noopener">Abrir no Google Maps</a>
+        <a class="pr-btn pr-btn--sec pr-btn--pequeno" href="https://www.google.com/maps/dir/?api=1&destination=${q}" target="_blank" rel="noopener">Como chegar</a>
+        <span class="suave pequeno">Confira se o marcador está no lugar certo.</span>
+      </div>`;
   }
 
   // Mostra ou esconde os campos de cobrança e calcula as próximas datas na hora
