@@ -392,22 +392,16 @@
     background: var(--ink); color: var(--surface-bg); padding: 12px 20px; border-radius: var(--radius-md); box-shadow: var(--shadow-raised); }
   .mensagem.erro { background: var(--danger); color: #fff; }
 
-  /* Cabeçalho da tabela fixo ao rolar (sticky): só em telas largas, onde a tabela cabe sem a caixa de rolagem lateral */
-  @media (min-width: 1024px) {
-    .caixa-tabela { overflow: visible; }
-    .tabela th { position: sticky; top: var(--altura-topo, 64px); z-index: 5; box-shadow: 0 1px 0 var(--line); }
-    .tabela thead th:first-child { border-top-left-radius: var(--radius-lg); }
-    .tabela thead th:last-child { border-top-right-radius: var(--radius-lg); }
-  }
-
-  /* Cabeçalho fixo (sticky) em todas as listas: o título de cada bloco gruda logo abaixo do topo enquanto a lista rola */
-  .painel > .painel-topo, .painel > h2:first-child {
-    position: sticky; top: var(--altura-topo, 64px); z-index: 4; background: var(--surface-card);
-    margin: -8px 0 0; padding: 8px 0; }
-  /* Lista de imóveis no celular/tablet em pé (cartões, sem tabela): os filtros ficam fixos */
-  @media (max-width: 1023px) {
-    #filtros { position: sticky; top: var(--altura-topo, 64px); z-index: 4; background: var(--surface-bg); padding: 8px 0; }
-  }
+  /* ---------- Listas e tabelas com altura fixa e rolagem interna (scroll container) ----------
+   * O título do bloco e o cabeçalho da tabela ficam sempre à vista; rola-se só o conteúdo, dentro da caixa. */
+  .rolagem { max-height: min(60vh, 560px); max-height: min(60dvh, 560px); overflow-y: auto; overscroll-behavior: contain;
+    padding-right: 4px; scrollbar-width: thin; }
+  .lista-prazos { display: flex; flex-direction: column; gap: 12px; padding-bottom: 2px; }
+  .lista-cartoes.rolagem { max-height: calc(100vh - var(--altura-topo, 64px) - 260px); max-height: calc(100dvh - var(--altura-topo, 64px) - 260px); min-height: 240px; }
+  /* Tabela de imóveis: a caixa tem altura fixa, rola por dentro (inclusive para o lado) e o cabeçalho gruda no alto da caixa */
+  .caixa-tabela { max-height: calc(100vh - var(--altura-topo, 64px) - 240px); max-height: calc(100dvh - var(--altura-topo, 64px) - 240px);
+    min-height: 260px; overflow: auto; overscroll-behavior: contain; }
+  .tabela th { position: sticky; top: 0; z-index: 5; box-shadow: 0 1px 0 var(--line); }
 
   /* ---------- Celular e tablet em pé ---------- */
   @media (max-width: 760px) {
@@ -438,8 +432,6 @@
     .total .st { font-size: 12px; padding: 2px 8px; }
     .titulo-pagina h1 { font-size: 22px; line-height: 28px; }
     /* Avisos: no painel, só os 3 primeiros (o resto fica no sininho) */
-    .avisos-painel .aviso-item:nth-child(n+4) { display: none; }
-    .ver-todos { width: 100%; }
     /* Botões do fim do formulário: um embaixo do outro, Salvar primeiro */
     .acoes.fim { flex-direction: column-reverse; align-items: stretch; }
     .acoes.fim .pr-btn { width: 100%; margin-right: 0 !important; }
@@ -1471,7 +1463,7 @@
       <div class="colunas">
         <section class="painel larga" aria-labelledby="titulo-prazos">
           <div class="painel-topo"><h2 id="titulo-prazos">Próximos vencimentos</h2><a href="#/imoveis">Ver lista completa</a></div>
-          ${p.proximos.length ? p.proximos.map(cartaoPrazo).join('') :
+          ${p.proximos.length ? `<div class="rolagem lista-prazos">${p.proximos.map(cartaoPrazo).join('')}</div>` :
             `<p class="vazio">Nenhum imóvel com cobrança ainda. <a href="#/novo">Incluir o primeiro imóvel</a></p>`}
         </section>
         ${blocoAvisos(p.agenda)}
@@ -1515,14 +1507,14 @@
       ${filtro ? `<section class="painel" aria-labelledby="titulo-filtro">
         <div class="painel-topo"><h2 id="titulo-filtro">${filtro.titulo} ${esc(nome)} <span class="rotulo">${d.visiveis.length}</span></h2>
           <a class="pr-btn pr-btn--texto pr-btn--pequeno" href="${base}">Ver todas as cobranças</a></div>
-        ${d.visiveis.length ? `<div class="lista-cobrancas">${d.visiveis.map((c, n) => linhaCobranca(c, 'visiveis', n)).join('')}</div>`
+        ${d.visiveis.length ? `<div class="lista-cobrancas rolagem">${d.visiveis.map((c, n) => linhaCobranca(c, 'visiveis', n)).join('')}</div>`
           : `<p class="vazio">${filtro.vazio}</p>`}</section>` : `
       ${d.anteriores.length ? `<section class="painel" aria-labelledby="titulo-anteriores">
         <div class="painel-topo"><h2 id="titulo-anteriores">Em atraso de meses anteriores</h2><span class="rotulo">${d.anteriores.length}</span></div>
-        <div class="lista-cobrancas">${d.anteriores.map((c, n) => linhaCobranca(c, 'anteriores', n)).join('')}</div></section>` : ''}
+        <div class="lista-cobrancas rolagem">${d.anteriores.map((c, n) => linhaCobranca(c, 'anteriores', n)).join('')}</div></section>` : ''}
       <section class="painel" aria-labelledby="titulo-cobrancas-mes">
         <div class="painel-topo"><h2 id="titulo-cobrancas-mes">Cobranças de ${esc(nome)}</h2><span class="rotulo">${d.cobrancas.length}</span></div>
-        ${d.cobrancas.length ? `<div class="lista-cobrancas">${d.cobrancas.map((c, n) => linhaCobranca(c, 'cobrancas', n)).join('')}</div>`
+        ${d.cobrancas.length ? `<div class="lista-cobrancas rolagem">${d.cobrancas.map((c, n) => linhaCobranca(c, 'cobrancas', n)).join('')}</div>`
           : '<p class="vazio">Nenhuma cobrança neste mês. Para cobrar um imóvel, abra o cadastro dele e preencha o bloco Cobrança.</p>'}
       </section>`}`;
   }
@@ -1722,8 +1714,7 @@
     return `<section class="painel estreita" id="avisos-painel" aria-labelledby="titulo-avisos">
       <div class="painel-topo"><h2 id="titulo-avisos">Avisos</h2>
         ${av.naoLidos ? `<button class="pr-btn pr-btn--texto pr-btn--pequeno" onclick="marcarTodosLidos()">Marcar como lidos</button>` : '<span class="rotulo">Nada novo</span>'}</div>
-      <div class="avisos-painel">${av.lista.length ? av.lista.map(itemAviso).join('') : '<p class="suave">Nenhum aluguel atrasado ou vencendo. Tudo em dia!</p>'}</div>
-      ${av.lista.length > 3 ? `<button type="button" class="pr-btn pr-btn--sec so-celular ver-todos" onclick="alternarAvisos(event)">Ver todos os ${av.lista.length} avisos</button>` : ''}
+      <div class="avisos-painel rolagem">${av.lista.length ? av.lista.map(itemAviso).join('') : '<p class="suave">Nenhum aluguel atrasado ou vencendo. Tudo em dia!</p>'}</div>
       <div class="pr-alert pr-alert--info"><span class="pr-alert__ic">${ICONE.agenda}</span><div>
         ${estado.agendaConectada ? '<b>Vencimentos na Agenda Google</b>Cada imóvel com cobrança vira um evento repetido na agenda “Az Gestão – Vencimentos”, com lembrete 3 dias antes.'
           : '<b>Agenda Google</b>Quando o primeiro imóvel com cobrança for salvo, a agenda “Az Gestão – Vencimentos” é criada.'}</div></div>
@@ -1821,7 +1812,7 @@
             </tr>`).join('')}</tbody>
         </table>
       </div>
-      <div class="lista-cartoes">${lista.map(i => `
+      <div class="lista-cartoes rolagem">${lista.map(i => `
         <a class="cartao-imovel" href="#/imovel/${esc(i.ID_Imovel)}">
           <div class="linha"><div class="com-capa">${avatarImovel(i.Nome, i.Capa)}<b>${esc(i.Nome)}</b></div>${etiquetaSituacao(i)}</div>
           ${i.Localizacao ? `<span class="suave pequeno">${esc(i.Localizacao)}</span>` : ''}
@@ -1903,11 +1894,11 @@
             : `<div class="pr-alert pr-alert--info so-cobranca"><span class="pr-alert__ic">${ICONE.agenda}</span><div><b>${i.naAgenda ? 'Está na Agenda Google' : 'Vai para a Agenda Google'}</b>Os vencimentos viram um evento repetido na agenda “Az Gestão – Vencimentos”, com lembrete 3 dias antes. O sininho também avisa aqui no portal.</div></div>`}
           ${!novo && i.Cobrar ? `<div class="acoes"><button type="button" class="pr-btn pr-btn--sec" onclick="abrirSaidaInquilino()">Inquilino saiu</button>
             <span class="suave pequeno">Registra a saída com a data, guarda no histórico e deixa o imóvel vago.</span></div>` : ''}
-          ${(estado.form.historico || []).length ? `<div class="historico"><h3>Inquilinos anteriores</h3>
+          ${(estado.form.historico || []).length ? `<div class="historico"><h3>Inquilinos anteriores</h3><div class="rolagem">
             ${estado.form.historico.map(h => `<div class="historico-item"><b>${esc(h.Inquilino || 'Sem nome')}</b>
               <span class="suave pequeno">${dataBR(h.Inicio)} a ${dataBR(h.Fim)}${h.ValorAluguel !== '' ? ' · ' + esc(dinheiro(h.ValorAluguel)) + ' por mês' : ''}${h.Telefone ? ' · ' + esc(h.Telefone) : ''}</span>
               ${h.QtdEmAberto ? `<span class="st st--sem-prazo">Saiu devendo ${h.QtdEmAberto} ${h.QtdEmAberto === 1 ? 'aluguel' : 'aluguéis'} (${esc(dinheiro(h.ValorEmAberto))})</span>` : '<span class="st st--ok">Saiu em dia</span>'}
-            </div>`).join('')}</div>` : ''}
+            </div>`).join('')}</div></div>` : ''}
         </section>
 
         <section class="painel">
@@ -2753,7 +2744,7 @@
         Ainda faltam ${dados.pendentes}. Abra o mapa de novo daqui a pouco para ver todos.</div></div>` : ''}
       ${dados.semLocal.length ? `<section class="painel"><h2>Fora do mapa</h2>
         <p class="suave pequeno">Estes imóveis não têm endereço, ou o endereço não foi encontrado. Abra e confira a localização (com número e cidade).</p>
-        <div>${dados.semLocal.map(i => `<a class="aviso-item" href="#/imovel/${esc(i.ID_Imovel)}"><span class="bolinha" aria-hidden="true"></span>
+        <div class="rolagem">${dados.semLocal.map(i => `<a class="aviso-item" href="#/imovel/${esc(i.ID_Imovel)}"><span class="bolinha" aria-hidden="true"></span>
           ${avatarImovel(i.Nome, '')}<div><b>${esc(i.Nome)}</b>${esc(i.Localizacao || 'Sem endereço')}</div></a>`).join('')}</div></section>` : ''}`);
     desenharMapaGeral();
   }
@@ -2820,8 +2811,8 @@
       <div class="titulo-pagina"><div><span class="rotulo">${us.length} ${us.length === 1 ? 'pessoa' : 'pessoas'}</span><h1>Usuários</h1></div></div>
       ${pendentes.length ? `<section class="painel"><h2>Pedidos de acesso</h2>
         <p class="suave pequeno">Quem for aprovado entra como Equipe: vê, inclui e edita imóveis. Só o Administrador exclui imóveis e cuida dos usuários.</p>
-        <div>${pendentes.map(linha).join('')}</div></section>` : ''}
-      <section class="painel"><h2>Equipe</h2><div>${outros.map(linha).join('')}</div></section>`, true);
+        <div class="rolagem">${pendentes.map(linha).join('')}</div></section>` : ''}
+      <section class="painel"><h2>Equipe</h2><div class="rolagem">${outros.map(linha).join('')}</div></section>`, true);
   }
 
   async function decidirCadastro(id, situacao) {
