@@ -493,9 +493,21 @@
    * Conversa com o servidor
    * ========================================================= */
 
+  // Funções que só leem: não mexem no cache. Todas as outras gravam algo, e aí as cópias das telas ficam velhas.
+  function soLeitura(funcao) {
+    return /^(abrir|listar|iniciarSessao|entrar|baixarArquivo|enviarParteArquivo|buscarResposta)/.test(funcao);
+  }
+
+  function chamar(funcao, ...args) {
+    return chamarServidor(funcao, ...args).then(r => {
+      if (!soLeitura(funcao) && estado.usuario) { limparCache(); setTimeout(adiantarTelas, 500); }
+      return r;
+    });
+  }
+
   // Chama uma função do Codigo.gs e devolve uma Promise.
   // Funciona dentro do Google (google.script.run) e no site do GitHub (endereço API_URL).
-  function chamar(funcao, ...args) {
+  function chamarServidor(funcao, ...args) {
     const falhou = erro => {
       if (String(erro && erro.message).includes('sessão expirou')) { encerrarSessaoLocal(); telaEntrar(); }
       throw erro;
@@ -744,11 +756,90 @@
     }, 8000);
   }
 
-  function tela(html, estreito) {
+  // manterRolagem: usado quando a tela só se atualiza por trás (cache), para não pular para o topo
+  function tela(html, estreito, manterRolagem) {
     const main = document.getElementById('tela');
     main.className = estreito ? 'estreito' : '';
     main.innerHTML = html;
-    window.scrollTo(0, 0);
+    if (!manterRolagem) window.scrollTo(0, 0);
+  }
+
+  /* =========================================================
+   * Cache das telas ("mostra o que tem, enquanto confere se mudou", ou stale-while-revalidate)
+   * Cada tela principal guarda a última resposta do servidor: na memória e no aparelho (localStorage).
+   * Ao abrir a tela, a cópia aparece na hora; o servidor é consultado por trás e, se algo mudou,
+   * a tela se redesenha sozinha. Qualquer gravação (salvar, pagar, excluir...) apaga as cópias.
+   * ========================================================= */
+  const cache = { memoria: {}, pedidos: {} };
+
+  function chaveLocal(chave) {
+    return 'cache:' + ((estado.usuario && estado.usuario.Email) || '') + ':' + chave;
+  }
+
+  function lerCache(chave) {
+    if (cache.memoria[chave]) return cache.memoria[chave];
+    try {
+      const guardado = localStorage.getItem(chaveLocal(chave));
+      if (guardado) return (cache.memoria[chave] = { json: guardado, dados: JSON.parse(guardado) });
+    } catch (e) { /* sem acesso ao armazenamento do aparelho */ }
+    return null;
+  }
+
+  function gravarCache(chave, dados) {
+    const json = JSON.stringify(dados);
+    cache.memoria[chave] = { json, dados };
+    try { localStorage.setItem(chaveLocal(chave), json); } catch (e) { /* aparelho cheio: fica só na memória */ }
+  }
+
+  function limparCache() {
+    cache.memoria = {};
+    try {
+      Object.keys(localStorage).filter(k => k.startsWith('cache:')).forEach(k => localStorage.removeItem(k));
+    } catch (e) {}
+  }
+
+  // O mesmo pedido em andamento (ex.: o prefetch) é reaproveitado, em vez de pedir duas vezes
+  function buscarUmaVez(chave, buscar) {
+    if (!cache.pedidos[chave]) cache.pedidos[chave] = buscar().finally(() => { delete cache.pedidos[chave]; });
+    return cache.pedidos[chave];
+  }
+
+  // desenhar(dados, atualizacao): atualizacao = true quando é a versão nova chegando por trás de uma cópia já mostrada
+  async function carregarTela(chave, buscar, desenhar, textoCarregando) {
+    const rota = location.hash;
+    const guardado = lerCache(chave);
+    if (guardado) desenhar(guardado.dados, false);
+    else carregando(textoCarregando);
+    try {
+      const novos = await buscarUmaVez(chave, buscar);
+      if (location.hash !== rota) return; // a pessoa já foi para outra tela
+      const json = JSON.stringify(novos);
+      if (guardado && guardado.json === json) return; // nada mudou
+      gravarCache(chave, novos);
+      // Com um modal aberto (ex.: registrando pagamento), não mexe na tela agora: a versão nova aparece na próxima vez
+      if (guardado && document.getElementById('janela')) return;
+      desenhar(novos, !!guardado);
+    } catch (erro) {
+      if (location.hash !== rota) return;
+      if (guardado) mostrarMensagem('Sem conexão com o servidor agora: mostrando a última versão guardada.', 'erro');
+      else throw erro;
+    }
+  }
+
+  // Logo depois do login, já busca por trás as telas principais (prefetch)
+  function adiantarTelas() {
+    if (!estado.usuario || !estado.auth.token) return; // saiu do portal nesse meio-tempo
+    const mes = hojeISO().slice(0, 7);
+    [['painel', () => chamar('abrirPainel', auth())],
+     ['imoveis', () => chamar('listarImoveis', auth())],
+     ['pagamentos:' + mes, () => chamar('abrirPagamentos', mes, auth())],
+     ['mapa', () => chamar('abrirMapa', auth())]
+    ].forEach(([chave, buscar]) => {
+      if (cache.memoria[chave] && cache.memoria[chave].fresco) return;
+      buscarUmaVez(chave, buscar).then(d => { gravarCache(chave, d); cache.memoria[chave].fresco = true; }).catch(() => {});
+    });
+    carregarEstilo(LEAFLET + 'leaflet.min.css');
+    carregarScript(LEAFLET + 'leaflet.min.js').catch(() => {});
   }
 
   // Lê os campos de um formulário: { NomeDoCampo: valor }
@@ -996,8 +1087,15 @@
   }
 
   async function iniciar() {
-    carregando();
     estado.auth = { token: lerLocal('tokenSessao') };
+    // Já entrou antes neste aparelho: mostra a última versão guardada na hora, enquanto o servidor confere o login
+    const ultimo = estado.auth.token && lerLocal('ultimoUsuario');
+    if (ultimo) {
+      try {
+        estado.usuario = JSON.parse(ultimo);
+        irPara(location.hash);
+      } catch (e) { estado.usuario = null; carregando(); }
+    } else carregando();
     try {
       await tratarSituacao(await chamar('iniciarSessao', estado.auth.token));
     } catch (erro) {
@@ -1011,17 +1109,22 @@
     if (r.token) { estado.auth.token = r.token; gravarLocal('tokenSessao', r.token); }
     estado.usuario = null;
     desenharTopo();
+    if (r.situacao !== 'Ativo') { gravarLocal('ultimoUsuario', ''); limparCache(); }
     if (r.situacao === 'sem-login') return telaEntrar();
     if (r.situacao === 'Pendente') return telaAvisoAcesso('Cadastro aguardando aprovação',
       'Seu cadastro foi enviado. Assim que o administrador aprovar, você recebe um e-mail e já pode usar o portal.');
     if (r.situacao === 'Recusado') return telaAvisoAcesso('Cadastro não aprovado', 'Fale com o administrador do portal.');
     if (r.situacao === 'Inativo') return telaAvisoAcesso('Acesso desativado', 'Fale com o administrador do portal.');
 
+    const jaMostrando = estado.usuario && estado.usuario.Email === r.usuario.Email && document.querySelector('#tela > :not(.carregando)');
     estado.usuario = r.usuario;
     estado.demonstracao = !!r.demonstracao;
     estado.pendentes = r.pendentes || 0;
-    irPara(location.hash);
+    gravarLocal('ultimoUsuario', JSON.stringify(r.usuario));
+    if (jaMostrando) desenharTopo(paginaAtual()); // a tela já está aberta (cópia guardada) e se atualiza sozinha
+    else irPara(location.hash);
     atualizarAvisos();
+    adiantarTelas();
   }
 
   async function sairDoSistema() {
@@ -1032,6 +1135,8 @@
   }
 
   function encerrarSessaoLocal() {
+    limparCache();
+    gravarLocal('ultimoUsuario', '');
     gravarLocal('tokenSessao', '');
     estado.auth = { token: '' };
     estado.usuario = null;
@@ -1153,11 +1258,15 @@
 
   async function telaPainel(aba, mes) {
     aba = aba === 'pagamentos' ? 'pagamentos' : 'contratos';
-    carregando();
-    let dados;
+    const mesPedido = /^\d{4}-\d{2}$/.test(mes || '') ? mes : hojeISO().slice(0, 7);
+    const chave = aba === 'pagamentos' ? 'pagamentos:' + mesPedido : 'painel';
+    const buscar = aba === 'pagamentos' ? () => chamar('abrirPagamentos', mesPedido, auth()) : () => chamar('abrirPainel', auth());
     try {
-      dados = aba === 'pagamentos' ? await chamar('abrirPagamentos', mes || '', auth()) : await chamar('abrirPainel', auth());
-    } catch (erro) { return telaErro(erro, '#/' + (aba === 'pagamentos' ? '?aba=pagamentos' : '')); }
+      await carregarTela(chave, buscar, (dados, atualizacao) => desenharPainel(aba, dados, atualizacao));
+    } catch (erro) { telaErro(erro, '#/' + (aba === 'pagamentos' ? '?aba=pagamentos' : '')); }
+  }
+
+  function desenharPainel(aba, dados, atualizacao) {
     if (paginaAtual() !== '') return; // a pessoa mudou de tela enquanto carregava
     if (dados.avisos) estado.avisos = dados.avisos;
     desenharTopo('');
@@ -1172,7 +1281,7 @@
         <h1>${saudacao}, ${esc(primeiroNome)}! Veja como estão os imóveis</h1>
       </div></div>
       <nav class="abas" role="tablist" aria-label="Partes do painel">${abaLink('contratos', 'Contratos')}${abaLink('pagamentos', 'Pagamentos')}</nav>
-      ${aba === 'pagamentos' ? conteudoPagamentos(dados) : conteudoContratos(dados)}`);
+      ${aba === 'pagamentos' ? conteudoPagamentos(dados) : conteudoContratos(dados)}`, false, atualizacao);
   }
 
   function cartaoValor(classe, rotulo, valor, detalhe, link) {
@@ -1453,9 +1562,19 @@
    * ========================================================= */
   async function telaImoveis(filtro) {
     estado.filtro = NOMES_SITUACAO[filtro] ? filtro : 'todos';
-    carregando('Carregando os imóveis…');
-    try { estado.lista = await chamar('listarImoveis', auth()); } catch (erro) { return telaErro(erro, '#/imoveis'); }
+    try {
+      await carregarTela('imoveis', () => chamar('listarImoveis', auth()), desenharImoveis, 'Carregando os imóveis…');
+    } catch (erro) { telaErro(erro, '#/imoveis'); }
+  }
+
+  function desenharImoveis(dados, atualizacao) {
     if (paginaAtual() !== 'imoveis') return;
+    estado.lista = dados;
+    // Versão nova chegando por trás: só troca os resultados (a busca digitada e o foco continuam)
+    if (atualizacao && document.getElementById('resultados')) {
+      document.querySelector('.titulo-pagina .rotulo').textContent = `${dados.imoveis.length} ${dados.imoveis.length === 1 ? 'imóvel' : 'imóveis'}`;
+      return desenharResultados();
+    }
     tela(`
       <div class="titulo-pagina"><div>
         <span class="rotulo">${estado.lista.imoveis.length} ${estado.lista.imoveis.length === 1 ? 'imóvel' : 'imóveis'}</span>
@@ -2365,13 +2484,16 @@
   const LEAFLET = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/';
 
   async function telaMapa() {
-    carregando('Abrindo o mapa…');
-    let dados;
     try {
       carregarEstilo(LEAFLET + 'leaflet.min.css');
-      [dados] = await Promise.all([chamar('abrirMapa', auth()), carregarScript(LEAFLET + 'leaflet.min.js')]);
-    } catch (erro) { return telaErro(erro, '#/mapa'); }
+      const biblioteca = carregarScript(LEAFLET + 'leaflet.min.js');
+      await carregarTela('mapa', () => chamar('abrirMapa', auth()), async dados => { await biblioteca; desenharMapaTela(dados); }, 'Abrindo o mapa…');
+    } catch (erro) { telaErro(erro, '#/mapa'); }
+  }
+
+  function desenharMapaTela(dados) {
     if (paginaAtual() !== 'mapa') return;
+    if (estado.mapaGeral) { estado.mapaGeral.remove(); estado.mapaGeral = null; }
     estado.dadosMapa = dados;
     estado.filtroMapa = estado.filtroMapa || 'todos';
     const conta = s => dados.imoveis.filter(i => s === 'todos' || i.situacao === s).length;
