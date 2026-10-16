@@ -205,6 +205,11 @@
 
   .cobrancas { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(320px, 100%), 1fr)); gap: 12px; }
 
+  /* ---------- Histórico de inquilinos ---------- */
+  .historico { display: flex; flex-direction: column; gap: 8px; border-top: 1px solid var(--line); padding-top: 12px; }
+  .historico-item { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; padding: 8px 0; border-bottom: 1px solid var(--line); }
+  .historico-item:last-child { border-bottom: 0; }
+
   /* ---------- Mapa da localização ---------- */
   .mapa:empty { display: none; }
   .mapa { display: flex; flex-direction: column; gap: 8px; }
@@ -503,8 +508,8 @@
     loginEmail: ''
   };
 
-  // Situação do imóvel pelos pagamentos (sem contrato): 'sem-prazo' = imóvel que não cobra
-  const NOMES_SITUACAO = { todos: 'Todos', ok: 'Em dia', aviso: 'Vence em breve', vencido: 'Atrasados', 'sem-prazo': 'Sem cobrança' };
+  // Situação do imóvel pelos pagamentos: 'sem-prazo' = imóvel vago (sem inquilino e sem cobrança)
+  const NOMES_SITUACAO = { todos: 'Todos', ok: 'Em dia', aviso: 'Vence em breve', vencido: 'Atrasados', 'sem-prazo': 'Vagos' };
   const ORDEM_SITUACAO = { vencido: 0, aviso: 1, ok: 2, 'sem-prazo': 3 };
 
   /* ---------- Ícones (linha simples, na cor do texto) ---------- */
@@ -669,7 +674,7 @@
   function textoSituacao(i) {
     if (i.situacao === 'vencido') { const n = -i.dias; return `Atrasado há ${n} ${n === 1 ? 'dia' : 'dias'}`; }
     if (i.situacao === 'aviso') return i.dias === 0 ? 'Vence hoje' : i.dias === 1 ? 'Vence amanhã' : `Vence em ${i.dias} dias`;
-    return i.situacao === 'sem-prazo' ? 'Sem cobrança' : 'Em dia';
+    return i.situacao === 'sem-prazo' ? 'Vago' : 'Em dia';
   }
 
 
@@ -728,11 +733,23 @@
     return dinheiro(i.ValorAluguel) + (i.TipoCobranca === 'A cada 30 dias' ? ' a cada 30 dias' : ' por mês');
   }
 
-  // "Todo dia 5" / "A cada 30 dias" / "—"
+  // "Todo dia 5" (alugado) / "Vago"
   function textoCobranca(i) {
-    if (!i.Cobrar || !i.InicioCobranca) return '—';
-    return i.TipoCobranca === 'A cada 30 dias' ? 'A cada 30 dias' : `Todo dia ${Number(i.InicioCobranca.slice(8))}`;
+    if (!i.Cobrar || !i.InicioCobranca) return 'Vago';
+    return i.TipoCobranca === 'A cada 30 dias' ? 'A cada 30 dias' : `Todo dia ${i.DiaVencimento || Number(i.InicioCobranca.slice(8))}`;
   }
+
+  // Próxima data com aquele dia do mês a partir de hoje (hoje conta). Igual ao servidor (proximoDiaDoMes_).
+  function proximoDiaDoMes(dia, hoje) {
+    const [a, m] = hoje.split('-').map(Number);
+    const noMes = (ano, mesZero) => {
+      const ultimo = new Date(Date.UTC(ano, mesZero + 1, 0)).getUTCDate();
+      return new Date(Date.UTC(ano, mesZero, Math.min(dia, ultimo))).toISOString().slice(0, 10);
+    };
+    const desteMes = noMes(a, m - 1);
+    return desteMes >= hoje ? desteMes : noMes(a, m);
+  }
+
 
   function quandoCobrar(dias) {
     return dias === 0 ? 'Hoje' : dias === 1 ? 'Amanhã' : `Em ${dias} dias`;
@@ -1449,6 +1466,7 @@
         ${total('ok', 'Em dia', t.ok, '<span class="st st--ok">Pagamentos em dia</span>', 'ok')}
         ${total('aviso', 'Vencem em até 3 dias', t.aviso, '<span class="st st--aviso">Hora de cobrar</span>', 'aviso')}
         ${total('vencido', 'Atrasados', t.vencido, '<span class="st st--vencido">Precisa de atenção</span>', 'vencido')}
+        ${total('', 'Vagos', t.semPrazo, '<span class="st st--sem-prazo">Sem inquilino</span>', 'sem-prazo')}
       </div>
       <div class="colunas">
         <section class="painel larga" aria-labelledby="titulo-prazos">
@@ -1746,7 +1764,8 @@
       <div class="legenda"><span class="rotulo">Legenda</span>
         <span class="st st--ok">Em dia</span><span>nada atrasado</span>
         <span class="st st--aviso">Vence em breve</span><span>vence em até 3 dias</span>
-        <span class="st st--vencido">Atrasado</span><span>tem aluguel vencido sem pagamento</span></div>`);
+        <span class="st st--vencido">Atrasado</span><span>tem aluguel vencido sem pagamento</span>
+        <span class="st st--sem-prazo">Vago</span><span>sem inquilino</span></div>`);
     desenharResultados();
   }
 
@@ -1807,7 +1826,7 @@
           <div class="linha"><div class="com-capa">${avatarImovel(i.Nome, i.Capa)}<b>${esc(i.Nome)}</b></div>${etiquetaSituacao(i)}</div>
           ${i.Localizacao ? `<span class="suave pequeno">${esc(i.Localizacao)}</span>` : ''}
           ${textoAluguel(i) ? `<span class="valor-aluguel">${esc(textoAluguel(i))}</span>` : ''}
-          <span class="pequeno">${esc(i.Inquilino || 'Sem inquilino')} · ${i.proximoVencimento ? `vence <b class="mono">${dataBR(i.proximoVencimento)}</b>` : 'sem cobrança'}</span>
+          <span class="pequeno">${i.Cobrar ? `${esc(i.Inquilino || 'Sem inquilino')} · vence <b class="mono">${dataBR(i.proximoVencimento)}</b>` : 'Vago'}</span>
         </a>`).join('')}</div>`;
   }
 
@@ -1823,6 +1842,7 @@
       if (location.hash.indexOf(id) === -1) return;
       estado.form.imovel = r.imovel;
       estado.form.podeExcluir = r.podeExcluir;
+      estado.form.historico = r.historico || [];
       if (r.imovel.CapaUrl) estado.form.capa = { url: r.imovel.CapaUrl };
       estado.form.hoje = r.hoje;
     }
@@ -1852,41 +1872,42 @@
         </section>
 
         <section class="painel">
-          <h2>Inquilino</h2>
+          <h2>Locação</h2>
           <div class="grade">
-            <div class="pr-field"><label for="f-Inquilino">Nome do inquilino</label>
-              <input id="f-Inquilino" name="Inquilino" placeholder="Nome completo ou da empresa" value="${esc(i.Inquilino || '')}"></div>
-            <div class="pr-field"><label for="f-CPF">CPF ou CNPJ</label>
-              <input id="f-CPF" name="CPF"${mascara('documento')} value="${esc(i.CPF || '')}"></div>
-            <div class="pr-field"><label for="f-Telefone">Telefone</label>
-              <input id="f-Telefone" name="Telefone" type="tel"${mascara('telefone')} value="${esc(i.Telefone || '')}"></div>
-          </div>
-        </section>
-
-        <section class="painel">
-          <h2>Cobrança</h2>
-          <div class="grade">
-            <div class="pr-field"><label for="f-Cobrar">Cobrar este imóvel?</label>
+            <div class="pr-field"><label for="f-Cobrar">Situação do imóvel</label>
               <select id="f-Cobrar" name="Cobrar" onchange="atualizarCobranca()">
-                <option${i.Cobrar ? ' selected' : ''}>Sim</option><option${i.Cobrar ? '' : ' selected'}>Não</option></select>
-              <small>Imóvel vago ou sem aluguel: escolha Não.</small></div>
-            <div class="pr-field so-cobranca"><label for="f-TipoCobranca">Como cobrar</label>
-              <select id="f-TipoCobranca" name="TipoCobranca" onchange="atualizarCobranca()">
-                ${['Todo mês no mesmo dia', 'A cada 30 dias'].map(t => `<option${(i.TipoCobranca || 'Todo mês no mesmo dia') === t ? ' selected' : ''}>${t}</option>`).join('')}</select>
-              <small id="dica-tipo"></small></div>
-            <div class="pr-field so-cobranca"><label for="f-InicioCobranca">Data de vencimento</label>
-              <input id="f-InicioCobranca" name="InicioCobranca" type="date" value="${esc(i.InicioCobranca || '')}" oninput="atualizarCobranca()">
-              <small>O primeiro vencimento. Depois se repete conforme "Como cobrar".</small></div>
-            <div class="pr-field so-cobranca"><label for="f-ValorAluguel">Valor do aluguel</label>
+                <option value="Sim"${i.Cobrar ? ' selected' : ''}>Alugado</option><option value="Não"${i.Cobrar ? '' : ' selected'}>Vago</option></select>
+              <small>${i.Cobrar && i.AlugadoDesde ? 'Alugado desde ' + dataBR(String(i.AlugadoDesde).slice(0, 10)) + '.' : 'Vago: sem inquilino e sem cobrança.'}</small></div>
+            <div class="pr-field so-cobranca"><label for="f-Inquilino">Nome do inquilino *</label>
+              <input id="f-Inquilino" name="Inquilino" placeholder="Nome completo ou da empresa" value="${esc(i.Inquilino || '')}"></div>
+            <div class="pr-field so-cobranca"><label for="f-CPF">CPF ou CNPJ</label>
+              <input id="f-CPF" name="CPF"${mascara('documento')} value="${esc(i.CPF || '')}"></div>
+            <div class="pr-field so-cobranca"><label for="f-Telefone">Telefone</label>
+              <input id="f-Telefone" name="Telefone" type="tel"${mascara('telefone')} value="${esc(i.Telefone || '')}"></div>
+            <div class="pr-field so-cobranca"><label for="f-ValorAluguel">Valor por mês *</label>
               <input id="f-ValorAluguel" name="ValorAluguel" inputmode="decimal" placeholder="R$ 0,00" autocomplete="off"
                 value="${i.ValorAluguel !== '' && i.ValorAluguel != null ? esc(Number(i.ValorAluguel).toLocaleString('pt-BR', { minimumFractionDigits: 2 })) : ''}"
                 oninput="atualizarCobranca()" onblur="formatarValor(this)">
               <small>Ex.: 1.500,00</small></div>
+            <div class="pr-field so-cobranca"><label for="f-DiaVencimento">Dia do vencimento *</label>
+              <select id="f-DiaVencimento" name="DiaVencimento" onchange="atualizarCobranca()">
+                <option value="">Escolha…</option>
+                ${Array.from({ length: 31 }, (_, n) => n + 1).map(d => `<option value="${d}"${Number(i.DiaVencimento) === d ? ' selected' : ''}>Todo dia ${d}</option>`).join('')}</select>
+              <small>Em mês mais curto, o dia 31 cai no último dia do mês.</small></div>
           </div>
           <div class="pr-alert pr-alert--info so-cobranca" id="previa-cobranca" aria-live="polite"></div>
+          <div class="pr-alert pr-alert--atencao" id="aviso-vago" hidden><span class="pr-alert__ic">!</span><div><b>Isso registra a saída do inquilino hoje</b>
+            ${esc(i.Inquilino || 'O inquilino')} vai para o histórico e o imóvel fica vago. Para outra data, use o botão “Inquilino saiu”.</div></div>
           ${i.exemplo
             ? '<div class="pr-alert pr-alert--atencao so-cobranca"><span class="pr-alert__ic">!</span><div><b>Imóvel de exemplo</b>Os imóveis de exemplo não vão para a Agenda Google.</div></div>'
             : `<div class="pr-alert pr-alert--info so-cobranca"><span class="pr-alert__ic">${ICONE.agenda}</span><div><b>${i.naAgenda ? 'Está na Agenda Google' : 'Vai para a Agenda Google'}</b>Os vencimentos viram um evento repetido na agenda “Az Gestão – Vencimentos”, com lembrete 3 dias antes. O sininho também avisa aqui no portal.</div></div>`}
+          ${!novo && i.Cobrar ? `<div class="acoes"><button type="button" class="pr-btn pr-btn--sec" onclick="abrirSaidaInquilino()">Inquilino saiu</button>
+            <span class="suave pequeno">Registra a saída com a data, guarda no histórico e deixa o imóvel vago.</span></div>` : ''}
+          ${(estado.form.historico || []).length ? `<div class="historico"><h3>Inquilinos anteriores</h3>
+            ${estado.form.historico.map(h => `<div class="historico-item"><b>${esc(h.Inquilino || 'Sem nome')}</b>
+              <span class="suave pequeno">${dataBR(h.Inicio)} a ${dataBR(h.Fim)}${h.ValorAluguel !== '' ? ' · ' + esc(dinheiro(h.ValorAluguel)) + ' por mês' : ''}${h.Telefone ? ' · ' + esc(h.Telefone) : ''}</span>
+              ${h.QtdEmAberto ? `<span class="st st--sem-prazo">Saiu devendo ${h.QtdEmAberto} ${h.QtdEmAberto === 1 ? 'aluguel' : 'aluguéis'} (${esc(dinheiro(h.ValorEmAberto))})</span>` : '<span class="st st--ok">Saiu em dia</span>'}
+            </div>`).join('')}</div>` : ''}
         </section>
 
         <section class="painel">
@@ -1937,28 +1958,63 @@
 
   // Mostra ou esconde os campos de cobrança e calcula as próximas datas na hora
   function atualizarCobranca() {
+    const f = estado.form, i = f.imovel || {};
     const sim = document.getElementById('f-Cobrar').value === 'Sim';
     document.querySelectorAll('.so-cobranca').forEach(el => { el.hidden = !sim; });
+    document.getElementById('aviso-vago').hidden = sim || !i.Cobrar; // estava alugado e vai ficar vago
     if (!sim) return;
-    const tipo = document.getElementById('f-TipoCobranca').value;
-    const inicio = document.getElementById('f-InicioCobranca').value;
-    document.getElementById('dica-tipo').textContent = tipo === 'A cada 30 dias'
-      ? 'Conta 30 dias corridos: o dia do mês vai mudando.'
-      : 'Sempre no mesmo dia. Em mês mais curto, cai no último dia.';
+    const dia = Number(document.getElementById('f-DiaVencimento').value);
     const previa = document.getElementById('previa-cobranca');
-    if (!inicio) {
-      previa.innerHTML = `<span class="pr-alert__ic">${ICONE.agenda}</span><div><b>Próxima cobrança</b>Escolha o dia em que a cobrança começa.</div>`;
+    if (!dia) {
+      previa.innerHTML = `<span class="pr-alert__ic">${ICONE.agenda}</span><div><b>Vencimento</b>Escolha o dia do vencimento.</div>`;
       return;
     }
     const hoje = hojeISO();
-    const datas = [proximaCobranca(tipo, inicio, hoje)];
-    for (let n = 0; n < 2; n++) datas.push(proximaCobranca(tipo, inicio, somarDias(datas[datas.length - 1], 1)));
+    // Mesmo dia de antes: a cobrança continua de onde estava. Dia novo (ou imóvel que estava vago): começa no próximo vencimento.
+    const continua = i.Cobrar && Number(i.DiaVencimento) === dia && i.proximoVencimento;
+    const primeira = continua ? i.proximoVencimento : proximoDiaDoMes(dia, hoje);
+    const depois = [proximaCobranca('Todo mês no mesmo dia', primeira, somarDias(primeira, 1))];
+    depois.push(proximaCobranca('Todo mês no mesmo dia', primeira, somarDias(depois[0], 1)));
     const valor = lerValor(document.getElementById('f-ValorAluguel').value);
+    const titulo = continua ? (i.situacao === 'vencido' ? 'Aluguel atrasado desde' : 'Próximo vencimento') : 'Primeira cobrança';
     previa.innerHTML = `<span class="pr-alert__ic">${ICONE.agenda}</span><div>
-      <b>Próxima cobrança: ${dataComDia(datas[0])} (${quandoCobrar(diasEntre(hoje, datas[0])).toLowerCase()})${valor ? ' · ' + esc(dinheiro(valor)) : ''}</b>
-      Depois: ${datas.slice(1).map(dataBR).join(' e ')}.
+      <b>${titulo}: ${dataComDia(primeira)}${primeira >= hoje ? ` (${quandoCobrar(diasEntre(hoje, primeira)).toLowerCase()})` : ''}${valor ? ' · ' + esc(dinheiro(valor)) : ''}</b>
+      Depois: ${depois.map(dataBR).join(' e ')}.
       ${Number.isNaN(valor) ? '<br><span class="aviso-campo">Valor inválido. Use, por exemplo, 1.500,00.</span>' : ''}</div>`;
   }
+
+  /* ---------- Inquilino saiu ---------- */
+  function abrirSaidaInquilino() {
+    const i = estado.form.imovel;
+    const hoje = hojeISO();
+    const desde = i.AlugadoDesde ? String(i.AlugadoDesde).slice(0, 10) : '';
+    abrirJanela('Inquilino saiu', `
+      <p><b>${esc(i.Inquilino || 'O inquilino')}</b> vai para o histórico do imóvel e o imóvel fica <b>vago</b>.
+        Nenhuma cobrança é gerada depois da saída.</p>
+      <div class="pr-field"><label for="data-saida">Data da saída</label>
+        <input id="data-saida" type="date" value="${hoje}" max="${hoje}"${desde ? ` min="${desde}"` : ''}></div>
+      ${i.qtdAtrasadas ? `<div class="pr-alert pr-alert--atencao"><span class="pr-alert__ic">!</span><div><b>Ficou em aberto: ${i.qtdAtrasadas} ${i.qtdAtrasadas === 1 ? 'aluguel' : 'aluguéis'} (${esc(dinheiro(i.valorAtrasado))})</b>
+        Isso não fica como vencido no portal; fica anotado no histórico do inquilino.</div></div>` : ''}`, '',
+      `<button type="button" class="pr-btn pr-btn--sec" onclick="fecharJanela()">Cancelar</button>
+       <button type="button" class="pr-btn pr-btn--pri" id="btn-saida" onclick="registrarSaidaInquilino()">Registrar saída</button>`);
+  }
+
+  async function registrarSaidaInquilino() {
+    const data = document.getElementById('data-saida').value;
+    if (!data) return mostrarMensagem('Informe a data da saída.', 'erro');
+    const botao = document.getElementById('btn-saida');
+    botao.disabled = true; botao.textContent = 'Registrando…';
+    try {
+      const r = await chamar('encerrarLocacao', estado.form.imovel.ID_Imovel, data, auth());
+      fecharJanela();
+      mostrarMensagem(r.avisoAgenda || 'Saída registrada. O imóvel agora está vago.', r.avisoAgenda ? 'erro' : undefined);
+      irPara(location.hash); // reabre o cadastro já vago, com o histórico
+    } catch (erro) {
+      botao.disabled = false; botao.textContent = 'Registrar saída';
+      mostrarErro(erro);
+    }
+  }
+
 
   function formatarValor(campo) {
     const v = lerValor(campo.value);
@@ -2437,7 +2493,9 @@
     const f = estado.form;
     const dados = lerFormulario('form-imovel');
     if (!dados.Nome) return mostrarMensagem('Informe o nome do imóvel.', 'erro');
-    if (dados.Cobrar === 'Sim' && !dados.InicioCobranca) return mostrarMensagem('Informe a data de vencimento.', 'erro');
+    if (dados.Cobrar === 'Sim' && !dados.Inquilino) return mostrarMensagem('Informe o nome do inquilino.', 'erro');
+    if (dados.Cobrar === 'Sim' && !dados.DiaVencimento) return mostrarMensagem('Escolha o dia do vencimento.', 'erro');
+    if (dados.Cobrar === 'Sim' && !lerValor(dados.ValorAluguel)) return mostrarMensagem('Informe o valor do aluguel por mês.', 'erro');
     if (dados.Cobrar === 'Sim' && Number.isNaN(lerValor(dados.ValorAluguel))) return mostrarMensagem('Valor do aluguel inválido. Use, por exemplo, 1.500,00.', 'erro');
     const botao = document.getElementById('btn-salvar');
     const textoBotao = botao.textContent;
@@ -2690,7 +2748,7 @@
       <div id="mapa-geral" class="mapa-geral" aria-label="Mapa com os imóveis"></div>
       <div class="legenda"><span class="rotulo">Legenda</span>
         <span class="st st--ok">Em dia</span><span class="st st--aviso">Vence em breve</span>
-        <span class="st st--vencido">Atrasado</span><span class="st st--sem-prazo">Sem cobrança</span></div>
+        <span class="st st--vencido">Atrasado</span><span class="st st--sem-prazo">Vago</span></div>
       ${dados.pendentes ? `<div class="pr-alert pr-alert--info"><span class="pr-alert__ic">i</span><div><b>Localizando endereços…</b>
         Ainda faltam ${dados.pendentes}. Abra o mapa de novo daqui a pouco para ver todos.</div></div>` : ''}
       ${dados.semLocal.length ? `<section class="painel"><h2>Fora do mapa</h2>
