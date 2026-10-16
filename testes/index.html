@@ -193,6 +193,37 @@
   .mapa iframe { width: 100%; height: 260px; border: 1px solid var(--line); border-radius: var(--radius-md); background: var(--surface-bg); }
   @media (max-width: 760px) { .mapa iframe { height: 220px; } }
 
+  /* ---------- Painel: abas e pagamentos ---------- */
+  .abas { display: flex; gap: 4px; border-bottom: 2px solid var(--line); }
+  .aba { padding: 12px 20px; min-height: 44px; font: 600 16px/20px var(--font-sans); color: var(--ink-muted); text-decoration: none;
+    border-bottom: 3px solid transparent; margin-bottom: -2px; }
+  .aba:hover { color: var(--ink); }
+  .aba[aria-selected="true"] { color: var(--brand); border-bottom-color: var(--accent); }
+  .titulo-secao { font: 600 18px/24px var(--font-sans); margin: 4px 0 -8px; }
+  .totais--valores .total b { font-size: 28px; line-height: 34px; font-variant-numeric: tabular-nums; }
+  .totais .total b { overflow-wrap: anywhere; }
+  .mes-nav { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .mes-nav h2 { min-width: 200px; text-align: center; }
+  .mes-nav .pr-btn--sec { min-width: 44px; font-size: 22px; }
+  .lista-cobrancas { display: flex; flex-direction: column; }
+  .cobranca { display: grid; grid-template-columns: 56px minmax(0, 1.4fr) minmax(0, 1fr) auto; gap: 12px 16px; align-items: center;
+    padding: 12px 0; border-top: 1px solid var(--line); }
+  .cobranca:first-child { border-top: 0; }
+  .cobranca-imovel { color: var(--ink); text-decoration: none; }
+  .cobranca-imovel:hover { color: var(--brand); }
+  .cobranca-imovel .capa { width: 44px; height: 44px; font-size: 15px; }
+  .cobranca-valor { display: flex; flex-direction: column; gap: 4px; align-items: flex-start; }
+  .cobranca-acoes { justify-content: flex-end; }
+  .area-envio--pequena { min-height: 88px; }
+  @media (max-width: 760px) {
+    .cobranca { grid-template-columns: 48px minmax(0, 1fr); }
+    .cobranca-valor, .cobranca-acoes { grid-column: 2; }
+    .cobranca-acoes { justify-content: flex-start; }
+    .totais--valores { grid-template-columns: 1fr; }
+    .aba { flex: 1; text-align: center; padding: 12px 8px; }
+    .mes-nav h2 { min-width: 0; flex: 1; font-size: 18px; }
+  }
+
   /* ---------- Mapa geral dos imóveis ---------- */
   .mapa-geral { height: calc(100vh - 300px); height: calc(100dvh - 300px); min-height: 380px; border: 1px solid var(--line);
     border-radius: var(--radius-lg); overflow: hidden; background: var(--surface-bg); z-index: 0; }
@@ -815,7 +846,8 @@
     if (partes[0] === 'mapa') return telaMapa();
     if (partes[0] === 'usuarios') return telaUsuarios();
     if (partes[0] === 'usuario' && partes[1]) return telaEditarUsuario(partes[1]);
-    return telaPainel();
+    const params = new URLSearchParams(busca || '');
+    return telaPainel(params.get('aba'), params.get('mes'));
   }
 
   window.addEventListener('hashchange', () => irPara(location.hash));
@@ -1104,32 +1136,70 @@
   /* =========================================================
    * Painel inicial
    * ========================================================= */
-  async function telaPainel() {
+  /* =========================================================
+   * Painel: abas "Contratos" (prazos e valores do mês) e "Pagamentos" (cobranças e recebimentos)
+   * ========================================================= */
+  const NOMES_MESES = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
+
+  function nomeDoMes(mes) {
+    const [a, m] = mes.split('-').map(Number);
+    return `${NOMES_MESES[m - 1]} de ${a}`;
+  }
+
+  function mesVizinho(mes, passo) {
+    const [a, m] = mes.split('-').map(Number);
+    return new Date(Date.UTC(a, m - 1 + passo, 1)).toISOString().slice(0, 7);
+  }
+
+  async function telaPainel(aba, mes) {
+    aba = aba === 'pagamentos' ? 'pagamentos' : 'contratos';
     carregando();
-    let p;
-    try { p = await chamar('abrirPainel', auth()); } catch (erro) { return telaErro(erro, '#/'); }
+    let dados;
+    try {
+      dados = aba === 'pagamentos' ? await chamar('abrirPagamentos', mes || '', auth()) : await chamar('abrirPainel', auth());
+    } catch (erro) { return telaErro(erro, '#/' + (aba === 'pagamentos' ? '?aba=pagamentos' : '')); }
     if (paginaAtual() !== '') return; // a pessoa mudou de tela enquanto carregava
-    estado.avisos = p.avisos;
+    if (dados.avisos) estado.avisos = dados.avisos;
     desenharTopo('');
     const hora = new Date().getHours();
     const saudacao = hora < 12 ? 'Bom dia' : hora < 18 ? 'Boa tarde' : 'Boa noite';
     const primeiroNome = String(estado.usuario.Nome).split(' ')[0];
-    const t = p.totais;
+    const abaLink = (id, nome) => `<a role="tab" class="aba" href="#/${id === 'contratos' ? '' : '?aba=' + id}"
+      aria-selected="${aba === id}">${nome}</a>`;
+    tela(`
+      <div class="titulo-pagina"><div>
+        <span class="rotulo">${esc(dataComDia(dados.hoje))}</span>
+        <h1>${saudacao}, ${esc(primeiroNome)}! Veja como estão os imóveis</h1>
+      </div></div>
+      <nav class="abas" role="tablist" aria-label="Partes do painel">${abaLink('contratos', 'Contratos')}${abaLink('pagamentos', 'Pagamentos')}</nav>
+      ${aba === 'pagamentos' ? conteudoPagamentos(dados) : conteudoContratos(dados)}`);
+  }
+
+  function cartaoValor(classe, rotulo, valor, detalhe, link) {
+    return `<a class="total ${classe}" href="${link}"><span class="rotulo">${rotulo}</span>
+      <b>${esc(dinheiro(valor) || 'R$ 0,00')}</b>${detalhe}</a>`;
+  }
+
+  function conteudoContratos(p) {
+    const t = p.totais, f = p.financeiro;
     const total = (classe, rotulo, numero, etiqueta, filtro) => `
       <a class="total ${classe}" href="#/imoveis${filtro ? '?f=' + filtro : ''}">
         <span class="rotulo">${rotulo}</span><b>${numero}</b>${etiqueta}</a>`;
-    tela(`
-      <div class="titulo-pagina"><div>
-        <span class="rotulo">${esc(dataComDia(p.hoje))}</span>
-        <h1>${saudacao}, ${esc(primeiroNome)}! Veja como estão os imóveis</h1>
-      </div></div>
+    const linkPag = '#/?aba=pagamentos';
+    return `
+      <h2 class="titulo-secao" id="titulo-valores">Valores de ${esc(nomeDoMes(f.mes))}</h2>
+      <div class="totais totais--valores" aria-labelledby="titulo-valores">
+        ${cartaoValor('ok', 'Recebido', f.recebido, '<span class="suave pequeno">Pagamentos registrados no mês</span>', linkPag)}
+        ${cartaoValor('', 'A vencer', f.aVencer, '<span class="suave pequeno">Cobranças que ainda vão chegar</span>', linkPag)}
+        ${cartaoValor('vencido', 'Vencido', f.vencido, `<span class="st st--vencido">${f.qtdAtrasadas} ${f.qtdAtrasadas === 1 ? 'cobrança atrasada' : 'cobranças atrasadas'}</span>`, linkPag)}
+      </div>
+      <h2 class="titulo-secao">Contratos</h2>
       <div class="totais">
         ${total('', 'Imóveis cadastrados', t.todos, '<span class="suave pequeno">Ver todos</span>', '')}
         ${total('ok', 'Em dia', t.ok, '<span class="st st--ok">Prazo com folga</span>', 'ok')}
         ${total('aviso', 'Vencem em 30 dias', t.aviso, '<span class="st st--aviso">Hora de renovar</span>', 'aviso')}
         ${total('vencido', 'Vencidos', t.vencido, '<span class="st st--vencido">Precisa de atenção</span>', 'vencido')}
       </div>
-      ${blocoCobrancas(p.cobrancas, p.diasCobrancas)}
       <div class="colunas">
         <section class="painel larga" aria-labelledby="titulo-prazos">
           <div class="painel-topo"><h2 id="titulo-prazos">Próximos prazos</h2><a href="#/imoveis">Ver lista completa</a></div>
@@ -1137,22 +1207,217 @@
             `<p class="vazio">Nenhum imóvel com data prazo ainda. <a href="#/novo">Incluir o primeiro imóvel</a></p>`}
         </section>
         ${blocoAvisos(p.agenda)}
-      </div>`);
+      </div>`;
   }
 
-  function blocoCobrancas(lista, dias) {
-    const total = lista.reduce((s, i) => s + (Number(i.ValorAluguel) || 0), 0);
-    return `<section class="painel" aria-labelledby="titulo-cobrancas">
-      <div class="painel-topo"><h2 id="titulo-cobrancas">Cobranças dos próximos ${dias} dias</h2>
-        ${total ? `<span class="rotulo">Total ${esc(dinheiro(total))}</span>` : ''}</div>
-      ${lista.length ? `<div class="cobrancas">${lista.map(i => {
-        const [, m, d] = i.proximaCobranca.split('-');
-        return `<a class="pr-card" href="#/imovel/${esc(i.ID_Imovel)}">
-          <div class="pr-card__dia"><b>${d}</b><span>${MESES[Number(m) - 1]}</span></div>
-          <div class="com-capa">${avatarImovel(i.Nome, i.Capa)}<div><h3>${esc(i.Nome)}</h3><p>${esc([i.Inquilino, i.ValorAluguel !== '' ? dinheiro(i.ValorAluguel) : ''].filter(Boolean).join(' · '))}</p></div></div>
-          <span class="etiqueta">${quandoCobrar(i.diasCobranca)}</span></a>`;
-      }).join('')}</div>` : `<p class="suave">Nenhuma cobrança nos próximos ${dias} dias.</p>`}
-    </section>`;
+  /* ---------- Aba Pagamentos ---------- */
+  function conteudoPagamentos(d) {
+    estado.pagamentos = d; // as linhas abaixo se referem a estado.pagamentos pela posição
+    const t = d.totais;
+    const nome = nomeDoMes(d.mes);
+    const link = '#/?aba=pagamentos&mes=' + d.mes;
+    return `
+      <div class="mes-nav">
+        <a class="pr-btn pr-btn--sec pr-btn--pequeno" href="#/?aba=pagamentos&mes=${mesVizinho(d.mes, -1)}" aria-label="Mês anterior">‹</a>
+        <h2>${esc(nome[0].toUpperCase() + nome.slice(1))}</h2>
+        <a class="pr-btn pr-btn--sec pr-btn--pequeno" href="#/?aba=pagamentos&mes=${mesVizinho(d.mes, 1)}" aria-label="Próximo mês">›</a>
+        ${d.mes !== d.hoje.slice(0, 7) ? '<a class="pr-btn pr-btn--texto pr-btn--pequeno" href="#/?aba=pagamentos">Voltar para este mês</a>' : ''}
+      </div>
+      <div class="totais">
+        ${cartaoValor('', 'Previsto', t.previsto, '<span class="suave pequeno">Soma das cobranças do mês</span>', link)}
+        ${cartaoValor('ok', 'Recebido', t.recebido, '<span class="suave pequeno">Pagamentos com data no mês</span>', link)}
+        ${cartaoValor('', 'A vencer', t.aVencer, '<span class="suave pequeno">Ainda não chegou a data</span>', link)}
+        ${cartaoValor('vencido', 'Vencido', t.vencido, `<span class="st st--vencido">${t.qtdAtrasadas} em atraso até o fim do mês</span>`, link)}
+      </div>
+      ${d.semValor ? `<div class="pr-alert pr-alert--atencao"><span class="pr-alert__ic">!</span><div><b>${d.semValor} ${d.semValor === 1 ? 'imóvel cobra' : 'imóveis cobram'} sem valor cadastrado</b>
+        Abra o imóvel e preencha o valor do aluguel no bloco Cobrança, para os totais ficarem certos.</div></div>` : ''}
+      ${d.anteriores.length ? `<section class="painel" aria-labelledby="titulo-anteriores">
+        <div class="painel-topo"><h2 id="titulo-anteriores">Em atraso de meses anteriores</h2><span class="rotulo">${d.anteriores.length}</span></div>
+        <div class="lista-cobrancas">${d.anteriores.map((c, n) => linhaCobranca(c, 'anteriores', n)).join('')}</div></section>` : ''}
+      <section class="painel" aria-labelledby="titulo-cobrancas-mes">
+        <div class="painel-topo"><h2 id="titulo-cobrancas-mes">Cobranças de ${esc(nome)}</h2><span class="rotulo">${d.cobrancas.length}</span></div>
+        ${d.cobrancas.length ? `<div class="lista-cobrancas">${d.cobrancas.map((c, n) => linhaCobranca(c, 'cobrancas', n)).join('')}</div>`
+          : '<p class="vazio">Nenhuma cobrança neste mês. Para cobrar um imóvel, abra o cadastro dele e preencha o bloco Cobrança.</p>'}
+      </section>`;
+  }
+
+  function situacaoCobranca(c) {
+    if (c.situacao === 'pago') return `<span class="st st--ok">Pago em ${dataBR(c.pagamento.DataPagamento).slice(0, 5)}</span>`;
+    if (c.situacao === 'atrasado') return `<span class="st st--vencido">Atrasado há ${c.diasAtraso} ${c.diasAtraso === 1 ? 'dia' : 'dias'}</span>`;
+    return '<span class="st st--sem-prazo">A vencer</span>';
+  }
+
+  function linhaCobranca(c, lista, n) {
+    const [, m, d] = c.data.split('-');
+    const ref = `'${lista}', ${n}`;
+    const pago = c.pagamento;
+    const diferente = pago && Math.abs(pago.Valor - c.valor) > 0.009
+      ? ` <span class="suave pequeno">(recebido ${esc(dinheiro(pago.Valor))})</span>` : '';
+    return `<div class="cobranca">
+      <div class="pr-card__dia"><b>${d}</b><span>${MESES[Number(m) - 1]}</span></div>
+      <a class="com-capa cobranca-imovel" href="#/imovel/${esc(c.ID_Imovel)}">${avatarImovel(c.Nome, c.Capa)}
+        <div><b>${esc(c.Nome)}</b><div class="suave pequeno">${esc(c.Inquilino || 'Sem inquilino')}</div></div></a>
+      <div class="cobranca-valor"><span class="valor-aluguel">${esc(dinheiro(c.valor) || 'Sem valor')}</span>${diferente}<div>${situacaoCobranca(c)}</div></div>
+      <div class="acoes cobranca-acoes">
+        ${pago ? `
+          ${pago.ComprovanteUrl
+            ? `<button type="button" class="pr-btn pr-btn--sec pr-btn--pequeno" onclick="verComprovante(${ref})">Ver comprovante</button>`
+            : `<button type="button" class="pr-btn pr-btn--sec pr-btn--pequeno" onclick="abrirComprovante(${ref})">Anexar comprovante</button>`}
+          <button type="button" class="pr-btn pr-btn--texto pr-btn--pequeno" onclick="desfazerPagamentoTela(${ref})">Desfazer</button>`
+        : `<button type="button" class="pr-btn pr-btn--pri pr-btn--pequeno" onclick="abrirRegistroPagamento(${ref})">Registrar pagamento</button>`}
+      </div>
+    </div>`;
+  }
+
+  function cobrancaDaTela(lista, n) {
+    return estado.pagamentos && estado.pagamentos[lista] && estado.pagamentos[lista][n];
+  }
+
+  function recarregarPagamentos() {
+    irPara(location.hash);
+  }
+
+  // Campo de comprovante (foto ou PDF; HEIC vira JPG), usado no registro e no "Anexar comprovante"
+  function campoComprovante() {
+    return `<div class="pr-field"><span style="font:600 14px/20px var(--font-sans)">Comprovante (opcional)</span>
+      <label class="area-envio area-envio--pequena" for="campo-comprovante">${ICONE.arquivo}Escolher foto ou PDF<span id="nome-comprovante">Pix, recibo, extrato…</span></label>
+      <input id="campo-comprovante" type="file" accept="image/*,.heic,.heif,application/pdf" class="sr" onchange="escolherComprovante(this)"></div>`;
+  }
+
+  async function escolherComprovante(campo) {
+    let arquivo = campo.files[0];
+    campo.value = '';
+    estado.comprovante = null;
+    if (!arquivo) return;
+    const pdf = arquivo.type === 'application/pdf';
+    if (!pdf && !ehHeic(arquivo) && !arquivo.type.startsWith('image/')) return mostrarMensagem('O comprovante precisa ser uma foto ou um PDF.', 'erro');
+    if (ehHeic(arquivo)) {
+      document.getElementById('nome-comprovante').textContent = 'Convertendo para JPG…';
+      try { arquivo = await converterHeic(arquivo, arquivo.name); } catch (e) { return mostrarMensagem('Não deu para converter a foto. Tente em JPG.', 'erro'); }
+    }
+    estado.comprovante = arquivo;
+    document.getElementById('nome-comprovante').textContent = nomeLegivel(arquivo.name);
+  }
+
+  function abrirRegistroPagamento(lista, n) {
+    const c = cobrancaDaTela(lista, n);
+    if (!c) return;
+    estado.comprovante = null;
+    const hoje = hojeISO();
+    abrirJanela('Registrar pagamento', `
+      <div class="com-capa">${avatarImovel(c.Nome, c.Capa)}<div><b>${esc(c.Nome)}</b>
+        <div class="suave pequeno">Cobrança de ${dataBR(c.data)} · ${esc(dinheiro(c.valor) || 'sem valor cadastrado')}</div></div></div>
+      <div class="grade">
+        <div class="pr-field"><label for="pg-data">Data do pagamento</label>
+          <input id="pg-data" type="date" value="${hoje}" max="${hoje}"></div>
+        <div class="pr-field"><label for="pg-valor">Valor recebido</label>
+          <input id="pg-valor" inputmode="decimal" autocomplete="off" placeholder="R$ 0,00" onblur="formatarValor(this)"
+            value="${c.valor ? esc(Number(c.valor).toLocaleString('pt-BR', { minimumFractionDigits: 2 })) : ''}"></div>
+      </div>
+      ${campoComprovante()}
+      <div class="pr-field"><label for="pg-obs">Observação (opcional)</label>
+        <input id="pg-obs" maxlength="500" placeholder="Ex.: Pix, pagou em dinheiro, pagamento parcial…"></div>`, '',
+      `<button type="button" class="pr-btn pr-btn--sec" onclick="fecharJanela()">Cancelar</button>
+       <button type="button" class="pr-btn pr-btn--pri" id="btn-salvar-pagamento" onclick="salvarPagamento('${lista}', ${n})">Salvar pagamento</button>`);
+  }
+
+  async function salvarPagamento(lista, n) {
+    const c = cobrancaDaTela(lista, n);
+    const dados = {
+      DataPagamento: document.getElementById('pg-data').value,
+      Valor: document.getElementById('pg-valor').value.trim(),
+      Observacao: document.getElementById('pg-obs').value.trim()
+    };
+    if (!dados.DataPagamento) return mostrarMensagem('Informe a data do pagamento.', 'erro');
+    const valor = lerValor(dados.Valor);
+    if (!valor || Number.isNaN(valor)) return mostrarMensagem('Informe o valor recebido (ex.: 1.500,00).', 'erro');
+    const botao = document.getElementById('btn-salvar-pagamento');
+    botao.disabled = true; botao.textContent = 'Salvando…';
+    let pago = null;
+    try {
+      pago = await chamar('registrarPagamento', c.ID_Imovel, c.data, dados, auth());
+      if (estado.comprovante) {
+        mostrarAvisoFixo('Enviando o comprovante…');
+        await chamar('anexarComprovante', pago.ID_Pagamento, await lerArquivo(estado.comprovante), auth());
+      }
+      document.getElementById('progresso-envio')?.remove();
+      fecharJanela();
+      mostrarMensagem('Pagamento registrado!');
+      recarregarPagamentos();
+    } catch (erro) {
+      document.getElementById('progresso-envio')?.remove();
+      if (pago) { // o pagamento ficou salvo; só o comprovante falhou
+        fecharJanela();
+        mostrarMensagem('O pagamento foi registrado, mas o comprovante não foi enviado: ' + (erro.message || erro) + ' Use "Anexar comprovante".', 'erro');
+        return recarregarPagamentos();
+      }
+      botao.disabled = false; botao.textContent = 'Salvar pagamento';
+      mostrarErro(erro);
+    }
+  }
+
+  function abrirComprovante(lista, n) {
+    const c = cobrancaDaTela(lista, n);
+    if (!c || !c.pagamento) return;
+    estado.comprovante = null;
+    abrirJanela('Anexar comprovante', `
+      <div class="com-capa">${avatarImovel(c.Nome, c.Capa)}<div><b>${esc(c.Nome)}</b>
+        <div class="suave pequeno">Pago em ${dataBR(c.pagamento.DataPagamento)} · ${esc(dinheiro(c.pagamento.Valor))}</div></div></div>
+      ${campoComprovante()}`, '',
+      `<button type="button" class="pr-btn pr-btn--sec" onclick="fecharJanela()">Cancelar</button>
+       <button type="button" class="pr-btn pr-btn--pri" id="btn-salvar-comprovante" onclick="salvarComprovante('${lista}', ${n})">Salvar comprovante</button>`);
+  }
+
+  async function salvarComprovante(lista, n) {
+    const c = cobrancaDaTela(lista, n);
+    if (!estado.comprovante) return mostrarMensagem('Escolha a foto ou o PDF do comprovante.', 'erro');
+    const botao = document.getElementById('btn-salvar-comprovante');
+    botao.disabled = true; botao.textContent = 'Enviando…';
+    try {
+      await chamar('anexarComprovante', c.pagamento.ID_Pagamento, await lerArquivo(estado.comprovante), auth());
+      document.getElementById('progresso-envio')?.remove();
+      fecharJanela();
+      mostrarMensagem('Comprovante anexado!');
+      recarregarPagamentos();
+    } catch (erro) {
+      document.getElementById('progresso-envio')?.remove();
+      botao.disabled = false; botao.textContent = 'Salvar comprovante';
+      mostrarErro(erro);
+    }
+  }
+
+  // Mostra o comprovante dentro do portal: foto em tamanho grande, PDF com as páginas desenhadas
+  async function verComprovante(lista, n) {
+    const c = cobrancaDaTela(lista, n);
+    if (!c || !c.pagamento || !c.pagamento.ComprovanteUrl) return;
+    const url = c.pagamento.ComprovanteUrl;
+    abrirJanela('Comprovante · ' + esc(c.Nome), '<div id="area-comprovante" class="paginas-pdf"><div class="carregando"><div class="girando"></div>Abrindo o comprovante…</div></div>',
+      'janela--larga', `<button type="button" class="pr-btn pr-btn--sec" onclick="abrirAnexo(event, '${esc(url)}')">Baixar</button>
+       <button type="button" class="pr-btn pr-btn--pri" onclick="fecharJanela()">Fechar</button>`);
+    let ativo = true;
+    estado.aoFecharJanela = () => { ativo = false; };
+    try {
+      const a = await chamar('baixarArquivo', url, auth());
+      const area = document.getElementById('area-comprovante');
+      if (!ativo || !area) return;
+      const blob = base64ParaBlob(a.base64, a.tipo);
+      if (/pdf/i.test(a.tipo)) await desenharPdf(new Uint8Array(await blob.arrayBuffer()), area, () => ativo);
+      else area.innerHTML = `<img class="visor-img" src="${URL.createObjectURL(blob)}" alt="Comprovante de ${esc(c.Nome)}">`;
+    } catch (erro) {
+      const area = document.getElementById('area-comprovante');
+      if (area) area.innerHTML = `<p>Não deu para mostrar o comprovante aqui (${esc(erro.message || erro)}). Use "Baixar".</p>`;
+    }
+  }
+
+  async function desfazerPagamentoTela(lista, n) {
+    const c = cobrancaDaTela(lista, n);
+    if (!c || !c.pagamento) return;
+    if (!confirm(`Desfazer o pagamento de ${c.Nome} (cobrança de ${dataBR(c.data)})? O comprovante vai para a lixeira do Google Drive.`)) return;
+    try {
+      await chamar('desfazerPagamento', c.pagamento.ID_Pagamento, auth());
+      mostrarMensagem('Pagamento desfeito.');
+      recarregarPagamentos();
+    } catch (erro) { mostrarErro(erro); }
   }
 
   function cartaoPrazo(i) {
@@ -1623,30 +1888,34 @@
         const a = await chamar('baixarArquivo', f.imovel.ContratoUrl, auth());
         bytes = new Uint8Array(await base64ParaBlob(a.base64, a.tipo).arrayBuffer());
       }
-      await carregarScript('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js');
-      pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-      const pdf = await pdfjsLib.getDocument({ data: bytes }).promise;
-      const area = document.getElementById('paginas-pdf');
-      if (!ativo || !area) return;
-      area.innerHTML = '';
-      const total = Math.min(pdf.numPages, PAGINAS_MAXIMAS);
-      for (let p = 1; p <= total && ativo; p++) {
-        const pagina = await pdf.getPage(p);
-        const base = pagina.getViewport({ scale: 1 });
-        const largura = Math.min(area.clientWidth || 800, 900);
-        const vp = pagina.getViewport({ scale: largura / base.width * Math.min(window.devicePixelRatio || 1, 2) });
-        const canvas = document.createElement('canvas');
-        canvas.width = Math.round(vp.width); canvas.height = Math.round(vp.height);
-        canvas.setAttribute('aria-label', `Página ${p} de ${pdf.numPages}`);
-        area.appendChild(canvas);
-        await pagina.render({ canvasContext: canvas.getContext('2d'), viewport: vp }).promise;
-      }
-      if (ativo && pdf.numPages > PAGINAS_MAXIMAS) {
-        area.insertAdjacentHTML('beforeend', `<p class="suave">Mostrando as ${PAGINAS_MAXIMAS} primeiras de ${pdf.numPages} páginas. Baixe o PDF para ver tudo.</p>`);
-      }
+      await desenharPdf(bytes, document.getElementById('paginas-pdf'), () => ativo);
     } catch (erro) {
       const area = document.getElementById('paginas-pdf');
       if (area) area.innerHTML = `<p>Não deu para mostrar o contrato aqui (${esc(erro.message || erro)}). Use "Baixar o PDF".</p>`;
+    }
+  }
+
+  // Desenha as páginas de um PDF (bytes) dentro de "area", uma embaixo da outra (pdf.js)
+  async function desenharPdf(bytes, area, continua) {
+    await carregarScript('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js');
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    const pdf = await pdfjsLib.getDocument({ data: bytes }).promise;
+    if (!continua() || !area) return;
+    area.innerHTML = '';
+    const total = Math.min(pdf.numPages, PAGINAS_MAXIMAS);
+    for (let p = 1; p <= total && continua(); p++) {
+      const pagina = await pdf.getPage(p);
+      const base = pagina.getViewport({ scale: 1 });
+      const largura = Math.min(area.clientWidth || 800, 900);
+      const vp = pagina.getViewport({ scale: largura / base.width * Math.min(window.devicePixelRatio || 1, 2) });
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.round(vp.width); canvas.height = Math.round(vp.height);
+      canvas.setAttribute('aria-label', `Página ${p} de ${pdf.numPages}`);
+      area.appendChild(canvas);
+      await pagina.render({ canvasContext: canvas.getContext('2d'), viewport: vp }).promise;
+    }
+    if (continua() && pdf.numPages > PAGINAS_MAXIMAS) {
+      area.insertAdjacentHTML('beforeend', `<p class="suave">Mostrando as ${PAGINAS_MAXIMAS} primeiras de ${pdf.numPages} páginas. Baixe o PDF para ver tudo.</p>`);
     }
   }
 
