@@ -4,6 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, viewport-fit=cover">
   <title>[TESTES] Az Gestão</title>
+  <link rel="icon" type="image/png" href="icone-192.png">
   <!-- "só claro": impede o navegador do celular de escurecer o site sozinho -->
   <meta name="color-scheme" content="only light">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -14,7 +15,7 @@
    * As cores ficam nas variáveis abaixo. O portal usa sempre o modo claro.
    * ========================================================= */
   :root {
-    --brand: #14396b; --on-brand: #ffffff; --brand-soft: #e8eef7; /* Az Gestão: azul-escuro e branco */
+    --brand: #0d4475; --on-brand: #ffffff; --brand-soft: #e7eef6; /* Az Gestão: o azul do logo e branco */
     --accent: #ea6b2c; --on-accent: #1a0c03;
     --surface-bg: #ffffff; --surface-card: #ffffff; --surface-sutil: #f4f6fa;
     --foco: #3d7bd9; /* contorno de foco (teclado), visível no branco e no azul */
@@ -102,6 +103,13 @@
   .flutuante .vazio { padding: 16px; }
   .menu-usuario button { width: 100%; text-align: left; min-height: 44px; padding: 0 16px; border: 0; background: none; cursor: pointer; }
   .menu-usuario button:hover { background: var(--surface-sutil); }
+
+  /* ---------- Logo ---------- */
+  .logo-topo { height: 40px; width: auto; display: block; }
+  .logo-login { width: min(260px, 80%); height: auto; display: block; margin: 0 auto 4px; }
+  .saudacao { font-size: 20px; line-height: 26px; }
+  .relatorio { display: flex; flex-direction: column; gap: 16px; }
+  .totais--imoveis { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
 
   /* ---------- Busca no cabeçalho ---------- */
   .topo-busca { position: relative; flex: 1 1 260px; max-width: 460px; }
@@ -407,6 +415,7 @@
   @media (max-width: 760px) {
     .topo { padding: max(8px, env(safe-area-inset-top)) 16px 8px; }
     .topo-esq { gap: 8px; }
+    .logo-topo { height: 30px; }
     /* Busca no celular: escondida; a lupa abre uma linha inteira embaixo do topo */
     .topo-busca { display: none; order: 3; flex: 1 1 100%; max-width: none; }
     .topo--buscando .topo-busca { display: block; }
@@ -448,7 +457,7 @@
   <div style="background:#ea6b2c;color:#1a0c03;text-align:center;font:600 13px/28px 'IBM Plex Mono',monospace;letter-spacing:.08em">AMBIENTE DE TESTES · dados de mentira, conta da Layla</div>
   <header class="topo" id="topo">
     <div class="topo-esq">
-      <a class="marca" href="#/"><span class="selo">AZ</span>Az Gestão</a>
+      <a class="marca" href="#/"><img class="logo-topo" src="logo-branco.png" alt="Az Gestão"></a>
     </div>
   </header>
 
@@ -1008,7 +1017,7 @@
   function desenharTopo(paginaAtual) {
     const topo = document.getElementById('topo');
     const u = estado.usuario;
-    const marca = `<a class="marca" href="#/"><span class="selo">AZ</span><span class="so-computador">Az Gestão</span></a>`;
+    const marca = `<a class="marca" href="#/"><img class="logo-topo" src="logo-branco.png" alt="Az Gestão – ir para o painel"></a>`;
     if (!u) { topo.innerHTML = `<div class="topo-esq">${marca}</div>`; desenharMenuBaixo(null); return; }
     const atual = p => (p === paginaAtual || (p === 'imoveis' && ['imovel', 'novo'].includes(paginaAtual))) ? ' aria-current="page"' : '';
     const admin = u.Nivel === 'Administrador' && !estado.demonstracao;
@@ -1313,7 +1322,7 @@
     desenharTopo();
     tela(`
       <div class="tela-login">
-        <div><span class="rotulo">Az Gestão</span><h1>Entrar</h1></div>
+        <img class="logo-login" src="logo-azul.png" alt="Az Gestão"><h1>Entrar</h1>
         <form id="form-entrar" onsubmit="event.preventDefault(); fazerLogin()">
           <div class="pr-field"><label for="login-email">E-mail</label>
             <input id="login-email" type="text" autocomplete="username" autocapitalize="none" spellcheck="false" required value="${esc(estado.loginEmail || lerLocal('ultimoEmail'))}"></div>
@@ -1344,7 +1353,7 @@
   function telaCadastro() {
     tela(`
       <div class="tela-login">
-        <div><span class="rotulo">Az Gestão</span><h1>Pedir acesso</h1></div>
+        <img class="logo-login" src="logo-azul.png" alt="Az Gestão"><h1>Pedir acesso</h1>
         <p class="suave">Depois de enviar, o administrador confere o seu cadastro e libera o acesso.</p>
         <form id="form-cadastro" onsubmit="event.preventDefault(); enviarCadastro()">
           <div class="pr-field"><label for="cad-nome">Nome completo</label><input id="cad-nome" required autocomplete="name"></div>
@@ -1428,7 +1437,7 @@
     tela(`
       <div class="titulo-pagina"><div>
         <span class="rotulo">${esc(dataComDia(dados.hoje))}</span>
-        <h1>${saudacao}, ${esc(primeiroNome)}! Veja como estão os imóveis</h1>
+        <h1 class="saudacao">${saudacao}, ${esc(primeiroNome)}!</h1>
       </div></div>
       <nav class="abas" role="tablist" aria-label="Partes do painel">${abaLink('contratos', 'Resumo')}${abaLink('pagamentos', 'Pagamentos')}</nav>
       ${aba === 'pagamentos' ? conteudoPagamentos(dados, ver) : conteudoContratos(dados)}`, false, atualizacao);
@@ -1446,20 +1455,22 @@
         <span class="rotulo">${rotulo}</span><b>${numero}</b>${etiqueta}</a>`;
     const linkPag = '#/?aba=pagamentos&ver=';
     return `
-      <h2 class="titulo-secao" id="titulo-valores">Valores de ${esc(nomeDoMes(f.mes))}</h2>
-      <div class="totais totais--valores" aria-labelledby="titulo-valores">
-        ${cartaoValor('ok', 'Recebido', f.recebido, '<span class="suave pequeno">Pagamentos registrados no mês</span>', linkPag + 'recebido')}
-        ${cartaoValor('', 'A vencer', f.aVencer, '<span class="suave pequeno">Cobranças que ainda vão chegar</span>', linkPag + 'aVencer')}
-        ${cartaoValor('vencido', 'Vencido', f.vencido, `<span class="st st--vencido">${f.qtdAtrasadas} ${f.qtdAtrasadas === 1 ? 'cobrança atrasada' : 'cobranças atrasadas'}</span>`, linkPag + 'vencido')}
-      </div>
-      <h2 class="titulo-secao">Imóveis</h2>
-      <div class="totais">
-        ${total('', 'Imóveis cadastrados', t.todos, '<span class="suave pequeno">Ver todos</span>', '')}
-        ${total('ok', 'Em dia', t.ok, '<span class="st st--ok">Pagamentos em dia</span>', 'ok')}
-        ${total('aviso', 'Vencem em até 3 dias', t.aviso, '<span class="st st--aviso">Hora de cobrar</span>', 'aviso')}
-        ${total('vencido', 'Atrasados', t.vencido, '<span class="st st--vencido">Precisa de atenção</span>', 'vencido')}
-        ${total('', 'Vagos', t.semPrazo, '<span class="st st--sem-prazo">Sem inquilino</span>', 'sem-prazo')}
-      </div>
+      <section class="relatorio" aria-labelledby="titulo-relatorio">
+        <h2 class="titulo-secao" id="titulo-relatorio">Relatório de ${esc(nomeDoMes(f.mes))}</h2>
+        <div class="totais totais--valores">
+          ${cartaoValor('', 'Previsto', f.previsto, '<span class="suave pequeno">Aluguéis do mês</span>', '#/?aba=pagamentos')}
+          ${cartaoValor('ok', 'Recebido', f.recebido, '<span class="suave pequeno">Pagamentos do mês</span>', linkPag + 'recebido')}
+          ${cartaoValor('', 'A vencer', f.aVencer, '<span class="suave pequeno">Ainda vão chegar</span>', linkPag + 'aVencer')}
+          ${cartaoValor('vencido', 'Vencido', f.vencido, `<span class="st st--vencido">${f.qtdAtrasadas} ${f.qtdAtrasadas === 1 ? 'aluguel atrasado' : 'aluguéis atrasados'}</span>`, linkPag + 'vencido')}
+        </div>
+        <div class="totais totais--imoveis">
+          ${total('', 'Imóveis', t.todos, '<span class="suave pequeno">Ver todos</span>', '')}
+          ${total('', 'Alugados', t.todos - t.semPrazo, '<span class="suave pequeno">Com inquilino</span>', '')}
+          ${total('ok', 'Em dia', t.ok + t.aviso, t.aviso ? `<span class="st st--aviso">${t.aviso} ${t.aviso === 1 ? 'vence' : 'vencem'} em até 3 dias</span>` : '<span class="st st--ok">Pagamentos em dia</span>', t.aviso ? 'aviso' : 'ok')}
+          ${total('vencido', 'Atrasados', t.vencido, '<span class="st st--vencido">Precisa de atenção</span>', 'vencido')}
+          ${total('', 'Vagos', t.semPrazo, '<span class="st st--sem-prazo">Sem inquilino</span>', 'sem-prazo')}
+        </div>
+      </section>
       <div class="colunas">
         <section class="painel larga" aria-labelledby="titulo-prazos">
           <div class="painel-topo"><h2 id="titulo-prazos">Próximos vencimentos</h2><a href="#/imoveis">Ver lista completa</a></div>
