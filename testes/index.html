@@ -395,6 +395,15 @@
     .tabela thead th:last-child { border-top-right-radius: var(--radius-lg); }
   }
 
+  /* Cabeçalho fixo (sticky) em todas as listas: o título de cada bloco gruda logo abaixo do topo enquanto a lista rola */
+  .painel > .painel-topo, .painel > h2:first-child {
+    position: sticky; top: var(--altura-topo, 64px); z-index: 4; background: var(--surface-card);
+    margin: -8px 0 0; padding: 8px 0; }
+  /* Lista de imóveis no celular/tablet em pé (cartões, sem tabela): os filtros ficam fixos */
+  @media (max-width: 1023px) {
+    #filtros { position: sticky; top: var(--altura-topo, 64px); z-index: 4; background: var(--surface-bg); padding: 8px 0; }
+  }
+
   /* ---------- Celular e tablet em pé ---------- */
   @media (max-width: 760px) {
     .topo { padding: max(8px, env(safe-area-inset-top)) 16px 8px; }
@@ -494,7 +503,8 @@
     loginEmail: ''
   };
 
-  const NOMES_SITUACAO = { todos: 'Todos', ok: 'Em dia', aviso: 'Vence em 30 dias', vencido: 'Vencidos', 'sem-prazo': 'Sem prazo' };
+  // Situação do imóvel pelos pagamentos (sem contrato): 'sem-prazo' = imóvel que não cobra
+  const NOMES_SITUACAO = { todos: 'Todos', ok: 'Em dia', aviso: 'Vence em breve', vencido: 'Atrasados', 'sem-prazo': 'Sem cobrança' };
   const ORDEM_SITUACAO = { vencido: 0, aviso: 1, ok: 2, 'sem-prazo': 3 };
 
   /* ---------- Ícones (linha simples, na cor do texto) ---------- */
@@ -657,10 +667,11 @@
 
   // Texto da etiqueta de situação: "Venceu há 5 dias", "Vence em 14 dias", "Em dia"
   function textoSituacao(i) {
-    if (i.situacao === 'vencido') return i.dias === -1 ? 'Venceu ontem' : `Venceu há ${-i.dias} dias`;
+    if (i.situacao === 'vencido') { const n = -i.dias; return `Atrasado há ${n} ${n === 1 ? 'dia' : 'dias'}`; }
     if (i.situacao === 'aviso') return i.dias === 0 ? 'Vence hoje' : i.dias === 1 ? 'Vence amanhã' : `Vence em ${i.dias} dias`;
-    return i.situacao === 'sem-prazo' ? 'Sem prazo' : 'Em dia';
+    return i.situacao === 'sem-prazo' ? 'Sem cobrança' : 'Em dia';
   }
+
 
   function etiquetaSituacao(i) {
     return `<span class="st st--${i.situacao}">${esc(textoSituacao(i))}</span>`;
@@ -715,6 +726,12 @@
   function textoAluguel(i) {
     if (i.ValorAluguel === '' || i.ValorAluguel == null) return '';
     return dinheiro(i.ValorAluguel) + (i.TipoCobranca === 'A cada 30 dias' ? ' a cada 30 dias' : ' por mês');
+  }
+
+  // "Todo dia 5" / "A cada 30 dias" / "—"
+  function textoCobranca(i) {
+    if (!i.Cobrar || !i.InicioCobranca) return '—';
+    return i.TipoCobranca === 'A cada 30 dias' ? 'A cada 30 dias' : `Todo dia ${Number(i.InicioCobranca.slice(8))}`;
   }
 
   function quandoCobrar(dias) {
@@ -1130,10 +1147,12 @@
 
   function textoAviso(a) {
     if (a.tipo === 'vencido') {
-      return { titulo: 'Contrato vencido', texto: `${a.nome} venceu em ${dataBR(a.prazo)}. Renove ou encerre o contrato.` };
+      const qtd = a.qtdAtrasadas > 1 ? `${a.qtdAtrasadas} aluguéis atrasados` : 'o aluguel atrasado';
+      return { titulo: 'Aluguel atrasado', texto: `${a.nome} está com ${qtd} desde ${dataBR(a.prazo)}${a.valorAtrasado ? ` (${dinheiro(a.valorAtrasado)})` : ''}.` };
     }
-    return { titulo: 'Prazo chegando', texto: `${a.nome} vence em ${dataBR(a.prazo)}${a.dias === 0 ? ' (hoje)' : a.dias === 1 ? ' (amanhã)' : ` (em ${a.dias} dias)`}.` };
+    return { titulo: 'Vencimento chegando', texto: `${a.nome} vence em ${dataBR(a.prazo)}${a.dias === 0 ? ' (hoje)' : a.dias === 1 ? ' (amanhã)' : ` (em ${a.dias} dias)`}.` };
   }
+
 
   function itemAviso(a) {
     const t = textoAviso(a);
@@ -1156,7 +1175,7 @@
     div.innerHTML = `
       <div class="flutuante-topo"><h3>Avisos</h3>
         ${av.naoLidos ? `<button class="pr-btn pr-btn--texto pr-btn--pequeno" onclick="marcarTodosLidos()">Marcar como lidos</button>` : ''}</div>
-      ${av.lista.length ? av.lista.map(itemAviso).join('') : '<p class="vazio">Nenhum prazo vencido ou chegando. Tudo em dia!</p>'}`;
+      ${av.lista.length ? av.lista.map(itemAviso).join('') : '<p class="vazio">Nenhum aluguel atrasado ou vencendo. Tudo em dia!</p>'}`;
     document.body.appendChild(div);
     document.getElementById('botao-sino').setAttribute('aria-expanded', 'true');
   }
@@ -1364,7 +1383,7 @@
    * Painel inicial
    * ========================================================= */
   /* =========================================================
-   * Painel: abas "Contratos" (prazos e valores do mês) e "Pagamentos" (cobranças e recebimentos)
+   * Painel: abas "Resumo" (situação dos imóveis e valores do mês) e "Pagamentos" (cobranças e recebimentos)
    * ========================================================= */
   const NOMES_MESES = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
 
@@ -1402,7 +1421,7 @@
         <span class="rotulo">${esc(dataComDia(dados.hoje))}</span>
         <h1>${saudacao}, ${esc(primeiroNome)}! Veja como estão os imóveis</h1>
       </div></div>
-      <nav class="abas" role="tablist" aria-label="Partes do painel">${abaLink('contratos', 'Contratos')}${abaLink('pagamentos', 'Pagamentos')}</nav>
+      <nav class="abas" role="tablist" aria-label="Partes do painel">${abaLink('contratos', 'Resumo')}${abaLink('pagamentos', 'Pagamentos')}</nav>
       ${aba === 'pagamentos' ? conteudoPagamentos(dados, ver) : conteudoContratos(dados)}`, false, atualizacao);
   }
 
@@ -1424,18 +1443,18 @@
         ${cartaoValor('', 'A vencer', f.aVencer, '<span class="suave pequeno">Cobranças que ainda vão chegar</span>', linkPag + 'aVencer')}
         ${cartaoValor('vencido', 'Vencido', f.vencido, `<span class="st st--vencido">${f.qtdAtrasadas} ${f.qtdAtrasadas === 1 ? 'cobrança atrasada' : 'cobranças atrasadas'}</span>`, linkPag + 'vencido')}
       </div>
-      <h2 class="titulo-secao">Contratos</h2>
+      <h2 class="titulo-secao">Imóveis</h2>
       <div class="totais">
         ${total('', 'Imóveis cadastrados', t.todos, '<span class="suave pequeno">Ver todos</span>', '')}
-        ${total('ok', 'Em dia', t.ok, '<span class="st st--ok">Prazo com folga</span>', 'ok')}
-        ${total('aviso', 'Vencem em 30 dias', t.aviso, '<span class="st st--aviso">Hora de renovar</span>', 'aviso')}
-        ${total('vencido', 'Vencidos', t.vencido, '<span class="st st--vencido">Precisa de atenção</span>', 'vencido')}
+        ${total('ok', 'Em dia', t.ok, '<span class="st st--ok">Pagamentos em dia</span>', 'ok')}
+        ${total('aviso', 'Vencem em até 3 dias', t.aviso, '<span class="st st--aviso">Hora de cobrar</span>', 'aviso')}
+        ${total('vencido', 'Atrasados', t.vencido, '<span class="st st--vencido">Precisa de atenção</span>', 'vencido')}
       </div>
       <div class="colunas">
         <section class="painel larga" aria-labelledby="titulo-prazos">
-          <div class="painel-topo"><h2 id="titulo-prazos">Próximos prazos</h2><a href="#/imoveis">Ver lista completa</a></div>
+          <div class="painel-topo"><h2 id="titulo-prazos">Próximos vencimentos</h2><a href="#/imoveis">Ver lista completa</a></div>
           ${p.proximos.length ? p.proximos.map(cartaoPrazo).join('') :
-            `<p class="vazio">Nenhum imóvel com data prazo ainda. <a href="#/novo">Incluir o primeiro imóvel</a></p>`}
+            `<p class="vazio">Nenhum imóvel com cobrança ainda. <a href="#/novo">Incluir o primeiro imóvel</a></p>`}
         </section>
         ${blocoAvisos(p.agenda)}
       </div>`;
@@ -1670,13 +1689,14 @@
   }
 
   function cartaoPrazo(i) {
-    const [, m, d] = i.DataPrazo.split('-');
-    const detalhes = [i.Localizacao, i.Inquilino, textoAluguel(i)].filter(Boolean).join(' · ');
+    const [, m, d] = i.proximoVencimento.split('-');
+    const detalhes = [i.Inquilino, textoAluguel(i)].filter(Boolean).join(' · ');
     return `<a class="pr-card" href="#/imovel/${esc(i.ID_Imovel)}">
       <div class="pr-card__dia"><b>${d}</b><span>${MESES[Number(m) - 1]}</span></div>
       <div class="com-capa">${avatarImovel(i.Nome, i.Capa)}<div><h3>${esc(i.Nome)}</h3>${detalhes ? `<p>${esc(detalhes)}</p>` : ''}</div></div>
       ${etiquetaSituacao(i)}</a>`;
   }
+
 
   function blocoAvisos(agenda) {
     if (agenda !== undefined) estado.agendaConectada = agenda;
@@ -1684,11 +1704,11 @@
     return `<section class="painel estreita" id="avisos-painel" aria-labelledby="titulo-avisos">
       <div class="painel-topo"><h2 id="titulo-avisos">Avisos</h2>
         ${av.naoLidos ? `<button class="pr-btn pr-btn--texto pr-btn--pequeno" onclick="marcarTodosLidos()">Marcar como lidos</button>` : '<span class="rotulo">Nada novo</span>'}</div>
-      <div class="avisos-painel">${av.lista.length ? av.lista.map(itemAviso).join('') : '<p class="suave">Nenhum prazo vencido ou chegando. Tudo em dia!</p>'}</div>
+      <div class="avisos-painel">${av.lista.length ? av.lista.map(itemAviso).join('') : '<p class="suave">Nenhum aluguel atrasado ou vencendo. Tudo em dia!</p>'}</div>
       ${av.lista.length > 3 ? `<button type="button" class="pr-btn pr-btn--sec so-celular ver-todos" onclick="alternarAvisos(event)">Ver todos os ${av.lista.length} avisos</button>` : ''}
       <div class="pr-alert pr-alert--info"><span class="pr-alert__ic">${ICONE.agenda}</span><div>
-        ${estado.agendaConectada ? '<b>Prazos na Agenda Google</b>Cada imóvel salvo com data prazo vai para a agenda “Az Gestão – Prazos”, com um lembrete 30 dias antes.'
-          : '<b>Agenda Google</b>Quando o primeiro imóvel com data prazo for salvo, a agenda “Az Gestão – Prazos” é criada.'}</div></div>
+        ${estado.agendaConectada ? '<b>Vencimentos na Agenda Google</b>Cada imóvel com cobrança vira um evento repetido na agenda “Az Gestão – Vencimentos”, com lembrete 3 dias antes.'
+          : '<b>Agenda Google</b>Quando o primeiro imóvel com cobrança for salvo, a agenda “Az Gestão – Vencimentos” é criada.'}</div></div>
     </section>`;
   }
 
@@ -1721,12 +1741,12 @@
         <h1>Imóveis</h1>
       </div></div>
       <div id="busca-ativa"></div>
-      <div class="filtros" role="group" aria-label="Filtrar por prazo" id="filtros"></div>
+      <div class="filtros" role="group" aria-label="Filtrar por situação do pagamento" id="filtros"></div>
       <div id="resultados"></div>
       <div class="legenda"><span class="rotulo">Legenda</span>
-        <span class="st st--ok">Em dia</span><span>mais de 30 dias até o prazo</span>
-        <span class="st st--aviso">Vence em breve</span><span>30 dias ou menos</span>
-        <span class="st st--vencido">Vencido</span><span>o prazo já passou</span></div>`);
+        <span class="st st--ok">Em dia</span><span>nada atrasado</span>
+        <span class="st st--aviso">Vence em breve</span><span>vence em até 3 dias</span>
+        <span class="st st--vencido">Atrasado</span><span>tem aluguel vencido sem pagamento</span></div>`);
     desenharResultados();
   }
 
@@ -1756,7 +1776,7 @@
       `<button class="filtro" aria-pressed="${estado.filtro === f}" onclick="escolherFiltro('${f}')">${NOMES_SITUACAO[f]}<span class="mono">${conta(f)}</span></button>`).join('');
 
     const lista = achados.filter(i => estado.filtro === 'todos' || i.situacao === estado.filtro)
-      .sort((a, b) => (ORDEM_SITUACAO[a.situacao] - ORDEM_SITUACAO[b.situacao]) || String(a.DataPrazo).localeCompare(String(b.DataPrazo)));
+      .sort((a, b) => (ORDEM_SITUACAO[a.situacao] - ORDEM_SITUACAO[b.situacao]) || String(a.proximoVencimento).localeCompare(String(b.proximoVencimento)));
     const area = document.getElementById('resultados');
     if (!lista.length) {
       area.innerHTML = `<div class="painel"><p class="vazio">${estado.lista.imoveis.length
@@ -1767,7 +1787,7 @@
     area.innerHTML = `
       <div class="caixa-tabela">
         <table class="tabela">
-          <thead><tr><th>Imóvel</th><th>Inquilino</th><th>Assinatura</th><th>Entrada</th><th>Vigente</th><th>Prazo</th><th>Situação</th><th><span class="sr">Ações</span></th></tr></thead>
+          <thead><tr><th>Imóvel</th><th>Inquilino</th><th>Cobrança</th><th>Próximo vencimento</th><th>Situação</th><th><span class="sr">Ações</span></th></tr></thead>
           <tbody>${lista.map(i => `
             <tr class="clicavel" onclick="if (!event.target.closest('a')) navegar('#/imovel/${esc(i.ID_Imovel)}')">
               <td><div class="com-capa">${avatarImovel(i.Nome, i.Capa)}<div><div class="nome">${esc(i.Nome)}</div>
@@ -1775,10 +1795,8 @@
                 ${textoAluguel(i) ? `<div class="valor-aluguel">${esc(textoAluguel(i))}</div>` : ''}
                 <div class="suave" style="font-size:13px">Cadastrado em ${dataBR(i.DataCadastro)}</div></div></div></td>
               <td>${esc(i.Inquilino) || '<span class="suave">—</span>'}</td>
-              <td class="data">${dataBR(i.DataAssinatura)}</td>
-              <td class="data">${dataBR(i.DataEntrada)}</td>
-              <td class="data">${dataBR(i.DataVigente)}</td>
-              <td class="data"><b>${dataBR(i.DataPrazo)}</b></td>
+              <td>${esc(textoCobranca(i))}</td>
+              <td class="data"><b>${dataBR(i.proximoVencimento)}</b></td>
               <td>${etiquetaSituacao(i)}</td>
               <td><a class="pr-btn pr-btn--texto pr-btn--pequeno" href="#/imovel/${esc(i.ID_Imovel)}" aria-label="Editar ${esc(i.Nome)}">${ICONE.lapis}Editar</a></td>
             </tr>`).join('')}</tbody>
@@ -1789,7 +1807,7 @@
           <div class="linha"><div class="com-capa">${avatarImovel(i.Nome, i.Capa)}<b>${esc(i.Nome)}</b></div>${etiquetaSituacao(i)}</div>
           ${i.Localizacao ? `<span class="suave pequeno">${esc(i.Localizacao)}</span>` : ''}
           ${textoAluguel(i) ? `<span class="valor-aluguel">${esc(textoAluguel(i))}</span>` : ''}
-          <span class="pequeno">${esc(i.Inquilino || 'Sem inquilino')} · prazo <b class="mono">${dataBR(i.DataPrazo)}</b></span>
+          <span class="pequeno">${esc(i.Inquilino || 'Sem inquilino')} · ${i.proximoVencimento ? `vence <b class="mono">${dataBR(i.proximoVencimento)}</b>` : 'sem cobrança'}</span>
         </a>`).join('')}</div>`;
   }
 
@@ -1797,7 +1815,7 @@
    * Incluir / editar imóvel
    * ========================================================= */
   async function telaImovel(id) {
-    estado.form = { imovel: null, fotosNovas: [], contratoNovo: null, podeExcluir: false, capa: null };
+    estado.form = { imovel: null, fotosNovas: [], documentosNovos: [], renomeandoDoc: null, podeExcluir: false, capa: null };
     if (id) {
       carregando('Abrindo o imóvel…');
       let r;
@@ -1810,8 +1828,6 @@
     }
     const i = estado.form.imovel || {};
     const novo = !estado.form.imovel;
-    const campoData = (nome, rotulo, dica) => `<div class="pr-field"><label for="f-${nome}">${rotulo}</label>
-      <input id="f-${nome}" name="${nome}" type="date" value="${esc(i[nome] || '')}"><small>${dica}</small></div>`;
 
     tela(`
       <div class="titulo-pagina"><div class="com-capa" id="titulo-capa">${novo ? '' : avatarImovel(i.Nome, i.Capa, true)}<div>
@@ -1829,23 +1845,10 @@
               <input id="f-Localizacao" name="Localizacao" placeholder="Rua, número, bairro e cidade" value="${esc(i.Localizacao || '')}"
                 oninput="agendarMapa()" onchange="atualizarMapa()">
               <small>Com número e cidade, o mapa acerta melhor.</small></div>
-          </div>
-          <div id="mapa-local" class="mapa" aria-live="polite"></div>
-        </section>
-
-        <section class="painel">
-          <h2>Datas do contrato</h2>
-          <div class="grade">
             <div class="pr-field"><label for="f-DataCadastro">Data do cadastro</label>
               <input id="f-DataCadastro" type="text" value="${novo ? dataBR(hojeISO()) : dataBR(i.DataCadastro)}" readonly><small>Preenchida sozinha.</small></div>
-            ${campoData('DataAssinatura', 'Data de assinatura', 'Quando o contrato foi assinado.')}
-            ${campoData('DataEntrada', 'Data de entrada', 'Quando o inquilino entrou.')}
-            ${campoData('DataVigente', 'Data vigente', 'Quando o contrato começa a valer.')}
-            ${campoData('DataPrazo', 'Data prazo', 'Quando o contrato termina.')}
           </div>
-          ${i.exemplo
-            ? `<div class="pr-alert pr-alert--atencao"><span class="pr-alert__ic">!</span><div><b>Imóvel de exemplo</b>Os imóveis de exemplo não vão para a Agenda Google.</div></div>`
-            : `<div class="pr-alert pr-alert--info"><span class="pr-alert__ic">${ICONE.agenda}</span><div><b>${i.naAgenda ? 'Está na Agenda Google' : 'Vai para a Agenda Google'}</b>A data prazo vira um evento na agenda “Az Gestão – Prazos”, com um lembrete 30 dias antes. O sininho também avisa aqui no portal.</div></div>`}
+          <div id="mapa-local" class="mapa" aria-live="polite"></div>
         </section>
 
         <section class="painel">
@@ -1871,9 +1874,9 @@
               <select id="f-TipoCobranca" name="TipoCobranca" onchange="atualizarCobranca()">
                 ${['Todo mês no mesmo dia', 'A cada 30 dias'].map(t => `<option${(i.TipoCobranca || 'Todo mês no mesmo dia') === t ? ' selected' : ''}>${t}</option>`).join('')}</select>
               <small id="dica-tipo"></small></div>
-            <div class="pr-field so-cobranca"><label for="f-InicioCobranca">Dia em que a cobrança começa</label>
+            <div class="pr-field so-cobranca"><label for="f-InicioCobranca">Data de vencimento</label>
               <input id="f-InicioCobranca" name="InicioCobranca" type="date" value="${esc(i.InicioCobranca || '')}" oninput="atualizarCobranca()">
-              <small>A data da primeira cobrança.</small></div>
+              <small>O primeiro vencimento. Depois se repete conforme "Como cobrar".</small></div>
             <div class="pr-field so-cobranca"><label for="f-ValorAluguel">Valor do aluguel</label>
               <input id="f-ValorAluguel" name="ValorAluguel" inputmode="decimal" placeholder="R$ 0,00" autocomplete="off"
                 value="${i.ValorAluguel !== '' && i.ValorAluguel != null ? esc(Number(i.ValorAluguel).toLocaleString('pt-BR', { minimumFractionDigits: 2 })) : ''}"
@@ -1881,6 +1884,9 @@
               <small>Ex.: 1.500,00</small></div>
           </div>
           <div class="pr-alert pr-alert--info so-cobranca" id="previa-cobranca" aria-live="polite"></div>
+          ${i.exemplo
+            ? '<div class="pr-alert pr-alert--atencao so-cobranca"><span class="pr-alert__ic">!</span><div><b>Imóvel de exemplo</b>Os imóveis de exemplo não vão para a Agenda Google.</div></div>'
+            : `<div class="pr-alert pr-alert--info so-cobranca"><span class="pr-alert__ic">${ICONE.agenda}</span><div><b>${i.naAgenda ? 'Está na Agenda Google' : 'Vai para a Agenda Google'}</b>Os vencimentos viram um evento repetido na agenda “Az Gestão – Vencimentos”, com lembrete 3 dias antes. O sininho também avisa aqui no portal.</div></div>`}
         </section>
 
         <section class="painel">
@@ -1979,22 +1985,8 @@
         <button type="button" class="tirar" onclick="tirarFotoNova(${n})" aria-label="Não enviar ${esc(foto.arquivo.name)}">${ICONE.x}</button>
         ${botaoCapa(foto, `escolherCapa('nova', ${n})`)}
       </div>`).join('');
-    const linhaArquivo = (nome, extra, acoes) => f.renomeando ? `
-      <div class="arquivo renomear">
-        <label for="novo-nome-contrato" class="sr">Novo nome do contrato</label>
-        <input id="novo-nome-contrato" class="campo-renomear" onkeydown="if (event.key === 'Enter') { event.preventDefault(); salvarNomeContrato(); }" value="${esc(nomeLegivel(nome).replace(/\.pdf$/i, '').replace(/\uFFFD/g, ''))}" maxlength="120" autocomplete="off">
-        <span class="suave pequeno">.pdf</span>
-        <button type="button" class="pr-btn pr-btn--pri pr-btn--pequeno" id="btn-nome-contrato" onclick="salvarNomeContrato()">Salvar nome</button>
-        <button type="button" class="pr-btn pr-btn--texto pr-btn--pequeno" onclick="estado.form.renomeando = false; desenharAnexos()">Cancelar</button>
-      </div>` : `
-      <div class="arquivo">${ICONE.arquivo}<span class="arquivo-nome" title="${esc(nomeLegivel(nome))}">${esc(nomeLegivel(nome))}</span>${extra}
-        <button type="button" class="pr-btn pr-btn--texto pr-btn--pequeno" onclick="estado.form.renomeando = true; desenharAnexos(); document.getElementById('novo-nome-contrato').select()"
-          aria-label="Renomear o contrato" title="Renomear">${ICONE.lapis}</button>
-        <button type="button" class="pr-btn pr-btn--sec pr-btn--pequeno" onclick="verContrato()">Ver</button>${acoes}</div>`;
-    const contratoSalvo = i.ContratoUrl && !f.contratoNovo ? linhaArquivo(i.ContratoNome || 'contrato.pdf', '',
-      `<button type="button" class="pr-btn pr-btn--texto pr-btn--pequeno" onclick="tirarContratoSalvo()" aria-label="Remover o contrato">${ICONE.x}</button>`) : '';
-    const contratoNovo = f.contratoNovo ? linhaArquivo(f.contratoNovo.name, '<span class="etiqueta" style="flex:none">Novo</span>',
-      `<button type="button" class="pr-btn pr-btn--texto pr-btn--pequeno" onclick="estado.form.contratoNovo = null; desenharAnexos()" aria-label="Não enviar o contrato">${ICONE.x}</button>`) : '';
+    const documentos = (i.Documentos || []).map((doc, n) => linhaDocumento(doc.nome, 's' + n, false))
+      .concat(f.documentosNovos.map((doc, n) => linhaDocumento(doc.arquivo.name, 'n' + n, true))).join('');
 
     document.getElementById('anexos').innerHTML = `
       <div class="pr-field">
@@ -2006,10 +1998,11 @@
         ${f.fotosNovas.length ? `<small>${f.fotosNovas.length === 1 ? 'A foto com borda laranja é enviada' : 'As fotos com borda laranja são enviadas'} ao salvar.</small>` : ''}
       </div>
       <div class="pr-field">
-        <span style="font:600 14px/20px var(--font-sans)">Contrato (PDF)</span>
-        <label class="area-envio" for="campo-contrato">${ICONE.pdf}${i.ContratoUrl || f.contratoNovo ? 'Trocar contrato' : 'Enviar contrato'}<span>Fica guardado no Google Drive</span></label>
-        <input id="campo-contrato" type="file" accept="application/pdf" class="sr" onchange="escolherContrato(this)">
-        ${contratoSalvo}${contratoNovo}
+        <span style="font:600 14px/20px var(--font-sans)">Documentos</span>
+        <label class="area-envio" for="campo-documentos">${ICONE.pdf}Adicionar documentos<span>RG, comprovante de endereço, recibos… (foto ou PDF)</span></label>
+        <input id="campo-documentos" type="file" accept="image/*,.heic,.heif,application/pdf" multiple class="sr" onchange="escolherDocumentos(this)">
+        ${documentos}
+        ${f.documentosNovos.length ? `<small>${f.documentosNovos.length === 1 ? 'O documento marcado como Novo é enviado' : 'Os documentos marcados como Novo são enviados'} ao salvar.</small>` : ''}
       </div>`;
     carregarMiniaturas();
   }
@@ -2132,29 +2125,29 @@
     }
   }
 
-  /* ---------- Visualizador do contrato (PDF) ----------
-   * As páginas são desenhadas dentro do portal (no tablet, abrir o PDF em outra aba às vezes só baixa). */
+  /* ---------- Visualizador de documento (foto ou PDF) ----------
+   * As páginas do PDF são desenhadas dentro do portal (no tablet, abrir o PDF em outra aba às vezes só baixa). */
   const PAGINAS_MAXIMAS = 40;
 
-  async function verContrato() {
-    const f = estado.form;
-    const nome = f.contratoNovo ? f.contratoNovo.name : (f.imovel.ContratoNome || 'contrato.pdf');
-    abrirJanela(esc(nomeLegivel(nome)), `<div class="paginas-pdf" id="paginas-pdf"><div class="carregando"><div class="girando"></div>Abrindo o contrato…</div></div>`,
-      'janela--larga', `<button type="button" class="pr-btn pr-btn--sec" onclick="baixarContrato()">Baixar o PDF</button>
+  async function verDocumento(chave) {
+    const doc = documentoDaChave(chave);
+    estado.docAberto = doc;
+    abrirJanela(esc(nomeLegivel(doc.nome)), '<div class="paginas-pdf" id="paginas-pdf"><div class="carregando"><div class="girando"></div>Abrindo o documento…</div></div>',
+      'janela--larga', `<button type="button" class="pr-btn pr-btn--sec" onclick="baixarDocumento()">Baixar</button>
       <button type="button" class="pr-btn pr-btn--pri" onclick="fecharJanela()">Fechar</button>`);
     let ativo = true;
     estado.aoFecharJanela = () => { ativo = false; };
     try {
-      let bytes;
-      if (f.contratoNovo) bytes = new Uint8Array(await f.contratoNovo.arrayBuffer());
-      else {
-        const a = await chamar('baixarArquivo', f.imovel.ContratoUrl, auth());
-        bytes = new Uint8Array(await base64ParaBlob(a.base64, a.tipo).arrayBuffer());
-      }
-      await desenharPdf(bytes, document.getElementById('paginas-pdf'), () => ativo);
+      let blob;
+      if (doc.novo) blob = doc.arquivo;
+      else { const a = await chamar('baixarArquivo', doc.url, auth()); blob = base64ParaBlob(a.base64, a.tipo); }
+      const area = document.getElementById('paginas-pdf');
+      if (!ativo || !area) return;
+      if (/pdf/i.test(blob.type)) await desenharPdf(new Uint8Array(await blob.arrayBuffer()), area, () => ativo);
+      else area.innerHTML = `<img class="visor-img" src="${URL.createObjectURL(blob)}" alt="${esc(nomeLegivel(doc.nome))}">`;
     } catch (erro) {
       const area = document.getElementById('paginas-pdf');
-      if (area) area.innerHTML = `<p>Não deu para mostrar o contrato aqui (${esc(erro.message || erro)}). Use "Baixar o PDF".</p>`;
+      if (area) area.innerHTML = `<p>Não deu para mostrar o documento aqui (${esc(erro.message || erro)}). Use "Baixar".</p>`;
     }
   }
 
@@ -2182,17 +2175,15 @@
     }
   }
 
-  async function baixarContrato() {
-    const f = estado.form;
-    if (f.contratoNovo) {
-      const endereco = URL.createObjectURL(f.contratoNovo);
-      const link = document.createElement('a');
-      link.href = endereco; link.download = f.contratoNovo.name;
-      document.body.appendChild(link); link.click(); link.remove();
-      setTimeout(() => URL.revokeObjectURL(endereco), 60000);
-      return;
-    }
-    abrirAnexo({ preventDefault() {} }, f.imovel.ContratoUrl);
+  function baixarDocumento() {
+    const doc = estado.docAberto;
+    if (!doc) return;
+    if (!doc.novo) return abrirAnexo({ preventDefault() {} }, doc.url);
+    const endereco = URL.createObjectURL(doc.arquivo);
+    const link = document.createElement('a');
+    link.href = endereco; link.download = doc.arquivo.name;
+    document.body.appendChild(link); link.click(); link.remove();
+    setTimeout(() => URL.revokeObjectURL(endereco), 60000);
   }
 
   /* ---------- Escolher e enquadrar a foto de capa ----------
@@ -2328,14 +2319,89 @@
     f.imovel = await chamar('definirCapa', id, url, f.capa.miniatura, auth());
   }
 
-  function escolherContrato(campo) {
-    const arquivo = campo.files[0];
+  /* ---------- Documentos ----------
+   * Chave de cada documento na tela: "s0", "s1"... (já salvos) e "n0", "n1"... (novos, enviados ao salvar) */
+  function linhaDocumento(nome, chave, novo) {
+    const legivel = nomeLegivel(nome);
+    if (estado.form.renomeandoDoc === chave) {
+      const extensao = (legivel.match(/\.[A-Za-z0-9]{2,5}$/) || [''])[0];
+      return `<div class="arquivo renomear">
+        <label for="novo-nome-doc" class="sr">Novo nome do documento</label>
+        <input id="novo-nome-doc" class="campo-renomear" maxlength="120" autocomplete="off"
+          value="${esc(legivel.slice(0, legivel.length - extensao.length).replace(/\uFFFD/g, ''))}"
+          onkeydown="if (event.key === 'Enter') { event.preventDefault(); salvarNomeDocumento(); }">
+        <span class="suave pequeno">${esc(extensao)}</span>
+        <button type="button" class="pr-btn pr-btn--pri pr-btn--pequeno" id="btn-nome-doc" onclick="salvarNomeDocumento()">Salvar nome</button>
+        <button type="button" class="pr-btn pr-btn--texto pr-btn--pequeno" onclick="estado.form.renomeandoDoc = null; desenharAnexos()">Cancelar</button>
+      </div>`;
+    }
+    return `<div class="arquivo">${ICONE.arquivo}<span class="arquivo-nome" title="${esc(legivel)}">${esc(legivel)}</span>
+      ${novo ? '<span class="etiqueta" style="flex:none">Novo</span>' : ''}
+      <button type="button" class="pr-btn pr-btn--texto pr-btn--pequeno" onclick="renomearDocumentoTela('${chave}')" aria-label="Renomear ${esc(legivel)}" title="Renomear">${ICONE.lapis}</button>
+      <button type="button" class="pr-btn pr-btn--sec pr-btn--pequeno" onclick="verDocumento('${chave}')">Ver</button>
+      <button type="button" class="pr-btn pr-btn--texto pr-btn--pequeno" onclick="tirarDocumento('${chave}')" aria-label="Remover ${esc(legivel)}">${ICONE.x}</button></div>`;
+  }
+
+  function documentoDaChave(chave) {
+    const f = estado.form, n = Number(chave.slice(1));
+    return chave[0] === 'n' ? { novo: true, n, arquivo: f.documentosNovos[n].arquivo, nome: f.documentosNovos[n].arquivo.name }
+      : { novo: false, n, url: f.imovel.Documentos[n].url, nome: f.imovel.Documentos[n].nome };
+  }
+
+  async function escolherDocumentos(campo) {
+    const arquivos = [...campo.files];
     campo.value = '';
-    if (!arquivo) return;
-    if (arquivo.type !== 'application/pdf') return mostrarMensagem('O contrato precisa ser um arquivo PDF.', 'erro');
-    estado.form.contratoNovo = arquivo;
-    estado.form.renomeando = false;
+    for (let arquivo of arquivos) {
+      const pdf = arquivo.type === 'application/pdf';
+      if (!pdf && !ehHeic(arquivo) && !arquivo.type.startsWith('image/')) { mostrarMensagem(`${arquivo.name} não é foto nem PDF.`, 'erro'); continue; }
+      if (ehHeic(arquivo)) {
+        mostrarAvisoFixo(`Convertendo ${arquivo.name} para JPG…`);
+        try { arquivo = await converterHeic(arquivo, arquivo.name); } catch (e) { mostrarMensagem(`Não deu para converter ${arquivo.name}.`, 'erro'); continue; }
+      }
+      estado.form.documentosNovos.push({ arquivo });
+    }
+    document.getElementById('progresso-envio')?.remove();
+    estado.form.renomeandoDoc = null;
     desenharAnexos();
+  }
+
+  function renomearDocumentoTela(chave) {
+    estado.form.renomeandoDoc = chave;
+    desenharAnexos();
+    document.getElementById('novo-nome-doc').select();
+  }
+
+  // Novo: muda o nome só aqui (sobe com o nome novo). Salvo: muda no portal e no Drive. A extensão (.pdf, .jpg) continua.
+  async function salvarNomeDocumento() {
+    const f = estado.form;
+    const doc = documentoDaChave(f.renomeandoDoc);
+    const extensao = (nomeLegivel(doc.nome).match(/\.[A-Za-z0-9]{2,5}$/) || [''])[0];
+    const nome = document.getElementById('novo-nome-doc').value.replace(/[\\/:*?"<>|\uFFFD]/g, '').trim();
+    if (!nome) return mostrarMensagem('Digite o nome do documento.', 'erro');
+    if (doc.novo) {
+      f.documentosNovos[doc.n].arquivo = new File([doc.arquivo], nome + extensao, { type: doc.arquivo.type });
+    } else {
+      const botao = document.getElementById('btn-nome-doc');
+      botao.disabled = true; botao.textContent = 'Salvando…';
+      try { f.imovel = await chamar('renomearDocumento', f.imovel.ID_Imovel, doc.url, nome, auth()); }
+      catch (erro) { botao.disabled = false; botao.textContent = 'Salvar nome'; return mostrarErro(erro); }
+      mostrarMensagem('Nome do documento salvo!');
+    }
+    f.renomeandoDoc = null;
+    desenharAnexos();
+  }
+
+  async function tirarDocumento(chave) {
+    const f = estado.form;
+    const doc = documentoDaChave(chave);
+    if (doc.novo) { f.documentosNovos.splice(doc.n, 1); f.renomeandoDoc = null; return desenharAnexos(); }
+    if (!confirm(`Remover "${nomeLegivel(doc.nome)}"? Ele vai para a lixeira do Google Drive.`)) return;
+    try {
+      f.imovel = await chamar('removerDocumento', f.imovel.ID_Imovel, doc.url, auth());
+      f.renomeandoDoc = null;
+      desenharAnexos();
+      mostrarMensagem('Documento removido.');
+    } catch (erro) { mostrarErro(erro); }
   }
 
   async function tirarFotoSalva(url) {
@@ -2345,33 +2411,6 @@
       if (estado.form.capa && estado.form.capa.url === url) estado.form.capa = null;
       desenharAnexos();
       mostrarMensagem('Foto removida.');
-    } catch (erro) { mostrarErro(erro); }
-  }
-
-  // Renomear: contrato novo muda só aqui (vai com o nome novo); contrato salvo muda no portal e no Drive
-  async function salvarNomeContrato() {
-    const f = estado.form;
-    const nome = document.getElementById('novo-nome-contrato').value.replace(/[\\/:*?"<>|\uFFFD]/g, '').trim().replace(/\.pdf$/i, '');
-    if (!nome) return mostrarMensagem('Digite o nome do contrato.', 'erro');
-    if (f.contratoNovo) {
-      f.contratoNovo = new File([f.contratoNovo], nome + '.pdf', { type: 'application/pdf' });
-    } else {
-      const botao = document.getElementById('btn-nome-contrato');
-      botao.disabled = true; botao.textContent = 'Salvando…';
-      try { f.imovel = await chamar('renomearContrato', f.imovel.ID_Imovel, nome, auth()); }
-      catch (erro) { botao.disabled = false; botao.textContent = 'Salvar nome'; return mostrarErro(erro); }
-      mostrarMensagem('Nome do contrato salvo!');
-    }
-    f.renomeando = false;
-    desenharAnexos();
-  }
-
-  async function tirarContratoSalvo() {
-    if (!confirm('Remover o contrato? Ele vai para a lixeira do Google Drive.')) return;
-    try {
-      estado.form.imovel = await chamar('removerContrato', estado.form.imovel.ID_Imovel, auth());
-      desenharAnexos();
-      mostrarMensagem('Contrato removido.');
     } catch (erro) { mostrarErro(erro); }
   }
 
@@ -2398,10 +2437,7 @@
     const f = estado.form;
     const dados = lerFormulario('form-imovel');
     if (!dados.Nome) return mostrarMensagem('Informe o nome do imóvel.', 'erro');
-    if (dados.DataVigente && dados.DataPrazo && dados.DataPrazo < dados.DataVigente) {
-      return mostrarMensagem('A data prazo não pode ser antes da data vigente.', 'erro');
-    }
-    if (dados.Cobrar === 'Sim' && !dados.InicioCobranca) return mostrarMensagem('Informe o dia em que a cobrança começa.', 'erro');
+    if (dados.Cobrar === 'Sim' && !dados.InicioCobranca) return mostrarMensagem('Informe a data de vencimento.', 'erro');
     if (dados.Cobrar === 'Sim' && Number.isNaN(lerValor(dados.ValorAluguel))) return mostrarMensagem('Valor do aluguel inválido. Use, por exemplo, 1.500,00.', 'erro');
     const botao = document.getElementById('btn-salvar');
     const textoBotao = botao.textContent;
@@ -2421,10 +2457,11 @@
         if (!(f.capa && f.capa.foto === foto)) URL.revokeObjectURL(foto.previa);
         f.fotosNovas.shift();
       }
-      if (f.contratoNovo) {
-        mostrarAvisoFixo('Enviando o contrato…');
-        f.imovel = await chamar('anexarContrato', id, await lerArquivo(f.contratoNovo), auth());
-        f.contratoNovo = null;
+      const totalDocs = f.documentosNovos.length;
+      while (f.documentosNovos.length) {
+        mostrarAvisoFixo(`Enviando documento ${totalDocs - f.documentosNovos.length + 1} de ${totalDocs}…`);
+        f.imovel = await chamar('anexarDocumento', id, await lerArquivo(f.documentosNovos[0].arquivo), auth());
+        f.documentosNovos.shift();
       }
       await salvarCapa(id);
       document.getElementById('progresso-envio')?.remove();
@@ -2447,7 +2484,7 @@
 
   async function excluirImovelAtual() {
     const i = estado.form.imovel;
-    if (!confirm(`Excluir "${i.Nome}"? Os eventos da agenda são apagados, e as fotos e o contrato vão para a lixeira do Google Drive.`)) return;
+    if (!confirm(`Excluir "${i.Nome}"? Os eventos da agenda são apagados, e as fotos e os documentos vão para a lixeira do Google Drive.`)) return;
     try {
       await chamar('excluirImovel', i.ID_Imovel, auth());
       mostrarMensagem('Imóvel excluído.');
@@ -2623,7 +2660,7 @@
 
   /* =========================================================
    * Mapa geral dos imóveis (Leaflet + OpenStreetMap: gratuito, sem chave)
-   * Cada imóvel vira um marcador com o avatar e a borda na cor da situação do contrato.
+   * Cada imóvel vira um marcador com o avatar e a borda na cor da situação do pagamento.
    * ========================================================= */
   const LEAFLET = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/';
 
@@ -2646,14 +2683,14 @@
         <span class="rotulo">${dados.imoveis.length} ${dados.imoveis.length === 1 ? 'imóvel' : 'imóveis'} no mapa</span>
         <h1>Mapa dos imóveis</h1>
       </div></div>
-      <div class="filtros" role="group" aria-label="Filtrar o mapa por prazo">
+      <div class="filtros" role="group" aria-label="Filtrar o mapa pela situação do pagamento">
         ${['todos', 'ok', 'aviso', 'vencido'].map(f => `<button class="filtro" aria-pressed="${estado.filtroMapa === f}"
           onclick="filtrarMapa('${f}')">${NOMES_SITUACAO[f]}<span class="mono">${conta(f)}</span></button>`).join('')}
       </div>
       <div id="mapa-geral" class="mapa-geral" aria-label="Mapa com os imóveis"></div>
       <div class="legenda"><span class="rotulo">Legenda</span>
         <span class="st st--ok">Em dia</span><span class="st st--aviso">Vence em breve</span>
-        <span class="st st--vencido">Vencido</span><span class="st st--sem-prazo">Sem prazo</span></div>
+        <span class="st st--vencido">Atrasado</span><span class="st st--sem-prazo">Sem cobrança</span></div>
       ${dados.pendentes ? `<div class="pr-alert pr-alert--info"><span class="pr-alert__ic">i</span><div><b>Localizando endereços…</b>
         Ainda faltam ${dados.pendentes}. Abra o mapa de novo daqui a pouco para ver todos.</div></div>` : ''}
       ${dados.semLocal.length ? `<section class="painel"><h2>Fora do mapa</h2>
