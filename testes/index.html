@@ -193,6 +193,21 @@
   .mapa iframe { width: 100%; height: 260px; border: 1px solid var(--line); border-radius: var(--radius-md); background: var(--surface-bg); }
   @media (max-width: 760px) { .mapa iframe { height: 220px; } }
 
+  /* ---------- Mapa geral dos imóveis ---------- */
+  .mapa-geral { height: calc(100vh - 300px); height: calc(100dvh - 300px); min-height: 380px; border: 1px solid var(--line);
+    border-radius: var(--radius-lg); overflow: hidden; background: var(--surface-bg); z-index: 0; }
+  .pin-imovel { background: none; border: 0; }
+  .pin { width: 48px; height: 48px; border-radius: 50%; padding: 3px; background: var(--line-strong);
+    box-shadow: 0 2px 6px rgba(13,18,24,.35); }
+  .pin .capa { width: 42px; height: 42px; font-size: 14px; border: 2px solid #fff; }
+  .pin--ok { background: var(--success); } .pin--aviso { background: var(--warning); } .pin--vencido { background: var(--danger); }
+  .popup-imovel { display: flex; flex-direction: column; gap: 8px; font-family: var(--font-sans); }
+  .popup-imovel .capa { width: 40px; height: 40px; font-size: 14px; }
+  .popup-imovel .acoes .pr-btn { color: inherit; }
+  .popup-imovel .acoes .pr-btn--pri { color: var(--on-brand); }
+  .leaflet-container { font-family: var(--font-sans); }
+  @media (max-width: 760px) { .mapa-geral { height: calc(100dvh - 330px); min-height: 320px; } }
+
   /* ---------- Foto de capa (bolinha ao lado do nome) ---------- */
   .com-capa { display: flex; align-items: center; gap: 12px; min-width: 0; }
   .com-capa > div, .com-capa > b { min-width: 0; }
@@ -435,6 +450,7 @@
     x: ic('<path d="M18 6 6 18M6 6l12 12"/>', 16),
     estrela: ic('<path d="m12 2 3.1 6.3 6.9 1-5 4.9 1.2 6.8L12 17.8 5.8 21l1.2-6.8-5-4.9 6.9-1Z"/>', 14),
     olho: ic('<path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"/><circle cx="12" cy="12" r="3"/>'),
+    mapa: ic('<path d="M9 3 3 6v15l6-3 6 3 6-3V3l-6 3-6-3z"/><path d="M9 3v15M15 6v15"/>', 22),
     casa: ic('<path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>', 22),
     lista: ic('<path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/>', 22),
     pessoas: ic('<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"/>', 22),
@@ -788,6 +804,7 @@
    * ========================================================= */
   function irPara(rota) {
     fecharFlutuantes();
+    if (estado.mapaGeral) { estado.mapaGeral.remove(); estado.mapaGeral = null; } // saiu da aba Mapa
     if (!estado.usuario) return telaEntrar();
     const [caminho, busca] = String(rota || '').replace(/^#\/?/, '').split('?');
     const partes = caminho.split('/').filter(Boolean);
@@ -795,6 +812,7 @@
     if (partes[0] === 'imoveis') return telaImoveis(new URLSearchParams(busca || '').get('f'));
     if (partes[0] === 'novo') return telaImovel(null);
     if (partes[0] === 'imovel' && partes[1]) return telaImovel(partes[1]);
+    if (partes[0] === 'mapa') return telaMapa();
     if (partes[0] === 'usuarios') return telaUsuarios();
     if (partes[0] === 'usuario' && partes[1]) return telaEditarUsuario(partes[1]);
     return telaPainel();
@@ -822,6 +840,7 @@
         <nav class="menu so-computador" aria-label="Menu principal">
           <a href="#/"${atual('')}>Painel</a>
           <a href="#/imoveis"${atual('imoveis')}>Imóveis</a>
+          <a href="#/mapa"${atual('mapa')}>Mapa</a>
           ${admin ? `<a href="#/usuarios"${atual('usuarios') || atual('usuario')}>Usuários${estado.pendentes ? ` <span class="contador">${estado.pendentes}</span>` : ''}</a>` : ''}
         </nav>
       </div>
@@ -849,6 +868,7 @@
       <a href="#/"${atual('')}>${ICONE.casa}<span>Painel</span></a>
       <a href="#/imoveis"${atual('imoveis')}>${ICONE.lista}<span>Imóveis</span></a>
       <a href="#/novo" class="incluir">${ICONE.mais}<span>Incluir</span></a>
+      <a href="#/mapa"${atual('mapa')}>${ICONE.mapa}<span>Mapa</span></a>
       ${admin ? `<a href="#/usuarios"${atual('usuarios') || atual('usuario')}>${ICONE.pessoas}<span>Usuários</span>${estado.pendentes ? `<span class="contador">${estado.pendentes}</span>` : ''}</a>` : ''}`;
   }
 
@@ -2017,6 +2037,14 @@
   }
 
   const scriptsCarregados = {};
+  // Folha de estilo de uma biblioteca (ex.: a do Leaflet), carregada uma vez só
+  function carregarEstilo(href) {
+    if (document.querySelector(`link[href="${href}"]`)) return;
+    const tag = document.createElement('link');
+    tag.rel = 'stylesheet'; tag.href = href;
+    document.head.appendChild(tag);
+  }
+
   function carregarScript(src) {
     if (!scriptsCarregados[src]) {
       scriptsCarregados[src] = new Promise((resolve, reject) => {
@@ -2059,6 +2087,80 @@
       mostrarErro(erro);
     }
     return false;
+  }
+
+  /* =========================================================
+   * Mapa geral dos imóveis (Leaflet + OpenStreetMap: gratuito, sem chave)
+   * Cada imóvel vira um marcador com o avatar e a borda na cor da situação do contrato.
+   * ========================================================= */
+  const LEAFLET = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/';
+
+  async function telaMapa() {
+    carregando('Abrindo o mapa…');
+    let dados;
+    try {
+      carregarEstilo(LEAFLET + 'leaflet.min.css');
+      [dados] = await Promise.all([chamar('abrirMapa', auth()), carregarScript(LEAFLET + 'leaflet.min.js')]);
+    } catch (erro) { return telaErro(erro, '#/mapa'); }
+    if (paginaAtual() !== 'mapa') return;
+    estado.dadosMapa = dados;
+    estado.filtroMapa = estado.filtroMapa || 'todos';
+    const conta = s => dados.imoveis.filter(i => s === 'todos' || i.situacao === s).length;
+    tela(`
+      <div class="titulo-pagina"><div>
+        <span class="rotulo">${dados.imoveis.length} ${dados.imoveis.length === 1 ? 'imóvel' : 'imóveis'} no mapa</span>
+        <h1>Mapa dos imóveis</h1>
+      </div></div>
+      <div class="filtros" role="group" aria-label="Filtrar o mapa por prazo">
+        ${['todos', 'ok', 'aviso', 'vencido'].map(f => `<button class="filtro" aria-pressed="${estado.filtroMapa === f}"
+          onclick="filtrarMapa('${f}')">${NOMES_SITUACAO[f]}<span class="mono">${conta(f)}</span></button>`).join('')}
+      </div>
+      <div id="mapa-geral" class="mapa-geral" aria-label="Mapa com os imóveis"></div>
+      <div class="legenda"><span class="rotulo">Legenda</span>
+        <span class="st st--ok">Em dia</span><span class="st st--aviso">Vence em breve</span>
+        <span class="st st--vencido">Vencido</span><span class="st st--sem-prazo">Sem prazo</span></div>
+      ${dados.pendentes ? `<div class="pr-alert pr-alert--info"><span class="pr-alert__ic">i</span><div><b>Localizando endereços…</b>
+        Ainda faltam ${dados.pendentes}. Abra o mapa de novo daqui a pouco para ver todos.</div></div>` : ''}
+      ${dados.semLocal.length ? `<section class="painel"><h2>Fora do mapa</h2>
+        <p class="suave pequeno">Estes imóveis não têm endereço, ou o endereço não foi encontrado. Abra e confira a localização (com número e cidade).</p>
+        <div>${dados.semLocal.map(i => `<a class="aviso-item" href="#/imovel/${esc(i.ID_Imovel)}"><span class="bolinha" aria-hidden="true"></span>
+          ${avatarImovel(i.Nome, '')}<div><b>${esc(i.Nome)}</b>${esc(i.Localizacao || 'Sem endereço')}</div></a>`).join('')}</div></section>` : ''}`);
+    desenharMapaGeral();
+  }
+
+  function filtrarMapa(f) {
+    estado.filtroMapa = f;
+    document.querySelectorAll('.filtros .filtro').forEach(b => b.setAttribute('aria-pressed', String(b.getAttribute('onclick').includes(`'${f}'`))));
+    desenharMapaGeral();
+  }
+
+  function desenharMapaGeral() {
+    const area = document.getElementById('mapa-geral');
+    if (!area || !window.L) return;
+    if (estado.mapaGeral) { estado.mapaGeral.remove(); estado.mapaGeral = null; }
+    const mapa = estado.mapaGeral = L.map(area, { scrollWheelZoom: true });
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19, attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+    }).addTo(mapa);
+    const lista = estado.dadosMapa.imoveis.filter(i => estado.filtroMapa === 'todos' || i.situacao === estado.filtroMapa);
+    const pontos = lista.map(i => {
+      const icone = L.divIcon({ className: 'pin-imovel', iconSize: [48, 48], iconAnchor: [24, 24], popupAnchor: [0, -22],
+        html: `<div class="pin pin--${esc(i.situacao)}">${avatarImovel(i.Nome, i.Capa)}</div>` });
+      const q = encodeURIComponent(i.Localizacao || '');
+      L.marker([i.Lat, i.Lng], { icon: icone, title: i.Nome, alt: i.Nome }).addTo(mapa).bindPopup(`
+        <div class="popup-imovel">
+          <div class="com-capa">${avatarImovel(i.Nome, i.Capa)}<div><b>${esc(i.Nome)}</b>
+            <div class="suave pequeno">${esc(i.Localizacao || '')}</div></div></div>
+          <div>${etiquetaSituacao(i)} ${textoAluguel(i) ? `<span class="valor-aluguel">${esc(textoAluguel(i))}</span>` : ''}</div>
+          <div class="acoes"><a class="pr-btn pr-btn--pri pr-btn--pequeno" href="#/imovel/${esc(i.ID_Imovel)}">Abrir imóvel</a>
+            <a class="pr-btn pr-btn--sec pr-btn--pequeno" href="https://www.google.com/maps/dir/?api=1&destination=${q}" target="_blank" rel="noopener">Como chegar</a></div>
+        </div>`, { minWidth: 220, maxWidth: 300 });
+      return [i.Lat, i.Lng];
+    });
+    // Enquadra todos os marcadores; sem nenhum, mostra o Brasil
+    if (pontos.length > 1) mapa.fitBounds(pontos, { padding: [40, 40], maxZoom: 16 });
+    else if (pontos.length === 1) mapa.setView(pontos[0], 15);
+    else mapa.setView([-15.8, -47.9], 4);
   }
 
   /* =========================================================
