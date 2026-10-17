@@ -410,6 +410,7 @@
   .caixa-tabela { max-height: calc(100vh - var(--altura-topo, 64px) - 240px); max-height: calc(100dvh - var(--altura-topo, 64px) - 240px);
     min-height: 260px; overflow: auto; overscroll-behavior: contain; }
   .tabela th { position: sticky; top: 0; z-index: 5; box-shadow: 0 1px 0 var(--line); }
+  .tabela--painel { min-width: 720px; }
 
   /* ---------- Celular e tablet em pé ---------- */
   @media (max-width: 760px) {
@@ -1465,14 +1466,35 @@
           ${total('', 'Vagos', t.semPrazo, '<span class="st st--sem-prazo">Sem inquilino</span>', 'sem-prazo')}
         </div>
       </section>
-      <div class="colunas">
-        <section class="painel larga" aria-labelledby="titulo-prazos">
-          <div class="painel-topo"><h2 id="titulo-prazos">Próximos vencimentos</h2><a href="#/imoveis">Ver lista completa</a></div>
-          ${p.proximos.length ? `<div class="rolagem lista-prazos">${p.proximos.map(cartaoPrazo).join('')}</div>` :
-            `<p class="vazio">Nenhum imóvel com cobrança ainda. <a href="#/novo">Incluir o primeiro imóvel</a></p>`}
-        </section>
-        ${blocoAvisos(p.agenda)}
-      </div>`;
+      <section class="painel" aria-labelledby="titulo-prazos">
+        <div class="painel-topo"><h2 id="titulo-prazos">Próximos vencimentos <span class="rotulo">${p.proximos.length}</span></h2>
+          <a href="#/imoveis">Ver todos os imóveis</a></div>
+        ${p.proximos.length ? tabelaVencimentos(p.proximos)
+          : '<p class="vazio">Nenhum imóvel alugado ainda. <a href="#/novo">Incluir o primeiro imóvel</a></p>'}
+      </section>`;
+  }
+
+  // Tabela do painel: imóveis alugados do vencimento mais próximo ao mais distante (no celular, vira cards)
+  function tabelaVencimentos(lista) {
+    return `<div class="caixa-tabela">
+        <table class="tabela tabela--painel">
+          <thead><tr><th>Imóvel</th><th>Inquilino</th><th>Valor</th><th>Vencimento</th><th>Situação</th></tr></thead>
+          <tbody>${lista.map(i => `
+            <tr class="clicavel" onclick="navegar('#/imovel/${esc(i.ID_Imovel)}')">
+              <td><div class="com-capa">${avatarImovel(i.Nome, i.Capa)}<div><div class="nome">${esc(i.Nome)}</div>
+                ${i.Localizacao ? `<div class="suave pequeno">${esc(i.Localizacao)}</div>` : ''}</div></div></td>
+              <td>${esc(i.Inquilino) || '<span class="suave">—</span>'}</td>
+              <td class="data">${esc(dinheiro(i.ValorAluguel) || '—')}</td>
+              <td class="data"><b>${dataBR(i.proximoVencimento)}</b><div class="suave pequeno">${esc(textoCobranca(i))}</div></td>
+              <td>${etiquetaSituacao(i)}</td>
+            </tr>`).join('')}</tbody>
+        </table>
+      </div>
+      <div class="lista-cartoes rolagem">${lista.map(i => `
+        <a class="cartao-imovel" href="#/imovel/${esc(i.ID_Imovel)}">
+          <div class="linha"><div class="com-capa">${avatarImovel(i.Nome, i.Capa)}<b>${esc(i.Nome)}</b></div>${etiquetaSituacao(i)}</div>
+          <span class="pequeno">${esc(i.Inquilino || 'Sem inquilino')} · vence <b class="mono">${dataBR(i.proximoVencimento)}</b>${i.ValorAluguel !== '' ? ' · ' + esc(dinheiro(i.ValorAluguel)) : ''}</span>
+        </a>`).join('')}</div>`;
   }
 
   /* ---------- Aba Pagamentos ---------- */
