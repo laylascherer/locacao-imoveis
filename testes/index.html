@@ -110,15 +110,24 @@
   .saudacao { font-size: 20px; line-height: 26px; }
   .relatorio { display: flex; flex-direction: column; gap: 16px; }
   .painel-duplo { display: flex; flex-direction: column; gap: 24px; }
+  .tabela--painel { min-width: 560px; }
+  .tabela--painel .capa { width: 40px; height: 40px; font-size: 14px; }
+  .tabela--painel td.data, .tabela--painel td .st { white-space: nowrap; }
   /* Computador e tablet deitado: o relatório e os próximos vencimentos lado a lado, cada um na sua caixa */
   @media (min-width: 1100px) {
-    .painel-duplo { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); align-items: start; }
-    .painel-duplo .totais--valores { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-    .painel-duplo .totais--imoveis { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-    .painel-duplo .total { padding: 12px 14px; }
+    .painel-duplo { display: grid; grid-template-columns: minmax(0, 4fr) minmax(0, 6fr); align-items: start; }
+    .painel-duplo .totais--valores { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+    .painel-duplo .totais--valores .total { padding: 12px 14px; }
     .painel-duplo .totais--valores .total b { font-size: 24px; line-height: 30px; }
-    .painel-duplo .totais--imoveis .total b { font-size: 28px; line-height: 32px; }
-    .painel-duplo .tabela--painel { min-width: 0; }
+    /* Situação dos imóveis: lista compacta, uma linha por item (nome | número) */
+    .painel-duplo .totais--imoveis { display: flex; flex-direction: column; gap: 0; border: 1px solid var(--line); border-radius: var(--radius-md); }
+    .painel-duplo .totais--imoveis .total { flex-direction: row; align-items: center; gap: 8px; border: 0; border-radius: 0;
+      border-bottom: 1px solid var(--line); padding: 8px 14px; }
+    .painel-duplo .totais--imoveis .total:last-child { border-bottom: 0; }
+    .painel-duplo .totais--imoveis .total .rotulo { flex: 1; }
+    .painel-duplo .totais--imoveis .total b { order: 3; font-size: 22px; line-height: 28px; }
+    .painel-duplo .totais--imoveis .total > span:not(.rotulo):not(.st--aviso) { display: none; }
+    .painel-duplo .caixa-tabela { max-height: calc(100vh - var(--altura-topo, 64px) - 140px); max-height: calc(100dvh - var(--altura-topo, 64px) - 140px); }
   }
   .totais--imoveis { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
 
@@ -1491,12 +1500,11 @@
   function tabelaVencimentos(lista) {
     return `<div class="caixa-tabela">
         <table class="tabela tabela--painel">
-          <thead><tr><th>Imóvel</th><th>Inquilino</th><th>Valor</th><th>Vencimento</th><th>Situação</th></tr></thead>
+          <thead><tr><th>Imóvel</th><th>Valor</th><th>Vencimento</th><th>Situação</th></tr></thead>
           <tbody>${lista.map(i => `
             <tr class="clicavel" onclick="navegar('#/imovel/${esc(i.ID_Imovel)}')">
               <td><div class="com-capa">${avatarImovel(i.Nome, i.Capa)}<div><div class="nome">${esc(i.Nome)}</div>
-                ${i.Localizacao ? `<div class="suave pequeno">${esc(i.Localizacao)}</div>` : ''}</div></div></td>
-              <td>${esc(i.Inquilino) || '<span class="suave">—</span>'}</td>
+                <div class="suave pequeno">${esc(i.Inquilino || 'Sem inquilino')}</div></div></div></td>
               <td class="data">${esc(dinheiro(i.ValorAluguel) || '—')}</td>
               <td class="data"><b>${dataBR(i.proximoVencimento)}</b><div class="suave pequeno">${esc(textoCobranca(i))}</div></td>
               <td>${etiquetaSituacao(i)}</td>
