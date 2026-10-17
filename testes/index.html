@@ -1429,16 +1429,10 @@
     if (paginaAtual() !== '') return; // a pessoa mudou de tela enquanto carregava
     if (dados.avisos) estado.avisos = dados.avisos;
     desenharTopo('');
-    const hora = new Date().getHours();
-    const saudacao = hora < 12 ? 'Bom dia' : hora < 18 ? 'Boa tarde' : 'Boa noite';
-    const primeiroNome = String(estado.usuario.Nome).split(' ')[0];
     const abaLink = (id, nome) => `<a role="tab" class="aba" href="#/${id === 'contratos' ? '' : '?aba=' + id}"
       aria-selected="${aba === id}">${nome}</a>`;
     tela(`
-      <div class="titulo-pagina"><div>
-        <span class="rotulo">${esc(dataComDia(dados.hoje))}</span>
-        <h1 class="saudacao">${saudacao}, ${esc(primeiroNome)}!</h1>
-      </div></div>
+      <h1 class="sr">Painel</h1>
       <nav class="abas" role="tablist" aria-label="Partes do painel">${abaLink('contratos', 'Resumo')}${abaLink('pagamentos', 'Pagamentos')}</nav>
       ${aba === 'pagamentos' ? conteudoPagamentos(dados, ver) : conteudoContratos(dados)}`, false, atualizacao);
   }
