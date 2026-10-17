@@ -109,6 +109,17 @@
   .logo-login { width: min(260px, 80%); height: auto; display: block; margin: 0 auto 4px; }
   .saudacao { font-size: 20px; line-height: 26px; }
   .relatorio { display: flex; flex-direction: column; gap: 16px; }
+  .painel-duplo { display: flex; flex-direction: column; gap: 24px; }
+  /* Computador e tablet deitado: o relatório e os próximos vencimentos lado a lado, cada um na sua caixa */
+  @media (min-width: 1100px) {
+    .painel-duplo { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); align-items: start; }
+    .painel-duplo .totais--valores { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .painel-duplo .totais--imoveis { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .painel-duplo .total { padding: 12px 14px; }
+    .painel-duplo .totais--valores .total b { font-size: 24px; line-height: 30px; }
+    .painel-duplo .totais--imoveis .total b { font-size: 28px; line-height: 32px; }
+    .painel-duplo .tabela--painel { min-width: 0; }
+  }
   .totais--imoveis { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
 
   /* ---------- Busca no cabeçalho ---------- */
@@ -1450,7 +1461,8 @@
         <span class="rotulo">${rotulo}</span><b>${numero}</b>${etiqueta}</a>`;
     const linkPag = '#/?aba=pagamentos&ver=';
     return `
-      <section class="relatorio" aria-labelledby="titulo-relatorio">
+      <div class="painel-duplo">
+      <section class="painel relatorio" aria-labelledby="titulo-relatorio">
         <h2 class="titulo-secao" id="titulo-relatorio">Relatório de ${esc(nomeDoMes(f.mes))}</h2>
         <div class="totais totais--valores">
           ${cartaoValor('', 'Previsto', f.previsto, '<span class="suave pequeno">Aluguéis do mês</span>', '#/?aba=pagamentos')}
@@ -1466,12 +1478,13 @@
           ${total('', 'Vagos', t.semPrazo, '<span class="st st--sem-prazo">Sem inquilino</span>', 'sem-prazo')}
         </div>
       </section>
-      <section class="painel" aria-labelledby="titulo-prazos">
+      <section class="painel vencimentos" aria-labelledby="titulo-prazos">
         <div class="painel-topo"><h2 id="titulo-prazos">Próximos vencimentos <span class="rotulo">${p.proximos.length}</span></h2>
           <a href="#/imoveis">Ver todos os imóveis</a></div>
         ${p.proximos.length ? tabelaVencimentos(p.proximos)
           : '<p class="vazio">Nenhum imóvel alugado ainda. <a href="#/novo">Incluir o primeiro imóvel</a></p>'}
-      </section>`;
+      </section>
+      </div>`;
   }
 
   // Tabela do painel: imóveis alugados do vencimento mais próximo ao mais distante (no celular, vira cards)
