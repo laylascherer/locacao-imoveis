@@ -115,7 +115,8 @@
   /* Tela principal: 3 cartões de valor e 4 de imóveis, um ao lado do outro */
   .totais--valores { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .totais--imoveis { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-  .totais a.total:hover { border-color: var(--brand); box-shadow: 0 0 0 1px var(--brand); }
+  /* Destaque só com mouse: no celular o hover fica "grudado" depois do toque */
+  @media (hover: hover) { .totais a.total:hover { border-color: var(--brand); box-shadow: 0 0 0 1px var(--brand); } }
   /* Tela da categoria: o cartão fica no alto como cabeçalho (não é link) */
   .voltar { align-self: flex-start; }
   .cabecalho-categoria { max-width: 420px; }
