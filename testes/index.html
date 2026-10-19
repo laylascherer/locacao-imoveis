@@ -113,20 +113,29 @@
   .tabela--painel { min-width: 560px; }
   .tabela--painel .capa { width: 40px; height: 40px; font-size: 14px; }
   .tabela--painel td.data, .tabela--painel td .st { white-space: nowrap; }
+  /* Situação dos imóveis em lista compacta (uma linha por item: nome | número), no celular e no lado a lado do computador */
+  @media (max-width: 760px), (min-width: 1100px) {
+    .painel-duplo .totais--imoveis { display: flex; flex-direction: column; gap: 0; border: 1px solid var(--line); border-radius: var(--radius-md); }
+    .painel-duplo .totais--imoveis .total { flex-direction: row; align-items: center; gap: 8px; border: 0; border-radius: 0;
+      border-bottom: 1px solid var(--line); padding: 8px 14px; min-height: 44px; }
+    .painel-duplo .totais--imoveis .total:last-child { border-bottom: 0; }
+    .painel-duplo .totais--imoveis .total .rotulo { flex: 1; }
+    .painel-duplo .totais--imoveis .total b { order: 3; font-size: 22px; line-height: 28px; }
+    .painel-duplo .totais--imoveis .total > span:not(.rotulo):not(.st--aviso) { display: none; }
+  }
+  /* Celular: valores em reais sem quebrar no meio; etiquetas quebram a linha dentro do cartão */
+  @media (max-width: 760px) {
+    .totais--valores .total b { font-size: clamp(17px, 5vw, 22px); line-height: 28px; white-space: nowrap; overflow-wrap: normal; }
+    .total .st { white-space: normal; }
+    .totais--valores .total { padding: 12px; min-width: 0; }
+  }
+
   /* Computador e tablet deitado: o relatório e os próximos vencimentos lado a lado, cada um na sua caixa */
   @media (min-width: 1100px) {
     .painel-duplo { display: grid; grid-template-columns: minmax(0, 4fr) minmax(0, 6fr); align-items: start; }
     .painel-duplo .totais--valores { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
     .painel-duplo .totais--valores .total { padding: 12px 14px; }
     .painel-duplo .totais--valores .total b { font-size: 24px; line-height: 30px; }
-    /* Situação dos imóveis: lista compacta, uma linha por item (nome | número) */
-    .painel-duplo .totais--imoveis { display: flex; flex-direction: column; gap: 0; border: 1px solid var(--line); border-radius: var(--radius-md); }
-    .painel-duplo .totais--imoveis .total { flex-direction: row; align-items: center; gap: 8px; border: 0; border-radius: 0;
-      border-bottom: 1px solid var(--line); padding: 8px 14px; }
-    .painel-duplo .totais--imoveis .total:last-child { border-bottom: 0; }
-    .painel-duplo .totais--imoveis .total .rotulo { flex: 1; }
-    .painel-duplo .totais--imoveis .total b { order: 3; font-size: 22px; line-height: 28px; }
-    .painel-duplo .totais--imoveis .total > span:not(.rotulo):not(.st--aviso) { display: none; }
     .painel-duplo .caixa-tabela { max-height: calc(100vh - var(--altura-topo, 64px) - 140px); max-height: calc(100dvh - var(--altura-topo, 64px) - 140px); }
   }
   .totais--imoveis { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
