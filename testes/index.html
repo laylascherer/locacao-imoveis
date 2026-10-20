@@ -489,6 +489,20 @@
     .filtro .mono { margin-left: 0; }
   }
 
+  /* Página Imóveis: o título fica pequeno, no canto direito da linha dos filtros (pedido da Layla: menos espaço em branco).
+     No celular, os filtros ocupam a largura toda e o título vai para uma linha fina à direita, acima deles. */
+  .barra-lista { display: flex; align-items: center; gap: 16px; }
+  #busca-ativa:empty { display: none; }
+  .titulo-pagina--compacto .rotulo { font-size: 14px; }
+  .barra-lista .filtros { flex: 1 1 auto; min-width: 0; }
+  .titulo-pagina--compacto { flex: none; display: flex; align-items: baseline; gap: 8px; }
+  .titulo-pagina--compacto h1 { font-size: 18px; line-height: 24px; margin: 0; }
+  @media (max-width: 760px) {
+    .barra-lista { flex-direction: column-reverse; align-items: stretch; gap: 6px; }
+    .titulo-pagina--compacto { justify-content: flex-end; }
+    .titulo-pagina--compacto h1 { font-size: 16px; line-height: 20px; }
+  }
+
   /* ---------- Telas sem rolagem da página (listas) ----------
      A altura do .tela-fixa vem do ajustarTelaFixa (App.html). O bloco .crescer ocupa o espaço que sobra
      e só a lista dentro dele rola: o título, os filtros e o cabeçalho da tabela ficam parados. */
@@ -1966,16 +1980,16 @@
     estado.lista = dados;
     // Versão nova chegando por trás: só troca os resultados (a busca digitada e o foco continuam)
     if (atualizacao && document.getElementById('resultados')) {
-      document.querySelector('.titulo-pagina .rotulo').textContent = `${dados.imoveis.length} ${dados.imoveis.length === 1 ? 'imóvel' : 'imóveis'}`;
+      document.querySelector('.titulo-pagina .rotulo').textContent = dados.imoveis.length;
       return desenharResultados();
     }
     tela(`<div class="tela-fixa">
-      <div class="titulo-pagina"><div>
-        <span class="rotulo">${estado.lista.imoveis.length} ${estado.lista.imoveis.length === 1 ? 'imóvel' : 'imóveis'}</span>
-        <h1>Imóveis</h1>
-      </div></div>
+      <div class="barra-lista">
+        <div class="filtros" role="group" aria-label="Filtrar por situação do pagamento" id="filtros"></div>
+        <div class="titulo-pagina titulo-pagina--compacto"><h1>Imóveis</h1>
+          <span class="rotulo" aria-label="${estado.lista.imoveis.length} ${estado.lista.imoveis.length === 1 ? 'imóvel' : 'imóveis'}">${estado.lista.imoveis.length}</span></div>
+      </div>
       <div id="busca-ativa"></div>
-      <div class="filtros" role="group" aria-label="Filtrar por situação do pagamento" id="filtros"></div>
       <div id="resultados" class="crescer"></div>
       <div class="legenda"><span class="rotulo">Legenda</span>
         <span class="st st--ok">Em dia</span><span>nada atrasado</span>
