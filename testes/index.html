@@ -125,7 +125,6 @@
   .periodo-datas .pr-field { flex: 1 1 150px; }
   /* Tela da categoria: o cartão fica no alto como cabeçalho (não é link) */
   .voltar { align-self: flex-start; }
-  .cabecalho-categoria { max-width: 420px; }
   .total--cabecalho { border: 2px solid var(--brand); }
   .editar-cartao { display: inline-flex; align-items: center; gap: 4px; align-self: flex-end; color: var(--brand); font: 600 14px/20px var(--font-sans); }
   .editar-cartao svg { width: 16px; height: 16px; }
@@ -478,7 +477,6 @@
     .totais--valores { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .totais--valores > .total:first-child { grid-column: 1 / -1; }
     .totais--imoveis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-    .cabecalho-categoria { max-width: none; }
     .periodo-escolha { flex: 1 1 100%; }
     .periodo-datas .pr-field { flex: 1 1 130px; }
     .periodo-datas .pr-btn { flex: 1 1 100%; }
@@ -502,13 +500,20 @@
   @media (max-width: 760px) { .tela-fixa { gap: 16px; } .tela-fixa .legenda { display: none; } }
   /* Tela baixa (ex.: notebook): a legenda também sai, para a lista ter mais espaço */
   @media (max-height: 820px) { .tela-fixa .legenda { display: none; } }
-  /* Celular: na tela da categoria, o cartão do alto fica numa faixa (nome e número na mesma linha)
-     e o título da lista fica menor, para sobrar altura para a lista */
+  /* Tela da categoria: o cartão do alto vira uma faixa baixa na largura toda (nome, valor e detalhe na mesma linha),
+     o título da lista fica menor e as linhas mais juntas, para caber o máximo de itens na lista */
+  .tela-fixa { gap: 16px; }
+  .tela-fixa .voltar { margin: -8px 0 -8px -8px; }
+  .cabecalho-categoria { max-width: none; }
+  .cabecalho-categoria .total { flex-direction: row; flex-wrap: wrap; align-items: center; gap: 4px 16px; padding: 12px 20px; }
+  .cabecalho-categoria .total b { font-size: 26px; line-height: 32px; }
+  .tela-fixa > .crescer.painel { padding: 14px 20px; gap: 8px; }
+  .tela-fixa > .crescer .painel-topo h2 { font-size: 18px; line-height: 24px; }
+  .tela-fixa .cobranca { padding: 8px 0; }
   @media (max-width: 760px) {
-    .tela-fixa .voltar { margin: -8px 0 -8px -8px; }
-    .cabecalho-categoria .total { flex-direction: row; flex-wrap: wrap; align-items: baseline; gap: 2px 12px; padding: 10px 14px; }
+    .cabecalho-categoria .total { gap: 2px 12px; padding: 10px 14px; }
     .cabecalho-categoria .total b { font-size: 22px; line-height: 28px; }
-    .tela-fixa > .crescer.painel { padding: 12px 14px; gap: 8px; }
+    .tela-fixa > .crescer.painel { padding: 12px 14px; }
     .tela-fixa > .crescer .painel-topo h2 { font-size: 16px; line-height: 22px; }
   }
 
