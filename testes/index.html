@@ -1518,8 +1518,10 @@
       detalhe: () => '<span class="suave pequeno">Pagamentos no período</span>', titulo: 'Pagamentos recebidos', vazio: 'Nenhum pagamento recebido no período.' },
     aVencer: { tipo: 'valor', rotulo: 'A vencer', classe: '', lista: p => p.aVencer, total: p => p.financeiro.aVencer,
       detalhe: () => '<span class="suave pequeno">Ainda vão chegar</span>', titulo: 'Aluguéis a vencer', vazio: 'Nenhum aluguel a vencer no período.' },
-    vencido: { tipo: 'valor', rotulo: 'Vencido', classe: 'vencido', lista: p => p.vencidos, total: p => p.financeiro.vencido,
-      detalhe: p => `<span class="st st--vencido">${p.vencidos.length} ${p.vencidos.length === 1 ? 'aluguel atrasado' : 'aluguéis atrasados'}</span>`,
+    // "Vencido" conta ALUGUÉIS com vencimento no período; "Imóveis com atraso" conta IMÓVEIS que devem qualquer mês.
+    // Os nomes deixam a diferença clara (a Layla estranhou 2 num e 4 no outro).
+    vencido: { tipo: 'valor', rotulo: p => 'Vencido ' + nomeCurtoPeriodo(p), classe: 'vencido', lista: p => p.vencidos, total: p => p.financeiro.vencido,
+      detalhe: p => `<span class="st st--vencido">${p.vencidos.length} ${p.vencidos.length === 1 ? 'aluguel' : 'aluguéis'} sem pagamento</span>`,
       titulo: 'Aluguéis vencidos sem pagamento', vazio: 'Nenhum aluguel vencido no período. Tudo em dia!' },
     ocupados: { tipo: 'imovel', rotulo: 'Ocupados', classe: '', lista: p => p.imoveis.filter(i => i.situacao !== 'sem-prazo'),
       detalhe: () => '<span class="suave pequeno">Com inquilino</span>', titulo: 'Imóveis alugados', vazio: 'Nenhum imóvel alugado ainda.' },
@@ -1528,9 +1530,21 @@
     emDia: { tipo: 'imovel', rotulo: 'Em dia', classe: 'ok', lista: p => p.imoveis.filter(i => i.situacao === 'ok' || i.situacao === 'aviso'),
       detalhe: p => p.totais.aviso ? `<span class="st st--aviso">${p.totais.aviso} ${p.totais.aviso === 1 ? 'vence' : 'vencem'} em até 3 dias</span>`
         : '<span class="st st--ok">Pagamentos em dia</span>', titulo: 'Imóveis com o pagamento em dia', vazio: 'Nenhum imóvel em dia agora.' },
-    atrasados: { tipo: 'imovel', rotulo: 'Atrasados', classe: 'vencido', lista: p => p.imoveis.filter(i => i.situacao === 'vencido'),
-      detalhe: () => '<span class="st st--vencido">Precisa de atenção</span>', titulo: 'Imóveis com aluguel atrasado', vazio: 'Nenhum imóvel atrasado. Tudo em dia!' }
+    atrasados: { tipo: 'imovel', rotulo: 'Imóveis com atraso', classe: 'vencido', lista: p => p.imoveis.filter(i => i.situacao === 'vencido'),
+      detalhe: () => '<span class="st st--vencido">Devem algum mês</span>', titulo: 'Imóveis com aluguel atrasado', vazio: 'Nenhum imóvel atrasado. Tudo em dia!' }
   };
+
+  function rotuloCategoria(c, p) {
+    return typeof c.rotulo === 'function' ? c.rotulo(p) : c.rotulo;
+  }
+
+  // "em outubro", "em 2026" ou "no período" (para caber no nome do cartão)
+  function nomeCurtoPeriodo(p) {
+    const texto = textoPeriodo(p.de, p.ate);
+    if (/^\d{4}$/.test(texto)) return 'em ' + texto;
+    if (!/ a /.test(texto)) return 'em ' + texto.replace(/ de \d{4}$/, '');
+    return 'no período';
+  }
 
   // O número grande do cartão: dinheiro nos cartões de valor, quantidade nos de imóveis
   function numeroCategoria(id, p) {
@@ -1541,7 +1555,7 @@
   // Cartão do painel (link) ou cabeçalho da tela da categoria (sem link)
   function cartaoCategoria(id, p, periodo, cabecalho) {
     const c = CATEGORIAS[id];
-    const miolo = `<span class="rotulo">${c.rotulo}</span><b>${numeroCategoria(id, p)}</b>${c.detalhe(p)}`;
+    const miolo = `<span class="rotulo">${esc(rotuloCategoria(c, p))}</span><b>${numeroCategoria(id, p)}</b>${c.detalhe(p)}`;
     return cabecalho ? `<div class="total total--cabecalho ${c.classe}">${miolo}</div>`
       : `<a class="total ${c.classe}" href="#/categoria/${id}${sufixoPeriodo(periodo)}">${miolo}</a>`;
   }
@@ -1699,7 +1713,7 @@
     const quando = c.tipo === 'valor' ? ' · ' + textoPeriodo(p.de, p.ate) : ' ' + textoSituacaoNaData(p);
     tela(`<div class="tela-fixa">
       <a class="pr-btn pr-btn--texto pr-btn--pequeno voltar" href="#/${sufixoPeriodo(periodo)}">‹ Voltar ao painel</a>
-      <h1 class="sr">${esc(c.rotulo)}</h1>
+      <h1 class="sr">${esc(rotuloCategoria(c, p))}</h1>
       <div class="cabecalho-categoria">${cartaoCategoria(id, p, periodo, true)}</div>
       <section class="painel crescer" aria-labelledby="titulo-categoria">
         <div class="painel-topo"><h2 id="titulo-categoria">${esc(c.titulo + quando)}
