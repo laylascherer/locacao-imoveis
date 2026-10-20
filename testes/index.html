@@ -257,6 +257,10 @@
   .cobranca-valor { display: flex; flex-direction: column; gap: 4px; align-items: flex-start; }
   .cobranca-acoes { justify-content: flex-end; }
   .area-envio--pequena { min-height: 88px; }
+  /* Na edição do imóvel, o nome e o avatar do imóvel em cada linha seriam repetidos: ficam só a data, o valor e as ações */
+  #bloco-pagamentos .cobranca-imovel { display: none; }
+  #bloco-pagamentos .cobranca { grid-template-columns: 56px minmax(0, 1fr) auto; }
+  @media (max-width: 760px) { #bloco-pagamentos .cobranca { grid-template-columns: 48px minmax(0, 1fr); } }
   @media (max-width: 760px) {
     .cobranca { grid-template-columns: 48px minmax(0, 1fr); }
     .cobranca-valor, .cobranca-acoes { grid-column: 2; }
@@ -1758,12 +1762,31 @@
     </div>`;
   }
 
+  // Bloco "Pagamentos" da edição do imóvel (as linhas usam estado.pagamentos.imovel pela posição)
+  function listaPagamentosImovel(lista) {
+    estado.pagamentos = { imovel: lista };
+    return lista.length ? `<div class="lista-cobrancas rolagem">${lista.map((c, n) => linhaCobranca(c, 'imovel', n)).join('')}</div>`
+      : '<p class="vazio">Ainda não venceu nenhum aluguel deste inquilino.</p>';
+  }
+
   function cobrancaDaTela(lista, n) {
     return estado.pagamentos && estado.pagamentos[lista] && estado.pagamentos[lista][n];
   }
 
-  function recarregarPagamentos() {
-    irPara(location.hash);
+  // Depois de registrar, anexar ou desfazer um pagamento. Na edição do imóvel, só o bloco Pagamentos (e a etiqueta
+  // de situação) se atualiza: o resto do formulário fica como está, para não perder o que ainda não foi salvo.
+  async function recarregarPagamentos() {
+    const bloco = document.getElementById('lista-pagamentos-imovel');
+    if (!bloco || !estado.form || !estado.form.imovel) return irPara(location.hash);
+    const id = estado.form.imovel.ID_Imovel;
+    try {
+      const r = await chamar('abrirImovel', id, auth());
+      if (!document.getElementById('lista-pagamentos-imovel') || location.hash.indexOf(id) === -1) return;
+      estado.form.cobrancas = r.cobrancas || [];
+      document.getElementById('lista-pagamentos-imovel').innerHTML = listaPagamentosImovel(estado.form.cobrancas);
+      const etiqueta = document.getElementById('situacao-titulo');
+      if (etiqueta) etiqueta.innerHTML = etiquetaSituacao(r.imovel);
+    } catch (erro) { mostrarErro(erro); }
   }
 
   // Campo de comprovante (foto ou PDF; HEIC vira JPG), usado no registro e no "Anexar comprovante"
@@ -2023,6 +2046,7 @@
       estado.form.imovel = r.imovel;
       estado.form.podeExcluir = r.podeExcluir;
       estado.form.historico = r.historico || [];
+      estado.form.cobrancas = r.cobrancas || [];
       if (r.imovel.CapaUrl) estado.form.capa = { url: r.imovel.CapaUrl };
       estado.form.hoje = r.hoje;
     }
@@ -2033,7 +2057,7 @@
       <div class="titulo-pagina"><div class="com-capa" id="titulo-capa">${novo ? '' : avatarImovel(i.Nome, i.Capa, true)}<div>
         <span class="rotulo"><a href="#/imoveis" style="color:inherit">Imóveis</a> › ${novo ? 'Novo' : 'Editar'}</span>
         <h1>${novo ? 'Incluir imóvel' : esc(i.Nome)}</h1>
-        ${novo ? '<p class="suave">Preencha o que você já sabe. Dá para completar depois.</p>' : `<div>${etiquetaSituacao(i)}</div>`}
+        ${novo ? '<p class="suave">Preencha o que você já sabe. Dá para completar depois.</p>' : `<div id="situacao-titulo">${etiquetaSituacao(i)}</div>`}
       </div></div></div>
       <form id="form-imovel" onsubmit="event.preventDefault(); salvarFormulario()" style="display:flex;flex-direction:column;gap:24px">
         <section class="painel">
@@ -2089,6 +2113,12 @@
               ${h.QtdEmAberto ? `<span class="st st--sem-prazo">Saiu devendo ${h.QtdEmAberto} ${h.QtdEmAberto === 1 ? 'aluguel' : 'aluguéis'} (${esc(dinheiro(h.ValorEmAberto))})</span>` : '<span class="st st--ok">Saiu em dia</span>'}
             </div>`).join('')}</div></div>` : ''}
         </section>
+
+        ${!novo && i.Cobrar ? `<section class="painel" id="bloco-pagamentos" aria-labelledby="titulo-pagamentos-imovel">
+          <div class="painel-topo"><h2 id="titulo-pagamentos-imovel">Pagamentos</h2>
+            <span class="suave pequeno">Os 12 aluguéis mais recentes deste inquilino</span></div>
+          <div id="lista-pagamentos-imovel">${listaPagamentosImovel(estado.form.cobrancas)}</div>
+        </section>` : ''}
 
         <section class="painel">
           <h2>Anexos</h2>
