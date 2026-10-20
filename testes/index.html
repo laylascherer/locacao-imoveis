@@ -487,8 +487,33 @@
     .filtro .mono { margin-left: 0; }
   }
 
+  /* ---------- Telas sem rolagem da página (listas) ----------
+     A altura do .tela-fixa vem do ajustarTelaFixa (App.html). O bloco .crescer ocupa o espaço que sobra
+     e só a lista dentro dele rola: o título, os filtros e o cabeçalho da tabela ficam parados. */
+  .tela-fixa { display: flex; flex-direction: column; gap: 24px; min-height: 0; }
+  .tela-fixa > .crescer { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; }
+  .tela-fixa .crescer > .caixa-tabela, .tela-fixa .crescer > .lista-cartoes, .tela-fixa .crescer > .rolagem,
+  .tela-fixa .crescer > .lista-cobrancas { flex: 1 1 auto; min-height: 0; max-height: none; }
+  .tela-fixa > .painel:not(.crescer) .rolagem { max-height: 30vh; }
+  .tela-fixa--rola > .crescer { flex: none; }
+  .tela-fixa--rola .crescer > .caixa-tabela, .tela-fixa--rola .crescer > .lista-cartoes,
+  .tela-fixa--rola .crescer > .rolagem, .tela-fixa--rola .crescer > .lista-cobrancas { flex: none; max-height: 70vh; }
+  /* No celular, a legenda (4 linhas) apertaria a lista; as etiquetas já dizem a situação por extenso */
+  @media (max-width: 760px) { .tela-fixa { gap: 16px; } .tela-fixa .legenda { display: none; } }
+  /* Tela baixa (ex.: notebook): a legenda também sai, para a lista ter mais espaço */
+  @media (max-height: 820px) { .tela-fixa .legenda { display: none; } }
+  /* Celular: na tela da categoria, o cartão do alto fica numa faixa (nome e número na mesma linha)
+     e o título da lista fica menor, para sobrar altura para a lista */
+  @media (max-width: 760px) {
+    .tela-fixa .voltar { margin: -8px 0 -8px -8px; }
+    .cabecalho-categoria .total { flex-direction: row; flex-wrap: wrap; align-items: baseline; gap: 2px 12px; padding: 10px 14px; }
+    .cabecalho-categoria .total b { font-size: 22px; line-height: 28px; }
+    .tela-fixa > .crescer.painel { padding: 12px 14px; gap: 8px; }
+    .tela-fixa > .crescer .painel-topo h2 { font-size: 16px; line-height: 22px; }
+  }
+
   /* ---------- Tela principal sem rolagem ----------
-     A altura do .painel-cheio vem do ajustarPainelCheio (App.html); aqui os cartões dividem essa altura.
+     A altura do .painel-cheio vem do ajustarTelaFixa (App.html); aqui os cartões dividem essa altura.
      Os tamanhos usam vh (altura da tela) e vw (largura): em tela menor, tudo diminui junto. */
   .painel-cheio { display: flex; flex-direction: column; gap: clamp(8px, 1.8vh, 24px); min-height: 0; }
   .painel-cheio .relatorio { flex: 1 1 0; min-height: 0; gap: clamp(6px, 1.2vh, 12px); }
@@ -510,9 +535,9 @@
   @media (max-width: 760px) {
     .painel-cheio .totais--valores { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   }
-  .painel-cheio--rola .relatorio, .painel-cheio--rola .totais { flex: none; }
-  .painel-cheio--rola .totais { grid-auto-rows: auto; }
-  /* Quando algum cartão não cabe, o ajustarPainelCheio liga estas classes (uma de cada vez):
+  .tela-fixa--rola.painel-cheio .relatorio, .tela-fixa--rola.painel-cheio .totais { flex: none; }
+  .tela-fixa--rola.painel-cheio .totais { grid-auto-rows: auto; }
+  /* Quando algum cartão não cabe, o ajustarTelaFixa liga estas classes (uma de cada vez):
      --compacto: os cartões de imóveis ficam só com o nome e o número (o aviso "vence em breve" continua);
      --minimo: todos os cartões ficam só com o nome e o número. */
   .painel-cheio--compacto .totais--imoveis .total > span:not(.rotulo):not(.st--aviso) { display: none; }
@@ -892,6 +917,7 @@
     main.className = estreito ? 'estreito' : '';
     main.innerHTML = html;
     if (!manterRolagem) window.scrollTo(0, 0);
+    ajustarTelaFixa();
   }
 
   /* =========================================================
@@ -1196,6 +1222,7 @@
     new ResizeObserver(() => {
       const topo = document.getElementById('topo');
       if (topo) document.documentElement.style.setProperty('--altura-topo', topo.offsetHeight + 'px');
+      ajustarTelaFixa(); // o topo mudou de altura (ex.: a busca abriu no celular): refaz a altura da tela fixa
     }).observe(document.getElementById('topo'));
   }
 
@@ -1606,7 +1633,7 @@
     if (p.avisos) estado.avisos = p.avisos;
     estado.hojePainel = p.hoje;
     desenharTopo('');
-    tela(`<div class="painel-cheio" id="painel-cheio">
+    tela(`<div class="painel-cheio tela-fixa">
       <h1 class="sr">Painel</h1>
       ${seletorPeriodo(periodo, p)}
       <section class="relatorio" aria-labelledby="titulo-relatorio">
@@ -1619,20 +1646,23 @@
       </section>
       ${p.imoveis.length || periodo ? '' : '<p class="vazio">Nenhum imóvel cadastrado ainda. <a href="#/novo">Incluir o primeiro imóvel</a></p>'}
       </div>`, false, atualizacao);
-    ajustarPainelCheio();
+    ajustarTelaFixa();
   }
 
-  // Tela principal sem rolagem: o painel ocupa exatamente a altura que sobra na tela (abaixo do topo e acima
-  // do menu de baixo do celular) e os cartões se ajustam a ela. Em tela muito baixa (< 260 px livres) volta a rolar.
-  function ajustarPainelCheio() {
-    const el = document.getElementById('painel-cheio');
+  // Telas sem rolagem da página (painel e telas com lista): o bloco .tela-fixa ocupa exatamente a altura que sobra
+  // na tela (abaixo do topo e acima do menu de baixo do celular). No painel, os cartões dividem essa altura;
+  // nas listas, só a lista (.crescer) rola por dentro. Em tela muito baixa (< 260 px livres), a página volta a rolar.
+  function ajustarTelaFixa() {
+    const el = document.querySelector('#tela .tela-fixa');
     if (!el) return;
     const main = document.getElementById('tela');
     const embaixo = parseFloat(getComputedStyle(main).paddingBottom) || 0;
     const livre = Math.floor(window.innerHeight - (el.getBoundingClientRect().top + window.scrollY) - embaixo) - 1;
-    // No computador, no máximo 560 px: mais que isso só deixaria os cartões vazios
-    el.style.height = livre >= 260 ? Math.min(livre, window.innerWidth >= 1024 ? 560 : 760) + 'px' : '';
-    el.classList.toggle('painel-cheio--rola', livre < 260);
+    const painel = el.classList.contains('painel-cheio');
+    // No painel do computador, no máximo 560 px: mais que isso só deixaria os cartões vazios
+    el.style.height = livre >= 260 ? (painel ? Math.min(livre, window.innerWidth >= 1024 ? 560 : 760) : livre) + 'px' : '';
+    el.classList.toggle('tela-fixa--rola', livre < 260);
+    if (!painel) return;
     // Algum cartão não coube? Esconde os textos de apoio aos poucos, até caber
     el.classList.remove('painel-cheio--compacto', 'painel-cheio--minimo');
     const estoura = () => [...el.querySelectorAll('.total')].some(c => c.scrollHeight > c.clientHeight + 1);
@@ -1640,7 +1670,7 @@
     if (estoura()) el.classList.add('painel-cheio--minimo');
   }
 
-  window.addEventListener('resize', ajustarPainelCheio);
+  window.addEventListener('resize', ajustarTelaFixa);
 
   /* ---------- Tela de uma categoria: o cartão no alto e a lista embaixo ---------- */
   async function telaCategoria(id, periodo) {
@@ -1658,17 +1688,17 @@
     // As linhas de cobrança se referem a estado.pagamentos pela posição (Registrar pagamento, Ver comprovante…)
     if (c.tipo === 'valor') estado.pagamentos = { visiveis: lista };
     const quando = c.tipo === 'valor' ? ' · ' + textoPeriodo(p.de, p.ate) : ' ' + textoSituacaoNaData(p);
-    tela(`
+    tela(`<div class="tela-fixa">
       <a class="pr-btn pr-btn--texto pr-btn--pequeno voltar" href="#/${sufixoPeriodo(periodo)}">‹ Voltar ao painel</a>
       <h1 class="sr">${esc(c.rotulo)}</h1>
       <div class="cabecalho-categoria">${cartaoCategoria(id, p, periodo, true)}</div>
-      <section class="painel" aria-labelledby="titulo-categoria">
+      <section class="painel crescer" aria-labelledby="titulo-categoria">
         <div class="painel-topo"><h2 id="titulo-categoria">${esc(c.titulo + quando)}
           <span class="rotulo">${lista.length}</span></h2></div>
         ${!lista.length ? `<p class="vazio">${c.vazio}</p>`
           : c.tipo === 'valor' ? `<div class="lista-cobrancas rolagem">${lista.map((x, n) => linhaCobranca(x, 'visiveis', n)).join('')}</div>`
           : tabelaImoveisCategoria(lista)}
-      </section>`, false, atualizacao);
+      </section></div>`, false, atualizacao);
   }
 
   // Imóveis de uma categoria: tabela no computador e cards no celular, sempre com "Editar"
@@ -1897,19 +1927,19 @@
       document.querySelector('.titulo-pagina .rotulo').textContent = `${dados.imoveis.length} ${dados.imoveis.length === 1 ? 'imóvel' : 'imóveis'}`;
       return desenharResultados();
     }
-    tela(`
+    tela(`<div class="tela-fixa">
       <div class="titulo-pagina"><div>
         <span class="rotulo">${estado.lista.imoveis.length} ${estado.lista.imoveis.length === 1 ? 'imóvel' : 'imóveis'}</span>
         <h1>Imóveis</h1>
       </div><a class="pr-btn pr-btn--pri" href="#/novo">${ICONE.mais}Adicionar imóvel</a></div>
       <div id="busca-ativa"></div>
       <div class="filtros" role="group" aria-label="Filtrar por situação do pagamento" id="filtros"></div>
-      <div id="resultados"></div>
+      <div id="resultados" class="crescer"></div>
       <div class="legenda"><span class="rotulo">Legenda</span>
         <span class="st st--ok">Em dia</span><span>nada atrasado</span>
         <span class="st st--aviso">Vence em breve</span><span>vence em até 3 dias</span>
         <span class="st st--vencido">Atrasado</span><span>tem aluguel vencido sem pagamento</span>
-        <span class="st st--sem-prazo">Vago</span><span>sem inquilino</span></div>`);
+        <span class="st st--sem-prazo">Vago</span><span>sem inquilino</span></div></div>`);
     desenharResultados();
   }
 
@@ -2961,12 +2991,12 @@
           <a class="pr-btn pr-btn--sec pr-btn--pequeno" href="#/usuario/${esc(u.ID_Usuario)}">Editar</a>
         </div>
       </div>`;
-    tela(`
+    tela(`<div class="tela-fixa">
       <div class="titulo-pagina"><div><span class="rotulo">${us.length} ${us.length === 1 ? 'pessoa' : 'pessoas'}</span><h1>Usuários</h1></div></div>
       ${pendentes.length ? `<section class="painel"><h2>Pedidos de acesso</h2>
         <p class="suave pequeno">Quem for aprovado entra como Equipe: vê, inclui e edita imóveis. Só o Administrador exclui imóveis e cuida dos usuários.</p>
         <div class="rolagem">${pendentes.map(linha).join('')}</div></section>` : ''}
-      <section class="painel"><h2>Equipe</h2><div class="rolagem">${outros.map(linha).join('')}</div></section>`, true);
+      <section class="painel crescer"><h2>Equipe</h2><div class="rolagem">${outros.map(linha).join('')}</div></section></div>`, true);
   }
 
   async function decidirCadastro(id, situacao) {
