@@ -1,6 +1,6 @@
 // Ajudante do app (service worker): guarda a página do portal para abrir mais rápido
 // e mostrar a tela mesmo com a internet fraca. Os dados (servidor do Google) nunca ficam guardados aqui.
-const VERSAO = 'portal-locacao-v1';
+const VERSAO = 'az-gestao-v3'; // troque a versão sempre que mudar os ícones ou este arquivo
 const ARQUIVOS = ['./', './index.html', './manifest.webmanifest', './icone-192.png', './icone-512.png'];
 
 self.addEventListener('install', e => {

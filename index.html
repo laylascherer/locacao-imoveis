@@ -3,14 +3,14 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, viewport-fit=cover">
-  <title>Portal de Locação</title>
+  <title>Az Gestão</title>
   <link rel="manifest" href="manifest.webmanifest">
-  <meta name="theme-color" content="#24578f">
+  <meta name="theme-color" content="#0d4475">
   <link rel="icon" type="image/png" href="icone-192.png">
   <link rel="apple-touch-icon" href="icone-180.png">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-title" content="Locação">
+  <meta name="apple-mobile-web-app-title" content="Az Gestão">
   <!-- "só claro": impede o navegador do celular de escurecer o site sozinho -->
   <meta name="color-scheme" content="only light">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -21,9 +21,10 @@
    * As cores ficam nas variáveis abaixo. O portal usa sempre o modo claro.
    * ========================================================= */
   :root {
-    --brand: #24578f; --on-brand: #ffffff; --brand-soft: #e3ebf5;
+    --brand: #0d4475; --on-brand: #ffffff; --brand-soft: #e7eef6; /* Az Gestão: o azul do logo e branco */
     --accent: #ea6b2c; --on-accent: #1a0c03;
-    --surface-bg: #f3f4f6; --surface-card: #ffffff;
+    --surface-bg: #ffffff; --surface-card: #ffffff; --surface-sutil: #f4f6fa;
+    --foco: #3d7bd9; /* contorno de foco (teclado), visível no branco e no azul */
     --ink: #16202e; --ink-muted: #5a6474;
     --line: #d6dae1; --line-strong: #8a93a3;
     --success: #1f7a4d; --success-soft: #e5f3ec;
@@ -40,7 +41,7 @@
      Ao achar esta media query, eles entendem que o site já cuida disso e não mexem nas cores. */
   @media (prefers-color-scheme: dark) {
     :root { color-scheme: only light; }
-    html, body { background: #f3f4f6; color: #16202e; }
+    html, body { background: #ffffff; color: #16202e; }
   }
   * { box-sizing: border-box; }
   html { overflow-x: clip; } /* nada pode alargar a página para os lados */
@@ -64,7 +65,7 @@
      que antes deixavam os campos de arquivo escondidos com a largura da tela e empurravam a página para o lado. */
   .sr { position: absolute !important; width: 1px !important; height: 1px !important; min-height: 0 !important;
     padding: 0 !important; margin: -1px !important; border: 0 !important; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
-  :focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+  :focus-visible { outline: 3px solid var(--foco); outline-offset: 2px; }
 
   /* ---------- Topo (menu) ---------- */
   .topo { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
@@ -74,15 +75,15 @@
   .marca { display: flex; align-items: center; gap: 8px; font: 700 17px/1 var(--font-sans); color: var(--on-brand);
     text-decoration: none; min-height: 44px; }
   .marca:hover { color: var(--on-brand); }
-  .selo { width: 28px; height: 28px; border-radius: var(--radius-sm); background: var(--accent); color: var(--on-accent);
+  .selo { width: 28px; height: 28px; border-radius: var(--radius-sm); background: #ffffff; color: var(--brand);
     display: grid; place-items: center; font: 600 11px/1 var(--font-mono); }
   .menu { display: flex; gap: 4px; flex-wrap: wrap; }
   .menu a { color: var(--on-brand); text-decoration: none; font: 500 15px/1 var(--font-sans); padding: 14px 12px;
     border-radius: var(--radius-sm); opacity: .8; }
-  .menu a[aria-current="page"] { opacity: 1; box-shadow: inset 0 -3px 0 var(--accent); }
+  .menu a[aria-current="page"] { opacity: 1; box-shadow: inset 0 -3px 0 #ffffff; }
   .menu a:hover { opacity: 1; }
-  .contador { display: inline-block; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 9px; background: var(--accent);
-    color: var(--on-accent); font: 600 11px/18px var(--font-mono); text-align: center; vertical-align: 1px; }
+  .contador { display: inline-block; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 9px; background: #ffffff;
+    color: var(--brand); font: 600 11px/18px var(--font-mono); text-align: center; vertical-align: 1px; }
   .botao-icone { position: relative; width: 44px; height: 44px; border: 0; border-radius: var(--radius-md); background: transparent;
     color: var(--on-brand); cursor: pointer; display: grid; place-items: center; }
   .botao-icone:hover { background: rgba(255,255,255,.12); }
@@ -95,7 +96,7 @@
   .menu-baixo a { position: relative; flex: 1; min-height: 52px; display: flex; flex-direction: column; align-items: center; justify-content: center;
     gap: 2px; color: var(--ink-muted); text-decoration: none; font: 600 12px/16px var(--font-sans); border-radius: var(--radius-md); }
   .menu-baixo a[aria-current="page"] { color: var(--brand); }
-  .menu-baixo a[aria-current="page"]::before { content: ""; position: absolute; top: 0; width: 32px; height: 3px; border-radius: 2px; background: var(--accent); }
+  .menu-baixo a[aria-current="page"]::before { content: ""; position: absolute; top: 0; width: 32px; height: 3px; border-radius: 2px; background: var(--brand); }
   .menu-baixo a.incluir svg { width: 40px; height: 40px; padding: 8px; border-radius: 50%; background: var(--accent); color: var(--on-accent); }
   .menu-baixo a.incluir { color: var(--ink); }
   .menu-baixo .contador { position: absolute; top: 2px; left: calc(50% + 6px); }
@@ -107,13 +108,54 @@
   .flutuante-topo { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 8px 16px; }
   .flutuante .vazio { padding: 16px; }
   .menu-usuario button { width: 100%; text-align: left; min-height: 44px; padding: 0 16px; border: 0; background: none; cursor: pointer; }
-  .menu-usuario button:hover { background: var(--surface-bg); }
+  .menu-usuario button:hover { background: var(--surface-sutil); }
+
+  /* ---------- Logo ---------- */
+  .logo-topo { height: 40px; width: auto; display: block; }
+  .logo-login { width: min(260px, 80%); height: auto; display: block; margin: 0 auto 4px; }
+  .saudacao { font-size: 20px; line-height: 26px; }
+  .relatorio { display: flex; flex-direction: column; gap: 16px; }
+  .tabela--painel { min-width: 640px; }
+  .tabela--painel .capa { width: 40px; height: 40px; font-size: 14px; }
+  .tabela--painel td.data, .tabela--painel td .st { white-space: nowrap; }
+  /* Tela principal: 3 cartões de valor e 4 de imóveis, um ao lado do outro */
+  .totais--valores { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .totais--imoveis { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  /* Destaque só com mouse: no celular o hover fica "grudado" depois do toque */
+  @media (hover: hover) { .totais a.total:hover { border-color: var(--brand); box-shadow: 0 0 0 1px var(--brand); } }
+  /* Seletor de período: atalhos e, no "Personalizado", as datas De/Até */
+  .periodo { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end; }
+  .periodo-escolha { flex: 0 1 240px; }
+  .periodo-datas { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end; flex: 1 1 420px; }
+  .periodo-datas[hidden] { display: none; }
+  .periodo-datas .pr-field { flex: 1 1 150px; }
+  /* Tela da categoria: o cartão fica no alto como cabeçalho (não é link) */
+  .voltar { align-self: flex-start; }
+  .total--cabecalho { border: 2px solid var(--brand); }
+  .editar-cartao { display: inline-flex; align-items: center; gap: 4px; align-self: flex-end; color: var(--brand); font: 600 14px/20px var(--font-sans); }
+  .editar-cartao svg { width: 16px; height: 16px; }
+
+  /* ---------- Busca no cabeçalho ---------- */
+  .topo-busca { position: relative; flex: 1 1 260px; max-width: 460px; }
+  .topo-busca > svg { position: absolute; left: 12px; top: 12px; color: var(--ink-muted); pointer-events: none; }
+  #busca-topo { width: 100%; min-height: 44px; padding: 10px 12px 10px 40px; border: 0; border-radius: var(--radius-md);
+    background: #ffffff; color: var(--ink); font: 400 16px/24px var(--font-sans); }
+  .sugestoes { position: absolute; left: 0; right: 0; top: calc(100% + 6px); z-index: 30; max-height: 70vh; overflow: auto; padding: 6px 0;
+    background: var(--surface-card); color: var(--ink); border: 1px solid var(--line); border-radius: var(--radius-lg); box-shadow: var(--shadow-raised); }
+  .sugestao { display: flex; align-items: center; gap: 12px; padding: 8px 14px; color: var(--ink); text-decoration: none; min-height: 44px; }
+  .sugestao:hover, .sugestao:focus { background: var(--surface-sutil); color: var(--ink); }
+  .sugestao .capa { width: 36px; height: 36px; font-size: 13px; }
+  .sugestao > div { min-width: 0; }
+  .ver-todos-busca { justify-content: center; color: var(--brand); font-weight: 600; border-top: 1px solid var(--line); }
+  .busca-ativa { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; padding: 8px 12px; border-radius: var(--radius-md); background: var(--brand-soft); }
 
   /* ---------- Página ---------- */
   main { max-width: 1200px; margin: 0 auto; padding: 32px 24px 64px; display: flex; flex-direction: column; gap: 24px; }
   main.estreito { max-width: 880px; }
   .titulo-pagina { display: flex; justify-content: space-between; align-items: flex-end; gap: 12px; flex-wrap: wrap; }
   .titulo-pagina > div { display: flex; flex-direction: column; gap: 4px; }
+  /* Edição do imóvel: o avatar fica ao lado do título (não em cima) */
+  .titulo-pagina > .com-capa { flex-direction: row; align-items: center; gap: 16px; }
   .painel { background: var(--surface-card); border: 1px solid var(--line); border-radius: var(--radius-lg); padding: 20px 24px;
     display: flex; flex-direction: column; gap: 12px; min-width: 0; }
   .painel-topo { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; }
@@ -146,7 +188,7 @@
   .pr-field input, .pr-field select, .pr-field textarea, .campo-busca { min-height: 44px; width: 100%; padding: 10px 12px;
     font: 400 16px/24px var(--font-sans); color: var(--ink); background: var(--surface-card);
     border: 1.5px solid var(--line-strong); border-radius: var(--radius-md); }
-  .pr-field input[readonly] { background: var(--surface-bg); border-style: dashed; color: var(--ink-muted); }
+  .pr-field input[readonly] { background: var(--surface-sutil); border-style: dashed; color: var(--ink-muted); }
   .pr-field small, .dica { font: 400 14px/20px var(--font-sans); color: var(--ink-muted); }
   .campo-invalido { border-color: var(--danger) !important; }
   .aviso-campo { font: 400 14px/20px var(--font-sans); color: var(--danger); }
@@ -169,7 +211,9 @@
     background: var(--brand-soft); color: var(--brand); white-space: nowrap; }
 
   /* ---------- Filtros ---------- */
-  .filtros { display: flex; gap: 8px; flex-wrap: wrap; }
+  /* Filtros um do lado do outro, dividindo a largura da tela */
+  .filtros { display: flex; gap: 8px; flex-wrap: nowrap; }
+  .filtros .filtro { flex: 1 1 0; min-width: 0; display: flex; align-items: center; justify-content: center; text-align: center; }
   .filtro { min-height: 44px; padding: 0 14px; border-radius: var(--radius-md); border: 1.5px solid var(--line-strong);
     background: var(--surface-card); color: var(--ink); font: 600 15px/1 var(--font-sans); cursor: pointer; }
   .filtro[aria-pressed="true"] { background: var(--brand); border-color: var(--brand); color: var(--on-brand); }
@@ -194,6 +238,56 @@
 
   .cobrancas { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(320px, 100%), 1fr)); gap: 12px; }
 
+  /* ---------- Histórico de inquilinos ---------- */
+  .historico { display: flex; flex-direction: column; gap: 8px; border-top: 1px solid var(--line); padding-top: 12px; }
+  .historico-item { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; padding: 8px 0; border-bottom: 1px solid var(--line); }
+  .historico-item:last-child { border-bottom: 0; }
+
+  /* ---------- Mapa da localização ---------- */
+  .mapa:empty { display: none; }
+  .mapa { display: flex; flex-direction: column; gap: 8px; }
+  .mapa iframe { width: 100%; height: 260px; border: 1px solid var(--line); border-radius: var(--radius-md); background: var(--surface-sutil); }
+  @media (max-width: 760px) { .mapa iframe { height: 220px; } }
+
+  /* ---------- Painel e listas de cobranças ---------- */
+  .titulo-secao { font: 600 18px/24px var(--font-sans); margin: 4px 0 -8px; }
+  .totais--valores .total b { font-size: 28px; line-height: 34px; font-variant-numeric: tabular-nums; }
+  .totais .total b { overflow-wrap: anywhere; }
+  .lista-cobrancas { display: flex; flex-direction: column; }
+  .cobranca { display: grid; grid-template-columns: 56px minmax(0, 1.4fr) minmax(0, 1fr) auto; gap: 12px 16px; align-items: center;
+    padding: 12px 0; border-top: 1px solid var(--line); }
+  .cobranca:first-child { border-top: 0; }
+  .cobranca-imovel { color: var(--ink); text-decoration: none; }
+  .cobranca-imovel:hover { color: var(--brand); }
+  .cobranca-imovel .capa { width: 44px; height: 44px; font-size: 15px; }
+  .cobranca-valor { display: flex; flex-direction: column; gap: 4px; align-items: flex-start; }
+  .cobranca-acoes { justify-content: flex-end; }
+  .area-envio--pequena { min-height: 88px; }
+  /* Na edição do imóvel, o nome e o avatar do imóvel em cada linha seriam repetidos: ficam só a data, o valor e as ações */
+  #bloco-pagamentos .cobranca-imovel { display: none; }
+  #bloco-pagamentos .cobranca { grid-template-columns: 56px minmax(0, 1fr) auto; }
+  @media (max-width: 760px) { #bloco-pagamentos .cobranca { grid-template-columns: 48px minmax(0, 1fr); } }
+  @media (max-width: 760px) {
+    .cobranca { grid-template-columns: 48px minmax(0, 1fr); }
+    .cobranca-valor, .cobranca-acoes { grid-column: 2; }
+    .cobranca-acoes { justify-content: flex-start; }
+  }
+
+  /* ---------- Mapa geral dos imóveis ---------- */
+  .mapa-geral { height: calc(100vh - 300px); height: calc(100dvh - 300px); min-height: 380px; border: 1px solid var(--line);
+    border-radius: var(--radius-lg); overflow: hidden; background: var(--surface-sutil); z-index: 0; }
+  .pin-imovel { background: none; border: 0; }
+  .pin { width: 48px; height: 48px; border-radius: 50%; padding: 3px; background: var(--line-strong);
+    box-shadow: 0 2px 6px rgba(13,18,24,.35); }
+  .pin .capa { width: 42px; height: 42px; font-size: 14px; border: 2px solid #fff; }
+  .pin--ok { background: var(--success); } .pin--aviso { background: var(--warning); } .pin--vencido { background: var(--danger); }
+  .popup-imovel { display: flex; flex-direction: column; gap: 8px; font-family: var(--font-sans); }
+  .popup-imovel .capa { width: 40px; height: 40px; font-size: 14px; }
+  .popup-imovel .acoes .pr-btn { color: inherit; }
+  .popup-imovel .acoes .pr-btn--pri { color: var(--on-brand); }
+  .leaflet-container { font-family: var(--font-sans); }
+  @media (max-width: 760px) { .mapa-geral { height: calc(100dvh - 330px); min-height: 320px; } }
+
   /* ---------- Foto de capa (bolinha ao lado do nome) ---------- */
   .com-capa { display: flex; align-items: center; gap: 12px; min-width: 0; }
   .com-capa > div, .com-capa > b { min-width: 0; }
@@ -212,7 +306,7 @@
   .aviso-item { display: grid; grid-template-columns: 12px 40px minmax(0, 1fr); align-items: start; gap: 12px; padding: 12px 16px; border-bottom: 1px solid var(--line);
     text-decoration: none; color: var(--ink); }
   .aviso-item:last-child { border-bottom: 0; }
-  .aviso-item:hover { background: var(--surface-bg); color: var(--ink); }
+  .aviso-item:hover { background: var(--surface-sutil); color: var(--ink); }
   .aviso-item .bolinha { width: 10px; height: 10px; margin-top: 7px; border-radius: 50%; }
   .aviso-item.vencido .bolinha { background: var(--danger); }
   .aviso-item.aviso .bolinha { background: var(--warning); }
@@ -237,20 +331,21 @@
   .tabela td { padding: 12px; border-top: 1px solid var(--line); vertical-align: middle; font-size: 15px; line-height: 22px; }
   .tabela td.data { font: 500 14px/20px var(--font-mono); white-space: nowrap; }
   .tabela tr.clicavel { cursor: pointer; }
-  .tabela tr.clicavel:hover td { background: var(--surface-bg); }
+  .tabela tr.clicavel:hover td { background: var(--surface-sutil); }
   .tabela .nome { font-weight: 600; }
   .lista-cartoes { display: none; flex-direction: column; gap: 12px; }
   .cartao-imovel { text-decoration: none; color: var(--ink); background: var(--surface-card); border: 1px solid var(--line);
     border-radius: var(--radius-md); padding: 12px 14px; display: flex; flex-direction: column; gap: 6px; }
   .cartao-imovel:hover { color: var(--ink); }
-  .cartao-imovel .linha { display: flex; justify-content: space-between; gap: 8px; align-items: flex-start; }
+  .cartao-imovel .linha { display: flex; justify-content: space-between; gap: 6px 8px; align-items: center; flex-wrap: wrap; }
+  .cartao-imovel .linha > .com-capa { flex: 1 1 200px; min-width: 0; }
   .cartao-imovel .linha b { min-width: 0; }
   .legenda { display: flex; gap: 8px 16px; flex-wrap: wrap; align-items: center; font-size: 14px; color: var(--ink-muted); }
   .valor-aluguel { font: 600 14px/20px var(--font-sans); color: var(--ink); font-variant-numeric: tabular-nums; }
   .vazio { padding: 32px 16px; text-align: center; color: var(--ink-muted); }
 
   /* ---------- Anexos ---------- */
-  .area-envio { min-height: 120px; width: 100%; border: 2px dashed var(--line-strong); border-radius: var(--radius-md); background: var(--surface-bg);
+  .area-envio { min-height: 120px; width: 100%; border: 2px dashed var(--line-strong); border-radius: var(--radius-md); background: var(--surface-sutil);
     color: var(--brand); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; cursor: pointer;
     font: 600 16px/24px var(--font-sans); padding: 12px; text-align: center; }
   .area-envio:hover { border-color: var(--brand); }
@@ -261,7 +356,7 @@
   .foto img { width: 100%; height: 100%; object-fit: cover; cursor: pointer; }
   .foto .tirar { position: absolute; top: 4px; right: 4px; width: 28px; height: 28px; border-radius: 50%; border: 0; cursor: pointer;
     background: rgba(13,18,24,.7); color: #fff; display: grid; place-items: center; }
-  .foto.nova { outline: 2px dashed var(--accent); outline-offset: -2px; }
+  .foto.nova { outline: 2px dashed var(--brand); outline-offset: -2px; }
   .arquivo { display: flex; align-items: center; gap: 8px; padding: 8px 12px; border: 1px solid var(--line); border-radius: var(--radius-md); font-size: 14px; }
   .arquivo { flex-wrap: wrap; }
   .campo-renomear { flex: 1 1 160px; min-width: 0; min-height: 40px; padding: 6px 10px; font: 400 16px/24px var(--font-sans); color: var(--ink);
@@ -280,7 +375,7 @@
   .janela--larga { width: min(960px, 100%); }
   .janela-topo { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 12px 20px; flex: none; }
   .janela-topo h2 { font-size: 18px; line-height: 24px; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .botao-fechar { width: 44px; height: 44px; flex: none; border: 0; border-radius: var(--radius-md); background: var(--surface-bg);
+  .botao-fechar { width: 44px; height: 44px; flex: none; border: 0; border-radius: var(--radius-md); background: var(--surface-sutil);
     color: var(--ink); cursor: pointer; display: grid; place-items: center; }
   .janela-corpo { display: flex; flex-direction: column; gap: 16px; padding: 0 20px 16px; overflow: auto; min-height: 0; }
   .janela-rodape { flex: none; display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; padding: 12px 20px;
@@ -292,10 +387,10 @@
     background: rgba(255,255,255,.85); color: var(--ink); font: 600 36px/1 var(--font-sans); cursor: pointer; }
   .visor-seta.esquerda { left: 8px; } .visor-seta.direita { right: 8px; }
   .visor-nome { margin: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .paginas-pdf { display: flex; flex-direction: column; gap: 12px; background: var(--surface-bg); padding: 12px; border-radius: var(--radius-md); }
+  .paginas-pdf { display: flex; flex-direction: column; gap: 12px; background: var(--surface-sutil); padding: 12px; border-radius: var(--radius-md); }
   .paginas-pdf canvas { width: 100%; height: auto; background: #fff; box-shadow: var(--shadow-raised); }
   .recorte { position: relative; width: min(320px, 100%, 45vh); width: min(320px, 100%, 45dvh); aspect-ratio: 1; flex: none; margin: 0 auto; border-radius: var(--radius-md); overflow: hidden;
-    background: var(--surface-bg); display: grid; place-items: center; }
+    background: var(--surface-sutil); display: grid; place-items: center; }
   .recorte canvas { position: absolute; inset: 0; width: 100%; height: 100%; touch-action: none; cursor: grab; }
   .recorte canvas:active { cursor: grabbing; }
   /* Escurece o que fica fora do círculo: só o de dentro vira a bolinha */
@@ -324,10 +419,31 @@
     background: var(--ink); color: var(--surface-bg); padding: 12px 20px; border-radius: var(--radius-md); box-shadow: var(--shadow-raised); }
   .mensagem.erro { background: var(--danger); color: #fff; }
 
+  /* ---------- Listas e tabelas com altura fixa e rolagem interna (scroll container) ----------
+   * O título do bloco e o cabeçalho da tabela ficam sempre à vista; rola-se só o conteúdo, dentro da caixa. */
+  .rolagem { max-height: min(60vh, 560px); max-height: min(60dvh, 560px); overflow-y: auto; overscroll-behavior: contain;
+    padding-right: 4px; scrollbar-width: thin; }
+  .lista-prazos { display: flex; flex-direction: column; gap: 12px; padding-bottom: 2px; }
+  .lista-cartoes.rolagem { max-height: calc(100vh - var(--altura-topo, 64px) - 260px); max-height: calc(100dvh - var(--altura-topo, 64px) - 260px); min-height: 240px; }
+  /* Tabela de imóveis: a caixa tem altura fixa, rola por dentro (inclusive para o lado) e o cabeçalho gruda no alto da caixa */
+  .caixa-tabela { max-height: calc(100vh - var(--altura-topo, 64px) - 240px); max-height: calc(100dvh - var(--altura-topo, 64px) - 240px);
+    min-height: 260px; overflow: auto; overscroll-behavior: contain; }
+  .tabela th { position: sticky; top: 0; z-index: 5; box-shadow: 0 1px 0 var(--line); }
+
+  /* ---------- Tablet em pé (761 a 1023 px): a tabela não cabe, então vira cards em 2 colunas ---------- */
+  @media (min-width: 761px) and (max-width: 1023px) {
+    .caixa-tabela { display: none; }
+    .lista-cartoes { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-content: start; }
+  }
+
   /* ---------- Celular e tablet em pé ---------- */
   @media (max-width: 760px) {
     .topo { padding: max(8px, env(safe-area-inset-top)) 16px 8px; }
     .topo-esq { gap: 8px; }
+    .logo-topo { height: 30px; }
+    /* Busca no celular: escondida; a lupa abre uma linha inteira embaixo do topo */
+    .topo-busca { display: none; order: 3; flex: 1 1 100%; max-width: none; }
+    .topo--buscando .topo-busca { display: block; }
     .so-computador { display: none !important; }
     .so-celular { display: inline-flex; }
     main { padding: 20px 16px 96px; gap: 20px; }
@@ -350,8 +466,6 @@
     .total .st { font-size: 12px; padding: 2px 8px; }
     .titulo-pagina h1 { font-size: 22px; line-height: 28px; }
     /* Avisos: no painel, só os 3 primeiros (o resto fica no sininho) */
-    .avisos-painel .aviso-item:nth-child(n+4) { display: none; }
-    .ver-todos { width: 100%; }
     /* Botões do fim do formulário: um embaixo do outro, Salvar primeiro */
     .acoes.fim { flex-direction: column-reverse; align-items: stretch; }
     .acoes.fim .pr-btn { width: 100%; margin-right: 0 !important; }
@@ -361,13 +475,109 @@
     .mensagem { bottom: 88px; }
     .tela-login { margin: 16px auto; padding: 24px 20px; }
   }
+
+  /* Celular: valores em reais inteiros (sem quebrar e sem vazar), etiquetas quebram a linha dentro do cartão.
+     Fica no FIM do arquivo de propósito: no CSS, entre regras de mesmo peso, vale a última. */
+  @media (max-width: 760px) {
+    .totais--valores { gap: 10px; }
+    .totais--valores .total { padding: 12px 10px; min-width: 0; }
+    .totais--valores .total b { font-size: clamp(14px, 4.2vw, 20px); line-height: 26px; white-space: nowrap; overflow-wrap: normal; letter-spacing: -0.01em; }
+    .total .st { white-space: normal; }
+    /* Recebido ocupa a linha toda; A vencer e Vencido ficam lado a lado embaixo */
+    .totais--valores { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .totais--valores > .total:first-child { grid-column: 1 / -1; }
+    .totais--imoveis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .periodo-escolha { flex: 1 1 100%; }
+    .periodo-datas .pr-field { flex: 1 1 130px; }
+    .periodo-datas .pr-btn { flex: 1 1 100%; }
+    /* Filtros da página Imóveis: todos numa linha, o nome em cima e o número embaixo */
+    .filtro { flex-direction: column; justify-content: center; gap: 2px; padding: 6px 4px; min-height: 56px; font-size: 13px; line-height: 16px; }
+    .filtro .mono { margin-left: 0; }
+  }
+
+  /* Página Imóveis: o título fica pequeno, no canto direito da linha dos filtros (pedido da Layla: menos espaço em branco).
+     No celular, os filtros ocupam a largura toda e o título vai para uma linha fina à direita, acima deles. */
+  .barra-lista { display: flex; align-items: center; gap: 16px; }
+  #busca-ativa:empty { display: none; }
+  .titulo-pagina--compacto .rotulo { font-size: 14px; }
+  .barra-lista .filtros { flex: 1 1 auto; min-width: 0; }
+  .titulo-pagina--compacto { flex: none; display: flex; align-items: baseline; gap: 8px; }
+  .titulo-pagina--compacto h1 { font-size: 18px; line-height: 24px; margin: 0; }
+  @media (max-width: 760px) {
+    .barra-lista { flex-direction: column-reverse; align-items: stretch; gap: 6px; }
+    .titulo-pagina--compacto { justify-content: flex-end; }
+    .titulo-pagina--compacto h1 { font-size: 16px; line-height: 20px; }
+  }
+
+  /* ---------- Telas sem rolagem da página (listas) ----------
+     A altura do .tela-fixa vem do ajustarTelaFixa (App.html). O bloco .crescer ocupa o espaço que sobra
+     e só a lista dentro dele rola: o título, os filtros e o cabeçalho da tabela ficam parados. */
+  .tela-fixa { display: flex; flex-direction: column; gap: 24px; min-height: 0; }
+  .tela-fixa > .crescer { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; }
+  .tela-fixa .crescer > .caixa-tabela, .tela-fixa .crescer > .lista-cartoes, .tela-fixa .crescer > .rolagem,
+  .tela-fixa .crescer > .lista-cobrancas { flex: 1 1 auto; min-height: 0; max-height: none; }
+  .tela-fixa > .painel:not(.crescer) .rolagem { max-height: 30vh; }
+  .tela-fixa--rola > .crescer { flex: none; }
+  .tela-fixa--rola .crescer > .caixa-tabela, .tela-fixa--rola .crescer > .lista-cartoes,
+  .tela-fixa--rola .crescer > .rolagem, .tela-fixa--rola .crescer > .lista-cobrancas { flex: none; max-height: 70vh; }
+  /* No celular, a legenda (4 linhas) apertaria a lista; as etiquetas já dizem a situação por extenso */
+  @media (max-width: 760px) { .tela-fixa { gap: 16px; } .tela-fixa .legenda { display: none; } }
+  /* Tela baixa (ex.: notebook): a legenda também sai, para a lista ter mais espaço */
+  @media (max-height: 820px) { .tela-fixa .legenda { display: none; } }
+  /* Tela da categoria: o cartão do alto vira uma faixa baixa na largura toda (nome, valor e detalhe na mesma linha),
+     o título da lista fica menor e as linhas mais juntas, para caber o máximo de itens na lista */
+  .tela-fixa { gap: 16px; }
+  .tela-fixa .voltar { margin: -8px 0 -8px -8px; }
+  .cabecalho-categoria { max-width: none; }
+  .cabecalho-categoria .total { flex-direction: row; flex-wrap: wrap; align-items: center; gap: 4px 16px; padding: 12px 20px; }
+  .cabecalho-categoria .total b { font-size: 26px; line-height: 32px; }
+  .tela-fixa > .crescer.painel { padding: 14px 20px; gap: 8px; }
+  .tela-fixa > .crescer .painel-topo h2 { font-size: 18px; line-height: 24px; }
+  .tela-fixa .cobranca { padding: 8px 0; }
+  @media (max-width: 760px) {
+    .cabecalho-categoria .total { gap: 2px 12px; padding: 10px 14px; }
+    .cabecalho-categoria .total b { font-size: 22px; line-height: 28px; }
+    .tela-fixa > .crescer.painel { padding: 12px 14px; }
+    .tela-fixa > .crescer .painel-topo h2 { font-size: 16px; line-height: 22px; }
+  }
+
+  /* ---------- Tela principal sem rolagem ----------
+     A altura do .painel-cheio vem do ajustarTelaFixa (App.html); aqui os cartões dividem essa altura.
+     Os tamanhos usam vh (altura da tela) e vw (largura): em tela menor, tudo diminui junto. */
+  .painel-cheio { display: flex; flex-direction: column; gap: clamp(8px, 1.8vh, 24px); min-height: 0; }
+  .painel-cheio .relatorio { flex: 1 1 0; min-height: 0; gap: clamp(6px, 1.2vh, 12px); }
+  .painel-cheio .titulo-secao { margin: 0; font-size: clamp(15px, 2.3vh, 18px); line-height: 1.25; }
+  .painel-cheio .totais { flex: 1 1 0; min-height: 0; grid-auto-rows: minmax(0, 1fr); gap: clamp(8px, 1.4vh, 16px); }
+  .painel-cheio .total { min-height: 0; overflow: hidden; justify-content: center;
+    padding: clamp(6px, 1.3vh, 16px) clamp(10px, 2.4vw, 20px); gap: clamp(0px, .5vh, 6px); }
+  .painel-cheio .total .rotulo { font-size: clamp(11px, 1.6vh, 13px); line-height: 1.2; }
+  .painel-cheio .total b { font-size: clamp(20px, 5vh, 40px); line-height: 1.1; }
+  .painel-cheio .totais--valores .total b { font-size: clamp(14px, min(4.6vw, 3.6vh), 30px); line-height: 1.15; white-space: nowrap; }
+  .painel-cheio .total > span:not(.rotulo) { font-size: clamp(11px, 1.7vh, 14px); line-height: 1.3; }
+  .painel-cheio .total .st { padding: 1px 8px; }
+  .painel-cheio .periodo-escolha select { min-height: 44px; }
+  .painel-cheio .totais--valores { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .painel-cheio .totais--imoveis { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  @media (max-width: 1023px) {
+    .painel-cheio .totais--imoveis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+  @media (max-width: 760px) {
+    .painel-cheio .totais--valores { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+  .tela-fixa--rola.painel-cheio .relatorio, .tela-fixa--rola.painel-cheio .totais { flex: none; }
+  .tela-fixa--rola.painel-cheio .totais { grid-auto-rows: auto; }
+  /* Quando algum cartão não cabe, o ajustarTelaFixa liga estas classes (uma de cada vez):
+     --compacto: os cartões de imóveis ficam só com o nome e o número (o aviso "vence em breve" continua);
+     --minimo: todos os cartões ficam só com o nome e o número. */
+  .painel-cheio--compacto .totais--imoveis .total > span:not(.rotulo):not(.st--aviso) { display: none; }
+  .painel-cheio--minimo .total > span:not(.rotulo) { display: none; }
 </style>
 
 </head>
 <body>
   <header class="topo" id="topo">
     <div class="topo-esq">
-      <a class="marca" href="#/"><span class="selo">LOC</span>Portal de Locação</a>
+      <a class="marca" href="#/"><img class="logo-topo" src="logo-branco.png" alt="Az Gestão"></a>
     </div>
   </header>
 
@@ -419,7 +629,8 @@
     loginEmail: ''
   };
 
-  const NOMES_SITUACAO = { todos: 'Todos', ok: 'Em dia', aviso: 'Vence em 30 dias', vencido: 'Vencidos', 'sem-prazo': 'Sem prazo' };
+  // Situação do imóvel pelos pagamentos: 'sem-prazo' = imóvel vago (sem inquilino e sem cobrança)
+  const NOMES_SITUACAO = { todos: 'Todos', ok: 'Em dia', aviso: 'Vence em breve', vencido: 'Atrasados', 'sem-prazo': 'Vagos' };
   const ORDEM_SITUACAO = { vencido: 0, aviso: 1, ok: 2, 'sem-prazo': 3 };
 
   /* ---------- Ícones (linha simples, na cor do texto) ---------- */
@@ -435,6 +646,7 @@
     x: ic('<path d="M18 6 6 18M6 6l12 12"/>', 16),
     estrela: ic('<path d="m12 2 3.1 6.3 6.9 1-5 4.9 1.2 6.8L12 17.8 5.8 21l1.2-6.8-5-4.9 6.9-1Z"/>', 14),
     olho: ic('<path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"/><circle cx="12" cy="12" r="3"/>'),
+    mapa: ic('<path d="M9 3 3 6v15l6-3 6 3 6-3V3l-6 3-6-3z"/><path d="M9 3v15M15 6v15"/>', 22),
     casa: ic('<path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>', 22),
     lista: ic('<path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/>', 22),
     pessoas: ic('<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"/>', 22),
@@ -446,9 +658,21 @@
    * Conversa com o servidor
    * ========================================================= */
 
+  // Funções que só leem: não mexem no cache. Todas as outras gravam algo, e aí as cópias das telas ficam velhas.
+  function soLeitura(funcao) {
+    return /^(abrir|listar|iniciarSessao|entrar|baixarArquivo|enviarParteArquivo|buscarResposta)/.test(funcao);
+  }
+
+  function chamar(funcao, ...args) {
+    return chamarServidor(funcao, ...args).then(r => {
+      if (!soLeitura(funcao) && estado.usuario) { limparCache(); setTimeout(adiantarTelas, 500); }
+      return r;
+    });
+  }
+
   // Chama uma função do Codigo.gs e devolve uma Promise.
   // Funciona dentro do Google (google.script.run) e no site do GitHub (endereço API_URL).
-  function chamar(funcao, ...args) {
+  function chamarServidor(funcao, ...args) {
     const falhou = erro => {
       if (String(erro && erro.message).includes('sessão expirou')) { encerrarSessaoLocal(); telaEntrar(); }
       throw erro;
@@ -523,7 +747,7 @@
         const titulo = (texto.match(/<title>([^<]*)<\/title>/i) || [])[1] || '';
         if (/Autoriza[çc][ãa]o necess[áa]ria|Authorization (is )?required|needs your permission/i.test(texto)) {
           throw new Error('O Google bloqueou esta ação porque falta autorizar as permissões do portal. ' +
-            'A administradora precisa abrir a planilha no computador e clicar em Portal de Locação → Autorizar permissões.');
+            'A administradora precisa abrir a planilha no computador e clicar em Az Gestão → Autorizar permissões.');
         }
         throw new Error('O servidor do Google respondeu com um erro' + (titulo ? ' (' + titulo.trim() + ')' : '') +
           '. Tente de novo em alguns segundos.');
@@ -569,10 +793,11 @@
 
   // Texto da etiqueta de situação: "Venceu há 5 dias", "Vence em 14 dias", "Em dia"
   function textoSituacao(i) {
-    if (i.situacao === 'vencido') return i.dias === -1 ? 'Venceu ontem' : `Venceu há ${-i.dias} dias`;
+    if (i.situacao === 'vencido') { const n = -i.dias; return `Atrasado há ${n} ${n === 1 ? 'dia' : 'dias'}`; }
     if (i.situacao === 'aviso') return i.dias === 0 ? 'Vence hoje' : i.dias === 1 ? 'Vence amanhã' : `Vence em ${i.dias} dias`;
-    return i.situacao === 'sem-prazo' ? 'Sem prazo' : 'Em dia';
+    return i.situacao === 'sem-prazo' ? 'Vago' : 'Em dia';
   }
+
 
   function etiquetaSituacao(i) {
     return `<span class="st st--${i.situacao}">${esc(textoSituacao(i))}</span>`;
@@ -628,6 +853,24 @@
     if (i.ValorAluguel === '' || i.ValorAluguel == null) return '';
     return dinheiro(i.ValorAluguel) + (i.TipoCobranca === 'A cada 30 dias' ? ' a cada 30 dias' : ' por mês');
   }
+
+  // "Todo dia 5" (alugado) / "Vago"
+  function textoCobranca(i) {
+    if (!i.Cobrar || !i.InicioCobranca) return 'Vago';
+    return i.TipoCobranca === 'A cada 30 dias' ? 'A cada 30 dias' : `Todo dia ${i.DiaVencimento || Number(i.InicioCobranca.slice(8))}`;
+  }
+
+  // Próxima data com aquele dia do mês a partir de hoje (hoje conta). Igual ao servidor (proximoDiaDoMes_).
+  function proximoDiaDoMes(dia, hoje) {
+    const [a, m] = hoje.split('-').map(Number);
+    const noMes = (ano, mesZero) => {
+      const ultimo = new Date(Date.UTC(ano, mesZero + 1, 0)).getUTCDate();
+      return new Date(Date.UTC(ano, mesZero, Math.min(dia, ultimo))).toISOString().slice(0, 10);
+    };
+    const desteMes = noMes(a, m - 1);
+    return desteMes >= hoje ? desteMes : noMes(a, m);
+  }
+
 
   function quandoCobrar(dias) {
     return dias === 0 ? 'Hoje' : dias === 1 ? 'Amanhã' : `Em ${dias} dias`;
@@ -697,11 +940,89 @@
     }, 8000);
   }
 
-  function tela(html, estreito) {
+  // manterRolagem: usado quando a tela só se atualiza por trás (cache), para não pular para o topo
+  function tela(html, estreito, manterRolagem) {
     const main = document.getElementById('tela');
     main.className = estreito ? 'estreito' : '';
     main.innerHTML = html;
-    window.scrollTo(0, 0);
+    if (!manterRolagem) window.scrollTo(0, 0);
+    ajustarTelaFixa();
+  }
+
+  /* =========================================================
+   * Cache das telas ("mostra o que tem, enquanto confere se mudou", ou stale-while-revalidate)
+   * Cada tela principal guarda a última resposta do servidor: na memória e no aparelho (localStorage).
+   * Ao abrir a tela, a cópia aparece na hora; o servidor é consultado por trás e, se algo mudou,
+   * a tela se redesenha sozinha. Qualquer gravação (salvar, pagar, excluir...) apaga as cópias.
+   * ========================================================= */
+  const cache = { memoria: {}, pedidos: {} };
+
+  function chaveLocal(chave) {
+    return 'cache:' + ((estado.usuario && estado.usuario.Email) || '') + ':' + chave;
+  }
+
+  function lerCache(chave) {
+    if (cache.memoria[chave]) return cache.memoria[chave];
+    try {
+      const guardado = localStorage.getItem(chaveLocal(chave));
+      if (guardado) return (cache.memoria[chave] = { json: guardado, dados: JSON.parse(guardado) });
+    } catch (e) { /* sem acesso ao armazenamento do aparelho */ }
+    return null;
+  }
+
+  function gravarCache(chave, dados) {
+    const json = JSON.stringify(dados);
+    cache.memoria[chave] = { json, dados };
+    try { localStorage.setItem(chaveLocal(chave), json); } catch (e) { /* aparelho cheio: fica só na memória */ }
+  }
+
+  function limparCache() {
+    cache.memoria = {};
+    try {
+      Object.keys(localStorage).filter(k => k.startsWith('cache:')).forEach(k => localStorage.removeItem(k));
+    } catch (e) {}
+  }
+
+  // O mesmo pedido em andamento (ex.: o prefetch) é reaproveitado, em vez de pedir duas vezes
+  function buscarUmaVez(chave, buscar) {
+    if (!cache.pedidos[chave]) cache.pedidos[chave] = buscar().finally(() => { delete cache.pedidos[chave]; });
+    return cache.pedidos[chave];
+  }
+
+  // desenhar(dados, atualizacao): atualizacao = true quando é a versão nova chegando por trás de uma cópia já mostrada
+  async function carregarTela(chave, buscar, desenhar, textoCarregando) {
+    const rota = location.hash;
+    const guardado = lerCache(chave);
+    if (guardado) desenhar(guardado.dados, false);
+    else carregando(textoCarregando);
+    try {
+      const novos = await buscarUmaVez(chave, buscar);
+      if (location.hash !== rota) return; // a pessoa já foi para outra tela
+      const json = JSON.stringify(novos);
+      if (guardado && guardado.json === json) return; // nada mudou
+      gravarCache(chave, novos);
+      // Com um modal aberto (ex.: registrando pagamento), não mexe na tela agora: a versão nova aparece na próxima vez
+      if (guardado && document.getElementById('janela')) return;
+      desenhar(novos, !!guardado);
+    } catch (erro) {
+      if (location.hash !== rota) return;
+      if (guardado) mostrarMensagem('Sem conexão com o servidor agora: mostrando a última versão guardada.', 'erro');
+      else throw erro;
+    }
+  }
+
+  // Logo depois do login, já busca por trás as telas principais (prefetch)
+  function adiantarTelas() {
+    if (!estado.usuario || !estado.auth.token) return; // saiu do portal nesse meio-tempo
+    [['painel', () => chamar('abrirPainel', auth())],
+     ['imoveis', () => chamar('listarImoveis', auth())],
+     ['mapa', () => chamar('abrirMapa', auth())]
+    ].forEach(([chave, buscar]) => {
+      if (cache.memoria[chave] && cache.memoria[chave].fresco) return;
+      buscarUmaVez(chave, buscar).then(d => { gravarCache(chave, d); cache.memoria[chave].fresco = true; }).catch(() => {});
+    });
+    carregarEstilo(LEAFLET + 'leaflet.min.css');
+    carregarScript(LEAFLET + 'leaflet.min.js').catch(() => {});
   }
 
   // Lê os campos de um formulário: { NomeDoCampo: valor }
@@ -788,6 +1109,7 @@
    * ========================================================= */
   function irPara(rota) {
     fecharFlutuantes();
+    if (estado.mapaGeral) { estado.mapaGeral.remove(); estado.mapaGeral = null; } // saiu da aba Mapa
     if (!estado.usuario) return telaEntrar();
     const [caminho, busca] = String(rota || '').replace(/^#\/?/, '').split('?');
     const partes = caminho.split('/').filter(Boolean);
@@ -795,9 +1117,12 @@
     if (partes[0] === 'imoveis') return telaImoveis(new URLSearchParams(busca || '').get('f'));
     if (partes[0] === 'novo') return telaImovel(null);
     if (partes[0] === 'imovel' && partes[1]) return telaImovel(partes[1]);
+    if (partes[0] === 'mapa') return telaMapa();
     if (partes[0] === 'usuarios') return telaUsuarios();
     if (partes[0] === 'usuario' && partes[1]) return telaEditarUsuario(partes[1]);
-    return telaPainel();
+    const periodo = periodoDaRota(busca);
+    if (partes[0] === 'categoria' && CATEGORIAS[partes[1]]) return telaCategoria(partes[1], periodo);
+    return telaPainel(periodo);
   }
 
   window.addEventListener('hashchange', () => irPara(location.hash));
@@ -812,26 +1137,122 @@
   function desenharTopo(paginaAtual) {
     const topo = document.getElementById('topo');
     const u = estado.usuario;
-    const marca = `<a class="marca" href="#/"><span class="selo">LOC</span><span class="so-computador">Portal de Locação</span></a>`;
+    const marca = `<a class="marca" href="#/"><img class="logo-topo" src="logo-branco.png" alt="Az Gestão – ir para o painel"></a>`;
     if (!u) { topo.innerHTML = `<div class="topo-esq">${marca}</div>`; desenharMenuBaixo(null); return; }
-    const atual = p => (p === paginaAtual || (p === 'imoveis' && ['imovel', 'novo'].includes(paginaAtual))) ? ' aria-current="page"' : '';
+    const atual = p => (p === paginaAtual || (p === 'imoveis' && ['imovel', 'novo'].includes(paginaAtual))
+      || (p === '' && paginaAtual === 'categoria')) ? ' aria-current="page"' : '';
     const admin = u.Nivel === 'Administrador' && !estado.demonstracao;
     const n = estado.avisos.naoLidos;
-    topo.innerHTML = `
-      <div class="topo-esq">${marca}
+    // A estrutura do topo é montada uma vez; depois só o menu e os botões são redesenhados
+    if (!document.getElementById('topo-busca')) {
+      topo.innerHTML = `<div class="topo-esq" id="topo-esq"></div>
+        <div class="topo-busca" id="topo-busca" role="search">
+          <label for="busca-topo" class="sr">Buscar imóvel</label>${ICONE.lupa}
+          <input id="busca-topo" type="search" placeholder="Buscar imóvel, endereço ou inquilino" autocomplete="off" spellcheck="false"
+            role="combobox" aria-autocomplete="list" aria-controls="sugestoes-busca" aria-expanded="false"
+            oninput="buscarNoTopo(this.value)" onfocus="buscarNoTopo(this.value)" onkeydown="teclaBusca(event)">
+          <div id="sugestoes-busca" class="sugestoes" role="listbox" aria-label="Imóveis encontrados" hidden></div>
+        </div>
+        <div class="topo-dir" id="topo-dir"></div>`;
+    }
+    document.getElementById('topo-esq').innerHTML = `${marca}
         <nav class="menu so-computador" aria-label="Menu principal">
           <a href="#/"${atual('')}>Painel</a>
           <a href="#/imoveis"${atual('imoveis')}>Imóveis</a>
+          <a href="#/mapa"${atual('mapa')}>Mapa</a>
           ${admin ? `<a href="#/usuarios"${atual('usuarios') || atual('usuario')}>Usuários${estado.pendentes ? ` <span class="contador">${estado.pendentes}</span>` : ''}</a>` : ''}
-        </nav>
-      </div>
-      <div class="topo-dir">
+        </nav>`;
+    document.getElementById('topo-dir').innerHTML = `
+        <button class="botao-icone so-celular" onclick="abrirBuscaCelular()" aria-label="Buscar imóvel">${ICONE.lupa}</button>
         <a href="#/novo" class="pr-btn pr-btn--acao so-computador">+ Incluir imóvel</a>
         <button class="botao-icone" id="botao-sino" onclick="alternarAvisos(event)" aria-haspopup="true" aria-expanded="false"
           aria-label="Avisos${n ? ': ' + n + (n === 1 ? ' novo' : ' novos') : ''}">${ICONE.sino}${n ? `<span class="contador">${n}</span>` : ''}</button>
-        <button class="avatar" onclick="alternarMenuUsuario(event)" aria-haspopup="true" aria-label="Menu de ${esc(u.Nome)}" title="${esc(u.Nome)}">${esc(iniciais(u.Nome))}</button>
-      </div>`;
+        <button class="avatar" onclick="alternarMenuUsuario(event)" aria-haspopup="true" aria-label="Menu de ${esc(u.Nome)}" title="${esc(u.Nome)}">${esc(iniciais(u.Nome))}</button>`;
     desenharMenuBaixo(atual, admin);
+  }
+
+  /* ---------- Busca no cabeçalho ----------
+   * Na página de Imóveis, filtra a lista enquanto digita. Nas outras, mostra sugestões (autocomplete):
+   * tocar numa abre o imóvel; Enter abre a lista de imóveis filtrada. Usa a cópia da lista (cache). */
+  function imoveisParaBusca() {
+    const guardado = lerCache('imoveis');
+    if (guardado) return guardado.dados.imoveis;
+    buscarUmaVez('imoveis', () => chamar('listarImoveis', auth()))
+      .then(d => { gravarCache('imoveis', d); const c = document.getElementById('busca-topo'); if (c && document.activeElement === c) buscarNoTopo(c.value); })
+      .catch(() => {});
+    return null;
+  }
+
+  function filtrarImoveis(lista, termo) {
+    const t = semAcento(termo).trim();
+    return lista.filter(i => !t || semAcento([i.Nome, i.Localizacao, i.Inquilino].join(' ')).includes(t));
+  }
+
+  function buscarNoTopo(termo) {
+    estado.busca = termo;
+    if (paginaAtual() === 'imoveis' && document.getElementById('resultados')) {
+      fecharSugestoes();
+      return desenharResultados();
+    }
+    const caixa = document.getElementById('sugestoes-busca');
+    if (!termo.trim()) return fecharSugestoes();
+    const lista = imoveisParaBusca();
+    caixa.hidden = false;
+    document.getElementById('busca-topo').setAttribute('aria-expanded', 'true');
+    if (!lista) { caixa.innerHTML = '<p class="vazio pequeno">Buscando…</p>'; return; }
+    const achados = filtrarImoveis(lista, termo);
+    caixa.innerHTML = achados.length ? achados.slice(0, 6).map(i => `
+      <a class="sugestao" role="option" href="#/imovel/${esc(i.ID_Imovel)}" onclick="escolherSugestao()">${avatarImovel(i.Nome, i.Capa)}
+        <div><b>${esc(i.Nome)}</b><div class="suave pequeno">${esc([i.Localizacao, i.Inquilino].filter(Boolean).join(' · '))}</div></div></a>`).join('')
+      + (achados.length > 6 ? `<a class="sugestao ver-todos-busca" role="option" href="#/imoveis" onclick="fecharSugestoes()">Ver todos os ${achados.length} resultados</a>` : '')
+      : '<p class="vazio pequeno">Nenhum imóvel encontrado.</p>';
+  }
+
+  function escolherSugestao() {
+    const campo = document.getElementById('busca-topo');
+    campo.value = ''; estado.busca = '';
+    fecharSugestoes();
+    document.getElementById('topo').classList.remove('topo--buscando');
+  }
+
+  function fecharSugestoes() {
+    const caixa = document.getElementById('sugestoes-busca');
+    if (caixa) { caixa.hidden = true; caixa.innerHTML = ''; }
+    const campo = document.getElementById('busca-topo');
+    if (campo) campo.setAttribute('aria-expanded', 'false');
+  }
+
+  function teclaBusca(e) {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      fecharSugestoes();
+      estado.busca = e.target.value;
+      document.getElementById('topo').classList.remove('topo--buscando');
+      return navegar('#/imoveis');
+    }
+    if (e.key === 'Escape') { fecharSugestoes(); e.target.blur(); }
+    if (e.key === 'ArrowDown') {
+      const primeira = document.querySelector('#sugestoes-busca .sugestao');
+      if (primeira) { e.preventDefault(); primeira.focus(); }
+    }
+  }
+
+  // Celular: a busca fica escondida e aparece embaixo do topo ao tocar na lupa
+  function abrirBuscaCelular() {
+    const topo = document.getElementById('topo');
+    topo.classList.toggle('topo--buscando');
+    if (topo.classList.contains('topo--buscando')) document.getElementById('busca-topo').focus();
+  }
+
+  document.addEventListener('click', e => { if (!e.target.closest('.topo-busca')) fecharSugestoes(); });
+
+  // Altura do topo numa variável CSS: o cabeçalho fixo da tabela gruda logo abaixo dele
+  if (window.ResizeObserver) {
+    new ResizeObserver(() => {
+      const topo = document.getElementById('topo');
+      if (topo) document.documentElement.style.setProperty('--altura-topo', topo.offsetHeight + 'px');
+      ajustarTelaFixa(); // o topo mudou de altura (ex.: a busca abriu no celular): refaz a altura da tela fixa
+    }).observe(document.getElementById('topo'));
   }
 
   // Celular: menu fixo no rodapé, perto do polegar (no tablet e no computador fica escondido)
@@ -849,6 +1270,7 @@
       <a href="#/"${atual('')}>${ICONE.casa}<span>Painel</span></a>
       <a href="#/imoveis"${atual('imoveis')}>${ICONE.lista}<span>Imóveis</span></a>
       <a href="#/novo" class="incluir">${ICONE.mais}<span>Incluir</span></a>
+      <a href="#/mapa"${atual('mapa')}>${ICONE.mapa}<span>Mapa</span></a>
       ${admin ? `<a href="#/usuarios"${atual('usuarios') || atual('usuario')}>${ICONE.pessoas}<span>Usuários</span>${estado.pendentes ? `<span class="contador">${estado.pendentes}</span>` : ''}</a>` : ''}`;
   }
 
@@ -865,10 +1287,12 @@
 
   function textoAviso(a) {
     if (a.tipo === 'vencido') {
-      return { titulo: 'Contrato vencido', texto: `${a.nome} venceu em ${dataBR(a.prazo)}. Renove ou encerre o contrato.` };
+      const qtd = a.qtdAtrasadas > 1 ? `${a.qtdAtrasadas} aluguéis atrasados` : 'o aluguel atrasado';
+      return { titulo: 'Aluguel atrasado', texto: `${a.nome} está com ${qtd} desde ${dataBR(a.prazo)}${a.valorAtrasado ? ` (${dinheiro(a.valorAtrasado)})` : ''}.` };
     }
-    return { titulo: 'Prazo chegando', texto: `${a.nome} vence em ${dataBR(a.prazo)}${a.dias === 0 ? ' (hoje)' : a.dias === 1 ? ' (amanhã)' : ` (em ${a.dias} dias)`}.` };
+    return { titulo: 'Vencimento chegando', texto: `${a.nome} vence em ${dataBR(a.prazo)}${a.dias === 0 ? ' (hoje)' : a.dias === 1 ? ' (amanhã)' : ` (em ${a.dias} dias)`}.` };
   }
+
 
   function itemAviso(a) {
     const t = textoAviso(a);
@@ -891,7 +1315,7 @@
     div.innerHTML = `
       <div class="flutuante-topo"><h3>Avisos</h3>
         ${av.naoLidos ? `<button class="pr-btn pr-btn--texto pr-btn--pequeno" onclick="marcarTodosLidos()">Marcar como lidos</button>` : ''}</div>
-      ${av.lista.length ? av.lista.map(itemAviso).join('') : '<p class="vazio">Nenhum prazo vencido ou chegando. Tudo em dia!</p>'}`;
+      ${av.lista.length ? av.lista.map(itemAviso).join('') : '<p class="vazio">Nenhum aluguel atrasado ou vencendo. Tudo em dia!</p>'}`;
     document.body.appendChild(div);
     document.getElementById('botao-sino').setAttribute('aria-expanded', 'true');
   }
@@ -901,8 +1325,6 @@
       estado.avisos = await chamar('marcarAvisosLidos', estado.avisos.lista.filter(a => !a.lido).map(a => a.chave), auth());
       fecharFlutuantes();
       desenharTopo(paginaAtual());
-      const painel = document.getElementById('avisos-painel');
-      if (painel) painel.outerHTML = blocoAvisos();
     } catch (erro) { mostrarErro(erro); }
   }
 
@@ -944,8 +1366,15 @@
   }
 
   async function iniciar() {
-    carregando();
     estado.auth = { token: lerLocal('tokenSessao') };
+    // Já entrou antes neste aparelho: mostra a última versão guardada na hora, enquanto o servidor confere o login
+    const ultimo = estado.auth.token && lerLocal('ultimoUsuario');
+    if (ultimo) {
+      try {
+        estado.usuario = JSON.parse(ultimo);
+        irPara(location.hash);
+      } catch (e) { estado.usuario = null; carregando(); }
+    } else carregando();
     try {
       await tratarSituacao(await chamar('iniciarSessao', estado.auth.token));
     } catch (erro) {
@@ -959,17 +1388,22 @@
     if (r.token) { estado.auth.token = r.token; gravarLocal('tokenSessao', r.token); }
     estado.usuario = null;
     desenharTopo();
+    if (r.situacao !== 'Ativo') { gravarLocal('ultimoUsuario', ''); limparCache(); }
     if (r.situacao === 'sem-login') return telaEntrar();
     if (r.situacao === 'Pendente') return telaAvisoAcesso('Cadastro aguardando aprovação',
       'Seu cadastro foi enviado. Assim que o administrador aprovar, você recebe um e-mail e já pode usar o portal.');
     if (r.situacao === 'Recusado') return telaAvisoAcesso('Cadastro não aprovado', 'Fale com o administrador do portal.');
     if (r.situacao === 'Inativo') return telaAvisoAcesso('Acesso desativado', 'Fale com o administrador do portal.');
 
+    const jaMostrando = estado.usuario && estado.usuario.Email === r.usuario.Email && document.querySelector('#tela > :not(.carregando)');
     estado.usuario = r.usuario;
     estado.demonstracao = !!r.demonstracao;
     estado.pendentes = r.pendentes || 0;
-    irPara(location.hash);
+    gravarLocal('ultimoUsuario', JSON.stringify(r.usuario));
+    if (jaMostrando) desenharTopo(paginaAtual()); // a tela já está aberta (cópia guardada) e se atualiza sozinha
+    else irPara(location.hash);
     atualizarAvisos();
+    adiantarTelas();
   }
 
   async function sairDoSistema() {
@@ -980,6 +1414,8 @@
   }
 
   function encerrarSessaoLocal() {
+    limparCache();
+    gravarLocal('ultimoUsuario', '');
     gravarLocal('tokenSessao', '');
     estado.auth = { token: '' };
     estado.usuario = null;
@@ -1006,7 +1442,7 @@
     desenharTopo();
     tela(`
       <div class="tela-login">
-        <div><span class="rotulo">Portal de Locação</span><h1>Entrar</h1></div>
+        <img class="logo-login" src="logo-azul.png" alt="Az Gestão"><h1>Entrar</h1>
         <form id="form-entrar" onsubmit="event.preventDefault(); fazerLogin()">
           <div class="pr-field"><label for="login-email">E-mail</label>
             <input id="login-email" type="text" autocomplete="username" autocapitalize="none" spellcheck="false" required value="${esc(estado.loginEmail || lerLocal('ultimoEmail'))}"></div>
@@ -1037,7 +1473,7 @@
   function telaCadastro() {
     tela(`
       <div class="tela-login">
-        <div><span class="rotulo">Portal de Locação</span><h1>Pedir acesso</h1></div>
+        <img class="logo-login" src="logo-azul.png" alt="Az Gestão"><h1>Pedir acesso</h1>
         <p class="suave">Depois de enviar, o administrador confere o seu cadastro e libera o acesso.</p>
         <form id="form-cadastro" onsubmit="event.preventDefault(); enviarCadastro()">
           <div class="pr-field"><label for="cad-nome">Nome completo</label><input id="cad-nome" required autocomplete="name"></div>
@@ -1084,78 +1520,450 @@
   /* =========================================================
    * Painel inicial
    * ========================================================= */
-  async function telaPainel() {
-    carregando();
-    let p;
-    try { p = await chamar('abrirPainel', auth()); } catch (erro) { return telaErro(erro, '#/'); }
-    if (paginaAtual() !== '') return; // a pessoa mudou de tela enquanto carregava
-    estado.avisos = p.avisos;
-    desenharTopo('');
-    const hora = new Date().getHours();
-    const saudacao = hora < 12 ? 'Bom dia' : hora < 18 ? 'Boa tarde' : 'Boa noite';
-    const primeiroNome = String(estado.usuario.Nome).split(' ')[0];
-    const t = p.totais;
-    const total = (classe, rotulo, numero, etiqueta, filtro) => `
-      <a class="total ${classe}" href="#/imoveis${filtro ? '?f=' + filtro : ''}">
-        <span class="rotulo">${rotulo}</span><b>${numero}</b>${etiqueta}</a>`;
-    tela(`
-      <div class="titulo-pagina"><div>
-        <span class="rotulo">${esc(dataComDia(p.hoje))}</span>
-        <h1>${saudacao}, ${esc(primeiroNome)}! Veja como estão os imóveis</h1>
-      </div></div>
-      <div class="totais">
-        ${total('', 'Imóveis cadastrados', t.todos, '<span class="suave pequeno">Ver todos</span>', '')}
-        ${total('ok', 'Em dia', t.ok, '<span class="st st--ok">Prazo com folga</span>', 'ok')}
-        ${total('aviso', 'Vencem em 30 dias', t.aviso, '<span class="st st--aviso">Hora de renovar</span>', 'aviso')}
-        ${total('vencido', 'Vencidos', t.vencido, '<span class="st st--vencido">Precisa de atenção</span>', 'vencido')}
+  /* =========================================================
+   * Painel: abas "Resumo" (situação dos imóveis e valores do mês) e "Pagamentos" (cobranças e recebimentos)
+   * ========================================================= */
+  const NOMES_MESES = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
+
+  function nomeDoMes(mes) {
+    const [a, m] = mes.split('-').map(Number);
+    return `${NOMES_MESES[m - 1]} de ${a}`;
+  }
+
+  /* ---------- Tela principal: só os cartões ---------- */
+  // Cada cartão abre a tela da sua categoria (#/categoria/<id>), com o cartão no alto como cabeçalho.
+  // tipo 'valor' = cobranças do mês (com Registrar pagamento); tipo 'imovel' = imóveis pela situação.
+  const CATEGORIAS = {
+    recebido: { tipo: 'valor', rotulo: 'Recebido', classe: 'ok', lista: p => p.recebidos, total: p => p.financeiro.recebido,
+      detalhe: () => '<span class="suave pequeno">Pagamentos no período</span>', titulo: 'Pagamentos recebidos', vazio: 'Nenhum pagamento recebido no período.' },
+    aVencer: { tipo: 'valor', rotulo: 'A vencer', classe: '', lista: p => p.aVencer, total: p => p.financeiro.aVencer,
+      detalhe: () => '<span class="suave pequeno">Ainda vão chegar</span>', titulo: 'Aluguéis a vencer', vazio: 'Nenhum aluguel a vencer no período.' },
+    // "Vencido" conta ALUGUÉIS com vencimento no período; "Imóveis com atraso" conta IMÓVEIS que devem qualquer mês.
+    // Os nomes deixam a diferença clara (a Layla estranhou 2 num e 4 no outro).
+    vencido: { tipo: 'valor', rotulo: p => 'Vencido ' + nomeCurtoPeriodo(p), classe: 'vencido', lista: p => p.vencidos, total: p => p.financeiro.vencido,
+      detalhe: p => `<span class="st st--vencido">${p.vencidos.length} ${p.vencidos.length === 1 ? 'aluguel' : 'aluguéis'} sem pagamento</span>`,
+      titulo: 'Aluguéis vencidos sem pagamento', vazio: 'Nenhum aluguel vencido no período. Tudo em dia!' },
+    ocupados: { tipo: 'imovel', rotulo: 'Ocupados', classe: '', lista: p => p.imoveis.filter(i => i.situacao !== 'sem-prazo'),
+      detalhe: () => '<span class="suave pequeno">Com inquilino</span>', titulo: 'Imóveis alugados', vazio: 'Nenhum imóvel alugado ainda.' },
+    vagos: { tipo: 'imovel', rotulo: 'Vagos', classe: '', lista: p => p.imoveis.filter(i => i.situacao === 'sem-prazo'),
+      detalhe: () => '<span class="st st--sem-prazo">Sem inquilino</span>', titulo: 'Imóveis vagos', vazio: 'Nenhum imóvel vago.' },
+    emDia: { tipo: 'imovel', rotulo: 'Em dia', classe: 'ok', lista: p => p.imoveis.filter(i => i.situacao === 'ok' || i.situacao === 'aviso'),
+      detalhe: p => p.totais.aviso ? `<span class="st st--aviso">${p.totais.aviso} ${p.totais.aviso === 1 ? 'vence' : 'vencem'} em até 3 dias</span>`
+        : '<span class="st st--ok">Pagamentos em dia</span>', titulo: 'Imóveis com o pagamento em dia', vazio: 'Nenhum imóvel em dia agora.' },
+    atrasados: { tipo: 'imovel', rotulo: 'Imóveis com atraso', classe: 'vencido', lista: p => p.imoveis.filter(i => i.situacao === 'vencido'),
+      detalhe: () => '<span class="st st--vencido">Devem algum mês</span>', titulo: 'Imóveis com aluguel atrasado', vazio: 'Nenhum imóvel atrasado. Tudo em dia!' }
+  };
+
+  function rotuloCategoria(c, p) {
+    return typeof c.rotulo === 'function' ? c.rotulo(p) : c.rotulo;
+  }
+
+  // "em outubro", "em 2026" ou "no período" (para caber no nome do cartão)
+  function nomeCurtoPeriodo(p) {
+    const texto = textoPeriodo(p.de, p.ate);
+    if (/^\d{4}$/.test(texto)) return 'em ' + texto;
+    if (!/ a /.test(texto)) return 'em ' + texto.replace(/ de \d{4}$/, '');
+    return 'no período';
+  }
+
+  // O número grande do cartão: dinheiro nos cartões de valor, quantidade nos de imóveis
+  function numeroCategoria(id, p) {
+    const c = CATEGORIAS[id];
+    return c.tipo === 'valor' ? esc(dinheiro(c.total(p)) || 'R$ 0,00') : c.lista(p).length;
+  }
+
+  // Cartão do painel (link) ou cabeçalho da tela da categoria (sem link)
+  function cartaoCategoria(id, p, periodo, cabecalho) {
+    const c = CATEGORIAS[id];
+    const miolo = `<span class="rotulo">${esc(rotuloCategoria(c, p))}</span><b>${numeroCategoria(id, p)}</b>${c.detalhe(p)}`;
+    return cabecalho ? `<div class="total total--cabecalho ${c.classe}">${miolo}</div>`
+      : `<a class="total ${c.classe}" href="#/categoria/${id}${sufixoPeriodo(periodo)}">${miolo}</a>`;
+  }
+
+  /* ---------- Período da tela principal ----------
+   * Fica no endereço (#/?de=aaaa-mm-dd&ate=aaaa-mm-dd); sem ele, vale o mês atual.
+   * Cada período tem a sua cópia (cache) "painel:de:ate"; o mês atual usa "painel". */
+  const PERIODOS = [['mes', 'Este mês'], ['mesPassado', 'Mês passado'], ['tres', 'Últimos 3 meses'], ['ano', 'Este ano'], ['personalizado', 'Personalizado']];
+
+  function periodoDaRota(busca) {
+    const q = new URLSearchParams(busca || '');
+    const de = q.get('de'), ate = q.get('ate');
+    const ok = d => /^\d{4}-\d{2}-\d{2}$/.test(d || '');
+    return ok(de) && ok(ate) && de <= ate ? { de, ate } : null;
+  }
+
+  function sufixoPeriodo(periodo) {
+    return periodo ? `?de=${periodo.de}&ate=${periodo.ate}` : '';
+  }
+
+  function fimDoMes(mes) {
+    const [a, m] = mes.split('-').map(Number);
+    return new Date(Date.UTC(a, m, 0)).toISOString().slice(0, 10);
+  }
+
+  // Datas de um atalho ("mesPassado", "tres"...) a partir de hoje; "mes" = null (o padrão)
+  function datasDoAtalho(id, hoje) {
+    const [a, m] = hoje.split('-').map(Number);
+    const mesAntes = n => new Date(Date.UTC(a, m - 1 - n, 1)).toISOString().slice(0, 7);
+    if (id === 'mesPassado') return { de: mesAntes(1) + '-01', ate: fimDoMes(mesAntes(1)) };
+    if (id === 'tres') return { de: mesAntes(2) + '-01', ate: fimDoMes(hoje.slice(0, 7)) };
+    if (id === 'ano') return { de: a + '-01-01', ate: a + '-12-31' };
+    return null;
+  }
+
+  function atalhoDoPeriodo(periodo, hoje) {
+    if (!periodo) return 'mes';
+    const igual = PERIODOS.find(([id]) => { const d = datasDoAtalho(id, hoje); return d && d.de === periodo.de && d.ate === periodo.ate; });
+    return igual ? igual[0] : 'personalizado';
+  }
+
+  // "outubro de 2026", "2026" ou "01/08/2026 a 31/10/2026"
+  function textoPeriodo(de, ate) {
+    if (de.slice(8) === '01' && de.slice(0, 7) === ate.slice(0, 7) && ate === fimDoMes(ate.slice(0, 7))) return nomeDoMes(de.slice(0, 7));
+    if (de.slice(5) === '01-01' && ate.slice(5) === '12-31' && de.slice(0, 4) === ate.slice(0, 4)) return de.slice(0, 4);
+    return `${dataBR(de)} a ${dataBR(ate)}`;
+  }
+
+  function seletorPeriodo(periodo, p) {
+    const atual = atalhoDoPeriodo(periodo, p.hoje);
+    return `<div class="periodo" role="group" aria-label="Período">
+      <div class="pr-field periodo-escolha"><label for="periodo" class="sr">Período</label>
+        <select id="periodo" onchange="escolherPeriodo(this.value)">${PERIODOS.map(([id, nome]) =>
+          `<option value="${id}"${id === atual ? ' selected' : ''}>${nome}</option>`).join('')}</select></div>
+      <div class="periodo-datas" id="periodo-datas"${atual === 'personalizado' ? '' : ' hidden'}>
+        <div class="pr-field"><label for="periodo-de">De</label><input id="periodo-de" type="date" value="${p.de}"></div>
+        <div class="pr-field"><label for="periodo-ate">Até</label><input id="periodo-ate" type="date" value="${p.ate}"></div>
+        <button type="button" class="pr-btn pr-btn--pri" onclick="aplicarPeriodo()">Aplicar</button>
       </div>
-      ${blocoCobrancas(p.cobrancas, p.diasCobrancas)}
-      <div class="colunas">
-        <section class="painel larga" aria-labelledby="titulo-prazos">
-          <div class="painel-topo"><h2 id="titulo-prazos">Próximos prazos</h2><a href="#/imoveis">Ver lista completa</a></div>
-          ${p.proximos.length ? p.proximos.map(cartaoPrazo).join('') :
-            `<p class="vazio">Nenhum imóvel com data prazo ainda. <a href="#/novo">Incluir o primeiro imóvel</a></p>`}
-        </section>
-        ${blocoAvisos(p.agenda)}
-      </div>`);
+    </div>`;
   }
 
-  function blocoCobrancas(lista, dias) {
-    const total = lista.reduce((s, i) => s + (Number(i.ValorAluguel) || 0), 0);
-    return `<section class="painel" aria-labelledby="titulo-cobrancas">
-      <div class="painel-topo"><h2 id="titulo-cobrancas">Cobranças dos próximos ${dias} dias</h2>
-        ${total ? `<span class="rotulo">Total ${esc(dinheiro(total))}</span>` : ''}</div>
-      ${lista.length ? `<div class="cobrancas">${lista.map(i => {
-        const [, m, d] = i.proximaCobranca.split('-');
-        return `<a class="pr-card" href="#/imovel/${esc(i.ID_Imovel)}">
-          <div class="pr-card__dia"><b>${d}</b><span>${MESES[Number(m) - 1]}</span></div>
-          <div class="com-capa">${avatarImovel(i.Nome, i.Capa)}<div><h3>${esc(i.Nome)}</h3><p>${esc([i.Inquilino, i.ValorAluguel !== '' ? dinheiro(i.ValorAluguel) : ''].filter(Boolean).join(' · '))}</p></div></div>
-          <span class="etiqueta">${quandoCobrar(i.diasCobranca)}</span></a>`;
-      }).join('')}</div>` : `<p class="suave">Nenhuma cobrança nos próximos ${dias} dias.</p>`}
-    </section>`;
+  function escolherPeriodo(id) {
+    if (id === 'personalizado') {
+      document.getElementById('periodo-datas').hidden = false;
+      return document.getElementById('periodo-de').focus();
+    }
+    navegar('#/' + sufixoPeriodo(datasDoAtalho(id, estado.hojePainel || hojeISO())));
   }
 
-  function cartaoPrazo(i) {
-    const [, m, d] = i.DataPrazo.split('-');
-    const detalhes = [i.Localizacao, i.Inquilino, textoAluguel(i)].filter(Boolean).join(' · ');
-    return `<a class="pr-card" href="#/imovel/${esc(i.ID_Imovel)}">
+  function aplicarPeriodo() {
+    const de = document.getElementById('periodo-de').value, ate = document.getElementById('periodo-ate').value;
+    if (!de || !ate) return mostrarMensagem('Escolha as duas datas do período.', 'erro');
+    if (de > ate) return mostrarMensagem('A data "De" precisa ser antes da data "Até".', 'erro');
+    navegar('#/' + sufixoPeriodo({ de, ate }));
+  }
+
+  function chavePainel(periodo) {
+    return periodo ? `painel:${periodo.de}:${periodo.ate}` : 'painel';
+  }
+
+  function buscarPainel(periodo) {
+    return () => periodo ? chamar('abrirPainel', auth(), periodo.de, periodo.ate) : chamar('abrirPainel', auth());
+  }
+
+  async function telaPainel(periodo) {
+    try {
+      await carregarTela(chavePainel(periodo), buscarPainel(periodo), (p, atualizacao) => desenharPainel(p, periodo, atualizacao));
+    } catch (erro) { telaErro(erro, '#/' + sufixoPeriodo(periodo)); }
+  }
+
+  function textoSituacaoNaData(p) {
+    return p.dataSituacao === p.hoje ? 'hoje' : 'em ' + dataBR(p.dataSituacao);
+  }
+
+  function desenharPainel(p, periodo, atualizacao) {
+    if (paginaAtual() !== '') return; // a pessoa mudou de tela enquanto carregava
+    if (p.avisos) estado.avisos = p.avisos;
+    estado.hojePainel = p.hoje;
+    desenharTopo('');
+    tela(`<div class="painel-cheio tela-fixa">
+      <h1 class="sr">Painel</h1>
+      ${seletorPeriodo(periodo, p)}
+      <section class="relatorio" aria-labelledby="titulo-relatorio">
+        <h2 class="titulo-secao" id="titulo-relatorio">Aluguéis de ${esc(textoPeriodo(p.de, p.ate))}</h2>
+        <div class="totais totais--valores">${['recebido', 'aVencer', 'vencido'].map(id => cartaoCategoria(id, p, periodo)).join('')}</div>
+      </section>
+      <section class="relatorio" aria-labelledby="titulo-situacao">
+        <h2 class="titulo-secao" id="titulo-situacao">Situação dos imóveis ${esc(textoSituacaoNaData(p))}</h2>
+        <div class="totais totais--imoveis">${['ocupados', 'vagos', 'emDia', 'atrasados'].map(id => cartaoCategoria(id, p, periodo)).join('')}</div>
+      </section>
+      ${p.imoveis.length || periodo ? '' : '<p class="vazio">Nenhum imóvel cadastrado ainda. <a href="#/novo">Incluir o primeiro imóvel</a></p>'}
+      </div>`, false, atualizacao);
+    ajustarTelaFixa();
+  }
+
+  // Telas sem rolagem da página (painel e telas com lista): o bloco .tela-fixa ocupa exatamente a altura que sobra
+  // na tela (abaixo do topo e acima do menu de baixo do celular). No painel, os cartões dividem essa altura;
+  // nas listas, só a lista (.crescer) rola por dentro. Em tela muito baixa (< 260 px livres), a página volta a rolar.
+  function ajustarTelaFixa() {
+    const el = document.querySelector('#tela .tela-fixa');
+    if (!el) return;
+    const main = document.getElementById('tela');
+    const embaixo = parseFloat(getComputedStyle(main).paddingBottom) || 0;
+    const livre = Math.floor(window.innerHeight - (el.getBoundingClientRect().top + window.scrollY) - embaixo) - 1;
+    const painel = el.classList.contains('painel-cheio');
+    // No painel do computador, no máximo 560 px: mais que isso só deixaria os cartões vazios
+    el.style.height = livre >= 260 ? (painel ? Math.min(livre, window.innerWidth >= 1024 ? 560 : 760) : livre) + 'px' : '';
+    el.classList.toggle('tela-fixa--rola', livre < 260);
+    if (!painel) return;
+    // Algum cartão não coube? Esconde os textos de apoio aos poucos, até caber
+    el.classList.remove('painel-cheio--compacto', 'painel-cheio--minimo');
+    const estoura = () => [...el.querySelectorAll('.total')].some(c => c.scrollHeight > c.clientHeight + 1);
+    if (estoura()) el.classList.add('painel-cheio--compacto');
+    if (estoura()) el.classList.add('painel-cheio--minimo');
+  }
+
+  window.addEventListener('resize', ajustarTelaFixa);
+
+  /* ---------- Tela de uma categoria: o cartão no alto e a lista embaixo ---------- */
+  async function telaCategoria(id, periodo) {
+    try {
+      await carregarTela(chavePainel(periodo), buscarPainel(periodo), (p, atualizacao) => desenharCategoria(id, p, periodo, atualizacao));
+    } catch (erro) { telaErro(erro, '#/categoria/' + id + sufixoPeriodo(periodo)); }
+  }
+
+  function desenharCategoria(id, p, periodo, atualizacao) {
+    if (location.hash.split('?')[0] !== '#/categoria/' + id) return;
+    if (p.avisos) estado.avisos = p.avisos;
+    desenharTopo('categoria');
+    const c = CATEGORIAS[id];
+    const lista = c.lista(p);
+    // As linhas de cobrança se referem a estado.pagamentos pela posição (Registrar pagamento, Ver comprovante…)
+    if (c.tipo === 'valor') estado.pagamentos = { visiveis: lista };
+    const quando = c.tipo === 'valor' ? ' · ' + textoPeriodo(p.de, p.ate) : ' ' + textoSituacaoNaData(p);
+    tela(`<div class="tela-fixa">
+      <a class="pr-btn pr-btn--texto pr-btn--pequeno voltar" href="#/${sufixoPeriodo(periodo)}">‹ Voltar ao painel</a>
+      <h1 class="sr">${esc(rotuloCategoria(c, p))}</h1>
+      <div class="cabecalho-categoria">${cartaoCategoria(id, p, periodo, true)}</div>
+      <section class="painel crescer" aria-labelledby="titulo-categoria">
+        <div class="painel-topo"><h2 id="titulo-categoria">${esc(c.titulo + quando)}
+          <span class="rotulo">${lista.length}</span></h2></div>
+        ${!lista.length ? `<p class="vazio">${c.vazio}</p>`
+          : c.tipo === 'valor' ? `<div class="lista-cobrancas rolagem">${lista.map((x, n) => linhaCobranca(x, 'visiveis', n)).join('')}</div>`
+          : tabelaImoveisCategoria(lista)}
+      </section></div>`, false, atualizacao);
+  }
+
+  // Imóveis de uma categoria: tabela no computador e cards no celular, sempre com "Editar"
+  function tabelaImoveisCategoria(lista) {
+    return `<div class="caixa-tabela">
+        <table class="tabela tabela--painel">
+          <thead><tr><th>Imóvel</th><th>Valor</th><th>Vencimento</th><th>Situação</th><th><span class="sr">Ações</span></th></tr></thead>
+          <tbody>${lista.map(i => `
+            <tr class="clicavel" onclick="if (!event.target.closest('a')) navegar('#/imovel/${esc(i.ID_Imovel)}')">
+              <td><div class="com-capa">${avatarImovel(i.Nome, i.Capa)}<div><div class="nome">${esc(i.Nome)}</div>
+                <div class="suave pequeno">${esc(i.Inquilino || 'Sem inquilino')}</div></div></div></td>
+              <td class="data">${esc(dinheiro(i.ValorAluguel) || '—')}</td>
+              <td class="data">${i.proximoVencimento ? `<b>${dataBR(i.proximoVencimento)}</b><div class="suave pequeno">${esc(textoCobranca(i))}</div>` : '<span class="suave">—</span>'}</td>
+              <td>${etiquetaSituacao(i)}</td>
+              <td><a class="pr-btn pr-btn--texto pr-btn--pequeno" href="#/imovel/${esc(i.ID_Imovel)}" aria-label="Editar ${esc(i.Nome)}">${ICONE.lapis}Editar</a></td>
+            </tr>`).join('')}</tbody>
+        </table>
+      </div>
+      <div class="lista-cartoes rolagem">${lista.map(i => `
+        <a class="cartao-imovel" href="#/imovel/${esc(i.ID_Imovel)}">
+          <div class="linha"><div class="com-capa">${avatarImovel(i.Nome, i.Capa)}<b>${esc(i.Nome)}</b></div>${etiquetaSituacao(i)}</div>
+          <span class="pequeno">${i.Cobrar ? `${esc(i.Inquilino || 'Sem inquilino')} · vence <b class="mono">${dataBR(i.proximoVencimento)}</b>${i.ValorAluguel !== '' ? ' · ' + esc(dinheiro(i.ValorAluguel)) : ''}` : 'Vago'}</span>
+          <span class="editar-cartao">${ICONE.lapis}Editar</span>
+        </a>`).join('')}</div>`;
+  }
+
+  function situacaoCobranca(c) {
+    if (c.situacao === 'pago') return `<span class="st st--ok">Pago em ${dataBR(c.pagamento.DataPagamento).slice(0, 5)}</span>`;
+    if (c.situacao === 'atrasado') return `<span class="st st--vencido">Atrasado há ${c.diasAtraso} ${c.diasAtraso === 1 ? 'dia' : 'dias'}</span>`;
+    return '<span class="st st--sem-prazo">A vencer</span>';
+  }
+
+  function linhaCobranca(c, lista, n) {
+    const [, m, d] = c.data.split('-');
+    const ref = `'${lista}', ${n}`;
+    const pago = c.pagamento;
+    const diferente = pago && Math.abs(pago.Valor - c.valor) > 0.009
+      ? ` <span class="suave pequeno">(recebido ${esc(dinheiro(pago.Valor))})</span>` : '';
+    return `<div class="cobranca">
       <div class="pr-card__dia"><b>${d}</b><span>${MESES[Number(m) - 1]}</span></div>
-      <div class="com-capa">${avatarImovel(i.Nome, i.Capa)}<div><h3>${esc(i.Nome)}</h3>${detalhes ? `<p>${esc(detalhes)}</p>` : ''}</div></div>
-      ${etiquetaSituacao(i)}</a>`;
+      <a class="com-capa cobranca-imovel" href="#/imovel/${esc(c.ID_Imovel)}">${avatarImovel(c.Nome, c.Capa)}
+        <div><b>${esc(c.Nome)}</b><div class="suave pequeno">${esc(c.Inquilino || 'Sem inquilino')}</div></div></a>
+      <div class="cobranca-valor"><span class="valor-aluguel">${esc(dinheiro(c.valor) || 'Sem valor')}</span>${diferente}<div>${situacaoCobranca(c)}</div></div>
+      <div class="acoes cobranca-acoes">
+        ${pago ? `
+          ${pago.ComprovanteUrl
+            ? `<button type="button" class="pr-btn pr-btn--sec pr-btn--pequeno" onclick="verComprovante(${ref})">Ver comprovante</button>`
+            : `<button type="button" class="pr-btn pr-btn--sec pr-btn--pequeno" onclick="abrirComprovante(${ref})">Anexar comprovante</button>`}
+          <button type="button" class="pr-btn pr-btn--texto pr-btn--pequeno" onclick="desfazerPagamentoTela(${ref})">Desfazer</button>`
+        : `<button type="button" class="pr-btn pr-btn--pri pr-btn--pequeno" onclick="abrirRegistroPagamento(${ref})">Registrar pagamento</button>`}
+      </div>
+    </div>`;
   }
 
-  function blocoAvisos(agenda) {
-    if (agenda !== undefined) estado.agendaConectada = agenda;
-    const av = estado.avisos;
-    return `<section class="painel estreita" id="avisos-painel" aria-labelledby="titulo-avisos">
-      <div class="painel-topo"><h2 id="titulo-avisos">Avisos</h2>
-        ${av.naoLidos ? `<button class="pr-btn pr-btn--texto pr-btn--pequeno" onclick="marcarTodosLidos()">Marcar como lidos</button>` : '<span class="rotulo">Nada novo</span>'}</div>
-      <div class="avisos-painel">${av.lista.length ? av.lista.map(itemAviso).join('') : '<p class="suave">Nenhum prazo vencido ou chegando. Tudo em dia!</p>'}</div>
-      ${av.lista.length > 3 ? `<button type="button" class="pr-btn pr-btn--sec so-celular ver-todos" onclick="alternarAvisos(event)">Ver todos os ${av.lista.length} avisos</button>` : ''}
-      <div class="pr-alert pr-alert--info"><span class="pr-alert__ic">${ICONE.agenda}</span><div>
-        ${estado.agendaConectada ? '<b>Prazos na Agenda Google</b>Cada imóvel salvo com data prazo vai para a agenda “Portal de Locação – Prazos”, com um lembrete 30 dias antes.'
-          : '<b>Agenda Google</b>Quando o primeiro imóvel com data prazo for salvo, a agenda “Portal de Locação – Prazos” é criada.'}</div></div>
-    </section>`;
+  // Bloco "Pagamentos" da edição do imóvel (as linhas usam estado.pagamentos.imovel pela posição)
+  function listaPagamentosImovel(lista) {
+    estado.pagamentos = { imovel: lista };
+    return lista.length ? `<div class="lista-cobrancas rolagem">${lista.map((c, n) => linhaCobranca(c, 'imovel', n)).join('')}</div>`
+      : '<p class="vazio">Ainda não venceu nenhum aluguel deste inquilino.</p>';
+  }
+
+  function cobrancaDaTela(lista, n) {
+    return estado.pagamentos && estado.pagamentos[lista] && estado.pagamentos[lista][n];
+  }
+
+  // Depois de registrar, anexar ou desfazer um pagamento. Na edição do imóvel, só o bloco Pagamentos (e a etiqueta
+  // de situação) se atualiza: o resto do formulário fica como está, para não perder o que ainda não foi salvo.
+  async function recarregarPagamentos() {
+    const bloco = document.getElementById('lista-pagamentos-imovel');
+    if (!bloco || !estado.form || !estado.form.imovel) return irPara(location.hash);
+    const id = estado.form.imovel.ID_Imovel;
+    try {
+      const r = await chamar('abrirImovel', id, auth());
+      if (!document.getElementById('lista-pagamentos-imovel') || location.hash.indexOf(id) === -1) return;
+      estado.form.cobrancas = r.cobrancas || [];
+      document.getElementById('lista-pagamentos-imovel').innerHTML = listaPagamentosImovel(estado.form.cobrancas);
+      const etiqueta = document.getElementById('situacao-titulo');
+      if (etiqueta) etiqueta.innerHTML = etiquetaSituacao(r.imovel);
+    } catch (erro) { mostrarErro(erro); }
+  }
+
+  // Campo de comprovante (foto ou PDF; HEIC vira JPG), usado no registro e no "Anexar comprovante"
+  function campoComprovante() {
+    return `<div class="pr-field"><span style="font:600 14px/20px var(--font-sans)">Comprovante (opcional)</span>
+      <label class="area-envio area-envio--pequena" for="campo-comprovante">${ICONE.arquivo}Escolher foto ou PDF<span id="nome-comprovante">Pix, recibo, extrato…</span></label>
+      <input id="campo-comprovante" type="file" accept="image/*,.heic,.heif,application/pdf" class="sr" onchange="escolherComprovante(this)"></div>`;
+  }
+
+  async function escolherComprovante(campo) {
+    let arquivo = campo.files[0];
+    campo.value = '';
+    estado.comprovante = null;
+    if (!arquivo) return;
+    const pdf = arquivo.type === 'application/pdf';
+    if (!pdf && !ehHeic(arquivo) && !arquivo.type.startsWith('image/')) return mostrarMensagem('O comprovante precisa ser uma foto ou um PDF.', 'erro');
+    if (ehHeic(arquivo)) {
+      document.getElementById('nome-comprovante').textContent = 'Convertendo para JPG…';
+      try { arquivo = await converterHeic(arquivo, arquivo.name); } catch (e) { return mostrarMensagem('Não deu para converter a foto. Tente em JPG.', 'erro'); }
+    }
+    estado.comprovante = arquivo;
+    document.getElementById('nome-comprovante').textContent = nomeLegivel(arquivo.name);
+  }
+
+  function abrirRegistroPagamento(lista, n) {
+    const c = cobrancaDaTela(lista, n);
+    if (!c) return;
+    estado.comprovante = null;
+    const hoje = hojeISO();
+    abrirJanela('Registrar pagamento', `
+      <div class="com-capa">${avatarImovel(c.Nome, c.Capa)}<div><b>${esc(c.Nome)}</b>
+        <div class="suave pequeno">Cobrança de ${dataBR(c.data)} · ${esc(dinheiro(c.valor) || 'sem valor cadastrado')}</div></div></div>
+      <div class="grade">
+        <div class="pr-field"><label for="pg-data">Data do pagamento</label>
+          <input id="pg-data" type="date" value="${hoje}" max="${hoje}"></div>
+        <div class="pr-field"><label for="pg-valor">Valor recebido</label>
+          <input id="pg-valor" inputmode="decimal" autocomplete="off" placeholder="R$ 0,00" onblur="formatarValor(this)"
+            value="${c.valor ? esc(Number(c.valor).toLocaleString('pt-BR', { minimumFractionDigits: 2 })) : ''}"></div>
+      </div>
+      ${campoComprovante()}
+      <div class="pr-field"><label for="pg-obs">Observação (opcional)</label>
+        <input id="pg-obs" maxlength="500" placeholder="Ex.: Pix, pagou em dinheiro, pagamento parcial…"></div>`, '',
+      `<button type="button" class="pr-btn pr-btn--sec" onclick="fecharJanela()">Cancelar</button>
+       <button type="button" class="pr-btn pr-btn--pri" id="btn-salvar-pagamento" onclick="salvarPagamento('${lista}', ${n})">Salvar pagamento</button>`);
+  }
+
+  async function salvarPagamento(lista, n) {
+    const c = cobrancaDaTela(lista, n);
+    const dados = {
+      DataPagamento: document.getElementById('pg-data').value,
+      Valor: document.getElementById('pg-valor').value.trim(),
+      Observacao: document.getElementById('pg-obs').value.trim()
+    };
+    if (!dados.DataPagamento) return mostrarMensagem('Informe a data do pagamento.', 'erro');
+    const valor = lerValor(dados.Valor);
+    if (!valor || Number.isNaN(valor)) return mostrarMensagem('Informe o valor recebido (ex.: 1.500,00).', 'erro');
+    const botao = document.getElementById('btn-salvar-pagamento');
+    botao.disabled = true; botao.textContent = 'Salvando…';
+    let pago = null;
+    try {
+      pago = await chamar('registrarPagamento', c.ID_Imovel, c.data, dados, auth());
+      if (estado.comprovante) {
+        mostrarAvisoFixo('Enviando o comprovante…');
+        await chamar('anexarComprovante', pago.ID_Pagamento, await lerArquivo(estado.comprovante), auth());
+      }
+      document.getElementById('progresso-envio')?.remove();
+      fecharJanela();
+      mostrarMensagem('Pagamento registrado!');
+      recarregarPagamentos();
+    } catch (erro) {
+      document.getElementById('progresso-envio')?.remove();
+      if (pago) { // o pagamento ficou salvo; só o comprovante falhou
+        fecharJanela();
+        mostrarMensagem('O pagamento foi registrado, mas o comprovante não foi enviado: ' + (erro.message || erro) + ' Use "Anexar comprovante".', 'erro');
+        return recarregarPagamentos();
+      }
+      botao.disabled = false; botao.textContent = 'Salvar pagamento';
+      mostrarErro(erro);
+    }
+  }
+
+  function abrirComprovante(lista, n) {
+    const c = cobrancaDaTela(lista, n);
+    if (!c || !c.pagamento) return;
+    estado.comprovante = null;
+    abrirJanela('Anexar comprovante', `
+      <div class="com-capa">${avatarImovel(c.Nome, c.Capa)}<div><b>${esc(c.Nome)}</b>
+        <div class="suave pequeno">Pago em ${dataBR(c.pagamento.DataPagamento)} · ${esc(dinheiro(c.pagamento.Valor))}</div></div></div>
+      ${campoComprovante()}`, '',
+      `<button type="button" class="pr-btn pr-btn--sec" onclick="fecharJanela()">Cancelar</button>
+       <button type="button" class="pr-btn pr-btn--pri" id="btn-salvar-comprovante" onclick="salvarComprovante('${lista}', ${n})">Salvar comprovante</button>`);
+  }
+
+  async function salvarComprovante(lista, n) {
+    const c = cobrancaDaTela(lista, n);
+    if (!estado.comprovante) return mostrarMensagem('Escolha a foto ou o PDF do comprovante.', 'erro');
+    const botao = document.getElementById('btn-salvar-comprovante');
+    botao.disabled = true; botao.textContent = 'Enviando…';
+    try {
+      await chamar('anexarComprovante', c.pagamento.ID_Pagamento, await lerArquivo(estado.comprovante), auth());
+      document.getElementById('progresso-envio')?.remove();
+      fecharJanela();
+      mostrarMensagem('Comprovante anexado!');
+      recarregarPagamentos();
+    } catch (erro) {
+      document.getElementById('progresso-envio')?.remove();
+      botao.disabled = false; botao.textContent = 'Salvar comprovante';
+      mostrarErro(erro);
+    }
+  }
+
+  // Mostra o comprovante dentro do portal: foto em tamanho grande, PDF com as páginas desenhadas
+  async function verComprovante(lista, n) {
+    const c = cobrancaDaTela(lista, n);
+    if (!c || !c.pagamento || !c.pagamento.ComprovanteUrl) return;
+    const url = c.pagamento.ComprovanteUrl;
+    abrirJanela('Comprovante · ' + esc(c.Nome), '<div id="area-comprovante" class="paginas-pdf"><div class="carregando"><div class="girando"></div>Abrindo o comprovante…</div></div>',
+      'janela--larga', `<button type="button" class="pr-btn pr-btn--sec" onclick="abrirAnexo(event, '${esc(url)}')">Baixar</button>
+       <button type="button" class="pr-btn pr-btn--pri" onclick="fecharJanela()">Fechar</button>`);
+    let ativo = true;
+    estado.aoFecharJanela = () => { ativo = false; };
+    try {
+      const a = await chamar('baixarArquivo', url, auth());
+      const area = document.getElementById('area-comprovante');
+      if (!ativo || !area) return;
+      const blob = base64ParaBlob(a.base64, a.tipo);
+      if (/pdf/i.test(a.tipo)) await desenharPdf(new Uint8Array(await blob.arrayBuffer()), area, () => ativo);
+      else area.innerHTML = `<img class="visor-img" src="${URL.createObjectURL(blob)}" alt="Comprovante de ${esc(c.Nome)}">`;
+    } catch (erro) {
+      const area = document.getElementById('area-comprovante');
+      if (area) area.innerHTML = `<p>Não deu para mostrar o comprovante aqui (${esc(erro.message || erro)}). Use "Baixar".</p>`;
+    }
+  }
+
+  async function desfazerPagamentoTela(lista, n) {
+    const c = cobrancaDaTela(lista, n);
+    if (!c || !c.pagamento) return;
+    if (!confirm(`Desfazer o pagamento de ${c.Nome} (cobrança de ${dataBR(c.data)})? O comprovante vai para a lixeira do Google Drive.`)) return;
+    try {
+      await chamar('desfazerPagamento', c.pagamento.ID_Pagamento, auth());
+      mostrarMensagem('Pagamento desfeito.');
+      recarregarPagamentos();
+    } catch (erro) { mostrarErro(erro); }
   }
 
   function telaErro(erro, rota) {
@@ -1168,27 +1976,32 @@
    * ========================================================= */
   async function telaImoveis(filtro) {
     estado.filtro = NOMES_SITUACAO[filtro] ? filtro : 'todos';
-    carregando('Carregando os imóveis…');
-    try { estado.lista = await chamar('listarImoveis', auth()); } catch (erro) { return telaErro(erro, '#/imoveis'); }
+    try {
+      await carregarTela('imoveis', () => chamar('listarImoveis', auth()), desenharImoveis, 'Carregando os imóveis…');
+    } catch (erro) { telaErro(erro, '#/imoveis'); }
+  }
+
+  function desenharImoveis(dados, atualizacao) {
     if (paginaAtual() !== 'imoveis') return;
-    tela(`
-      <div class="titulo-pagina"><div>
-        <span class="rotulo">${estado.lista.imoveis.length} ${estado.lista.imoveis.length === 1 ? 'imóvel' : 'imóveis'}</span>
-        <h1>Imóveis</h1>
-      </div></div>
-      <div class="acoes">
-        <div class="busca">
-          <label for="busca" class="sr">Buscar imóvel</label>${ICONE.lupa}
-          <input id="busca" class="campo-busca" type="search" placeholder="Buscar por imóvel, endereço ou inquilino"
-            value="${esc(estado.busca)}" oninput="estado.busca = this.value; desenharResultados()">
-        </div>
-        <div class="filtros" role="group" aria-label="Filtrar por prazo" id="filtros"></div>
+    estado.lista = dados;
+    // Versão nova chegando por trás: só troca os resultados (a busca digitada e o foco continuam)
+    if (atualizacao && document.getElementById('resultados')) {
+      document.querySelector('.titulo-pagina .rotulo').textContent = dados.imoveis.length;
+      return desenharResultados();
+    }
+    tela(`<div class="tela-fixa">
+      <div class="barra-lista">
+        <div class="filtros" role="group" aria-label="Filtrar por situação do pagamento" id="filtros"></div>
+        <div class="titulo-pagina titulo-pagina--compacto"><h1>Imóveis</h1>
+          <span class="rotulo" aria-label="${estado.lista.imoveis.length} ${estado.lista.imoveis.length === 1 ? 'imóvel' : 'imóveis'}">${estado.lista.imoveis.length}</span></div>
       </div>
-      <div id="resultados"></div>
+      <div id="busca-ativa"></div>
+      <div id="resultados" class="crescer"></div>
       <div class="legenda"><span class="rotulo">Legenda</span>
-        <span class="st st--ok">Em dia</span><span>mais de 30 dias até o prazo</span>
-        <span class="st st--aviso">Vence em breve</span><span>30 dias ou menos</span>
-        <span class="st st--vencido">Vencido</span><span>o prazo já passou</span></div>`);
+        <span class="st st--ok">Em dia</span><span>nada atrasado</span>
+        <span class="st st--aviso">Vence em breve</span><span>vence em até 3 dias</span>
+        <span class="st st--vencido">Atrasado</span><span>tem aluguel vencido sem pagamento</span>
+        <span class="st st--sem-prazo">Vago</span><span>sem inquilino</span></div></div>`);
     desenharResultados();
   }
 
@@ -1198,17 +2011,27 @@
     desenharResultados();
   }
 
+  function limparBusca() {
+    estado.busca = '';
+    const campo = document.getElementById('busca-topo');
+    if (campo) campo.value = '';
+    desenharResultados();
+  }
+
   function desenharResultados() {
-    const termo = semAcento(estado.busca).trim();
-    const achados = estado.lista.imoveis.filter(i => !termo ||
-      semAcento([i.Nome, i.Localizacao, i.Inquilino].join(' ')).includes(termo));
+    const achados = filtrarImoveis(estado.lista.imoveis, estado.busca);
+    const ativa = document.getElementById('busca-ativa');
+    if (ativa) ativa.innerHTML = estado.busca.trim() ? `<div class="busca-ativa">Resultados para <b>“${esc(estado.busca.trim())}”</b>
+      <button type="button" class="pr-btn pr-btn--texto pr-btn--pequeno" onclick="limparBusca()">Limpar busca</button></div>` : '';
+    const campo = document.getElementById('busca-topo');
+    if (campo && campo.value !== estado.busca) campo.value = estado.busca;
     const conta = s => achados.filter(i => s === 'todos' || i.situacao === s).length;
     const opcoes = ['todos', 'ok', 'aviso', 'vencido'].concat(conta('sem-prazo') ? ['sem-prazo'] : []);
     document.getElementById('filtros').innerHTML = opcoes.map(f =>
       `<button class="filtro" aria-pressed="${estado.filtro === f}" onclick="escolherFiltro('${f}')">${NOMES_SITUACAO[f]}<span class="mono">${conta(f)}</span></button>`).join('');
 
     const lista = achados.filter(i => estado.filtro === 'todos' || i.situacao === estado.filtro)
-      .sort((a, b) => (ORDEM_SITUACAO[a.situacao] - ORDEM_SITUACAO[b.situacao]) || String(a.DataPrazo).localeCompare(String(b.DataPrazo)));
+      .sort((a, b) => (ORDEM_SITUACAO[a.situacao] - ORDEM_SITUACAO[b.situacao]) || String(a.proximoVencimento).localeCompare(String(b.proximoVencimento)));
     const area = document.getElementById('resultados');
     if (!lista.length) {
       area.innerHTML = `<div class="painel"><p class="vazio">${estado.lista.imoveis.length
@@ -1219,7 +2042,7 @@
     area.innerHTML = `
       <div class="caixa-tabela">
         <table class="tabela">
-          <thead><tr><th>Imóvel</th><th>Inquilino</th><th>Assinatura</th><th>Entrada</th><th>Vigente</th><th>Prazo</th><th>Situação</th><th><span class="sr">Ações</span></th></tr></thead>
+          <thead><tr><th>Imóvel</th><th>Inquilino</th><th>Cobrança</th><th>Próximo vencimento</th><th>Situação</th><th><span class="sr">Ações</span></th></tr></thead>
           <tbody>${lista.map(i => `
             <tr class="clicavel" onclick="if (!event.target.closest('a')) navegar('#/imovel/${esc(i.ID_Imovel)}')">
               <td><div class="com-capa">${avatarImovel(i.Nome, i.Capa)}<div><div class="nome">${esc(i.Nome)}</div>
@@ -1227,21 +2050,20 @@
                 ${textoAluguel(i) ? `<div class="valor-aluguel">${esc(textoAluguel(i))}</div>` : ''}
                 <div class="suave" style="font-size:13px">Cadastrado em ${dataBR(i.DataCadastro)}</div></div></div></td>
               <td>${esc(i.Inquilino) || '<span class="suave">—</span>'}</td>
-              <td class="data">${dataBR(i.DataAssinatura)}</td>
-              <td class="data">${dataBR(i.DataEntrada)}</td>
-              <td class="data">${dataBR(i.DataVigente)}</td>
-              <td class="data"><b>${dataBR(i.DataPrazo)}</b></td>
+              <td>${esc(textoCobranca(i))}</td>
+              <td class="data"><b>${dataBR(i.proximoVencimento)}</b></td>
               <td>${etiquetaSituacao(i)}</td>
               <td><a class="pr-btn pr-btn--texto pr-btn--pequeno" href="#/imovel/${esc(i.ID_Imovel)}" aria-label="Editar ${esc(i.Nome)}">${ICONE.lapis}Editar</a></td>
             </tr>`).join('')}</tbody>
         </table>
       </div>
-      <div class="lista-cartoes">${lista.map(i => `
+      <div class="lista-cartoes rolagem">${lista.map(i => `
         <a class="cartao-imovel" href="#/imovel/${esc(i.ID_Imovel)}">
           <div class="linha"><div class="com-capa">${avatarImovel(i.Nome, i.Capa)}<b>${esc(i.Nome)}</b></div>${etiquetaSituacao(i)}</div>
           ${i.Localizacao ? `<span class="suave pequeno">${esc(i.Localizacao)}</span>` : ''}
           ${textoAluguel(i) ? `<span class="valor-aluguel">${esc(textoAluguel(i))}</span>` : ''}
-          <span class="pequeno">${esc(i.Inquilino || 'Sem inquilino')} · prazo <b class="mono">${dataBR(i.DataPrazo)}</b></span>
+          <span class="pequeno">${i.Cobrar ? `${esc(i.Inquilino || 'Sem inquilino')} · vence <b class="mono">${dataBR(i.proximoVencimento)}</b>` : 'Vago'}</span>
+          <span class="editar-cartao">${ICONE.lapis}Editar</span>
         </a>`).join('')}</div>`;
   }
 
@@ -1249,7 +2071,7 @@
    * Incluir / editar imóvel
    * ========================================================= */
   async function telaImovel(id) {
-    estado.form = { imovel: null, fotosNovas: [], contratoNovo: null, podeExcluir: false, capa: null };
+    estado.form = { imovel: null, fotosNovas: [], documentosNovos: [], renomeandoDoc: null, podeExcluir: false, capa: null };
     if (id) {
       carregando('Abrindo o imóvel…');
       let r;
@@ -1257,19 +2079,19 @@
       if (location.hash.indexOf(id) === -1) return;
       estado.form.imovel = r.imovel;
       estado.form.podeExcluir = r.podeExcluir;
+      estado.form.historico = r.historico || [];
+      estado.form.cobrancas = r.cobrancas || [];
       if (r.imovel.CapaUrl) estado.form.capa = { url: r.imovel.CapaUrl };
       estado.form.hoje = r.hoje;
     }
     const i = estado.form.imovel || {};
     const novo = !estado.form.imovel;
-    const campoData = (nome, rotulo, dica) => `<div class="pr-field"><label for="f-${nome}">${rotulo}</label>
-      <input id="f-${nome}" name="${nome}" type="date" value="${esc(i[nome] || '')}"><small>${dica}</small></div>`;
 
     tela(`
       <div class="titulo-pagina"><div class="com-capa" id="titulo-capa">${novo ? '' : avatarImovel(i.Nome, i.Capa, true)}<div>
         <span class="rotulo"><a href="#/imoveis" style="color:inherit">Imóveis</a> › ${novo ? 'Novo' : 'Editar'}</span>
         <h1>${novo ? 'Incluir imóvel' : esc(i.Nome)}</h1>
-        ${novo ? '<p class="suave">Preencha o que você já sabe. Dá para completar depois.</p>' : `<div>${etiquetaSituacao(i)}</div>`}
+        ${novo ? '<p class="suave">Preencha o que você já sabe. Dá para completar depois.</p>' : `<div id="situacao-titulo">${etiquetaSituacao(i)}</div>`}
       </div></div></div>
       <form id="form-imovel" onsubmit="event.preventDefault(); salvarFormulario()" style="display:flex;flex-direction:column;gap:24px">
         <section class="painel">
@@ -1278,60 +2100,59 @@
             <div class="pr-field"><label for="f-Nome">Nome do imóvel *</label>
               <input id="f-Nome" name="Nome" required placeholder="Ex.: Apartamento 302 · Ed. Aurora" value="${esc(i.Nome || '')}"></div>
             <div class="pr-field"><label for="f-Localizacao">Localização</label>
-              <input id="f-Localizacao" name="Localizacao" placeholder="Rua, número, bairro e cidade" value="${esc(i.Localizacao || '')}">
-              ${i.Localizacao ? `<small><a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(i.Localizacao)}" target="_blank" rel="noopener">Ver no mapa</a></small>` : ''}</div>
-          </div>
-        </section>
-
-        <section class="painel">
-          <h2>Datas do contrato</h2>
-          <div class="grade">
+              <input id="f-Localizacao" name="Localizacao" placeholder="Rua, número, bairro e cidade" value="${esc(i.Localizacao || '')}"
+                oninput="agendarMapa()" onchange="atualizarMapa()">
+              <small>Com número e cidade, o mapa acerta melhor.</small></div>
             <div class="pr-field"><label for="f-DataCadastro">Data do cadastro</label>
               <input id="f-DataCadastro" type="text" value="${novo ? dataBR(hojeISO()) : dataBR(i.DataCadastro)}" readonly><small>Preenchida sozinha.</small></div>
-            ${campoData('DataAssinatura', 'Data de assinatura', 'Quando o contrato foi assinado.')}
-            ${campoData('DataEntrada', 'Data de entrada', 'Quando o inquilino entrou.')}
-            ${campoData('DataVigente', 'Data vigente', 'Quando o contrato começa a valer.')}
-            ${campoData('DataPrazo', 'Data prazo', 'Quando o contrato termina.')}
           </div>
-          ${i.exemplo
-            ? `<div class="pr-alert pr-alert--atencao"><span class="pr-alert__ic">!</span><div><b>Imóvel de exemplo</b>Os imóveis de exemplo não vão para a Agenda Google.</div></div>`
-            : `<div class="pr-alert pr-alert--info"><span class="pr-alert__ic">${ICONE.agenda}</span><div><b>${i.naAgenda ? 'Está na Agenda Google' : 'Vai para a Agenda Google'}</b>A data prazo vira um evento na agenda “Portal de Locação – Prazos”, com um lembrete 30 dias antes. O sininho também avisa aqui no portal.</div></div>`}
+          <div id="mapa-local" class="mapa" aria-live="polite"></div>
         </section>
 
         <section class="painel">
-          <h2>Inquilino</h2>
+          <h2>Locação</h2>
           <div class="grade">
-            <div class="pr-field"><label for="f-Inquilino">Nome do inquilino</label>
-              <input id="f-Inquilino" name="Inquilino" placeholder="Nome completo ou da empresa" value="${esc(i.Inquilino || '')}"></div>
-            <div class="pr-field"><label for="f-CPF">CPF ou CNPJ</label>
-              <input id="f-CPF" name="CPF"${mascara('documento')} value="${esc(i.CPF || '')}"></div>
-            <div class="pr-field"><label for="f-Telefone">Telefone</label>
-              <input id="f-Telefone" name="Telefone" type="tel"${mascara('telefone')} value="${esc(i.Telefone || '')}"></div>
-          </div>
-        </section>
-
-        <section class="painel">
-          <h2>Cobrança</h2>
-          <div class="grade">
-            <div class="pr-field"><label for="f-Cobrar">Cobrar este imóvel?</label>
+            <div class="pr-field"><label for="f-Cobrar">Situação do imóvel</label>
               <select id="f-Cobrar" name="Cobrar" onchange="atualizarCobranca()">
-                <option${i.Cobrar ? ' selected' : ''}>Sim</option><option${i.Cobrar ? '' : ' selected'}>Não</option></select>
-              <small>Imóvel vago ou sem aluguel: escolha Não.</small></div>
-            <div class="pr-field so-cobranca"><label for="f-TipoCobranca">Como cobrar</label>
-              <select id="f-TipoCobranca" name="TipoCobranca" onchange="atualizarCobranca()">
-                ${['Todo mês no mesmo dia', 'A cada 30 dias'].map(t => `<option${(i.TipoCobranca || 'Todo mês no mesmo dia') === t ? ' selected' : ''}>${t}</option>`).join('')}</select>
-              <small id="dica-tipo"></small></div>
-            <div class="pr-field so-cobranca"><label for="f-InicioCobranca">Dia em que a cobrança começa</label>
-              <input id="f-InicioCobranca" name="InicioCobranca" type="date" value="${esc(i.InicioCobranca || '')}" oninput="atualizarCobranca()">
-              <small>A data da primeira cobrança.</small></div>
-            <div class="pr-field so-cobranca"><label for="f-ValorAluguel">Valor do aluguel</label>
+                <option value="Sim"${i.Cobrar ? ' selected' : ''}>Alugado</option><option value="Não"${i.Cobrar ? '' : ' selected'}>Vago</option></select>
+              <small>${i.Cobrar && i.AlugadoDesde ? 'Alugado desde ' + dataBR(String(i.AlugadoDesde).slice(0, 10)) + '.' : 'Vago: sem inquilino e sem cobrança.'}</small></div>
+            <div class="pr-field so-cobranca"><label for="f-Inquilino">Nome do inquilino *</label>
+              <input id="f-Inquilino" name="Inquilino" placeholder="Nome completo ou da empresa" value="${esc(i.Inquilino || '')}"></div>
+            <div class="pr-field so-cobranca"><label for="f-CPF">CPF ou CNPJ</label>
+              <input id="f-CPF" name="CPF"${mascara('documento')} value="${esc(i.CPF || '')}"></div>
+            <div class="pr-field so-cobranca"><label for="f-Telefone">Telefone</label>
+              <input id="f-Telefone" name="Telefone" type="tel"${mascara('telefone')} value="${esc(i.Telefone || '')}"></div>
+            <div class="pr-field so-cobranca"><label for="f-ValorAluguel">Valor por mês *</label>
               <input id="f-ValorAluguel" name="ValorAluguel" inputmode="decimal" placeholder="R$ 0,00" autocomplete="off"
                 value="${i.ValorAluguel !== '' && i.ValorAluguel != null ? esc(Number(i.ValorAluguel).toLocaleString('pt-BR', { minimumFractionDigits: 2 })) : ''}"
                 oninput="atualizarCobranca()" onblur="formatarValor(this)">
               <small>Ex.: 1.500,00</small></div>
+            <div class="pr-field so-cobranca"><label for="f-DiaVencimento">Dia do vencimento *</label>
+              <select id="f-DiaVencimento" name="DiaVencimento" onchange="atualizarCobranca()">
+                <option value="">Escolha…</option>
+                ${Array.from({ length: 31 }, (_, n) => n + 1).map(d => `<option value="${d}"${Number(i.DiaVencimento) === d ? ' selected' : ''}>Todo dia ${d}</option>`).join('')}</select>
+              <small>Em mês mais curto, o dia 31 cai no último dia do mês.</small></div>
           </div>
           <div class="pr-alert pr-alert--info so-cobranca" id="previa-cobranca" aria-live="polite"></div>
+          <div class="pr-alert pr-alert--atencao" id="aviso-vago" hidden><span class="pr-alert__ic">!</span><div><b>Isso registra a saída do inquilino hoje</b>
+            ${esc(i.Inquilino || 'O inquilino')} vai para o histórico e o imóvel fica vago. Para outra data, use o botão “Inquilino saiu”.</div></div>
+          ${i.exemplo
+            ? '<div class="pr-alert pr-alert--atencao so-cobranca"><span class="pr-alert__ic">!</span><div><b>Imóvel de exemplo</b>Os imóveis de exemplo não vão para a Agenda Google.</div></div>'
+            : `<div class="pr-alert pr-alert--info so-cobranca"><span class="pr-alert__ic">${ICONE.agenda}</span><div><b>${i.naAgenda ? 'Está na Agenda Google' : 'Vai para a Agenda Google'}</b>Os vencimentos viram um evento repetido na agenda “Az Gestão – Vencimentos”, com lembrete 3 dias antes. O sininho também avisa aqui no portal.</div></div>`}
+          ${!novo && i.Cobrar ? `<div class="acoes"><button type="button" class="pr-btn pr-btn--sec" onclick="abrirSaidaInquilino()">Inquilino saiu</button>
+            <span class="suave pequeno">Registra a saída com a data, guarda no histórico e deixa o imóvel vago.</span></div>` : ''}
+          ${(estado.form.historico || []).length ? `<div class="historico"><h3>Inquilinos anteriores</h3><div class="rolagem">
+            ${estado.form.historico.map(h => `<div class="historico-item"><b>${esc(h.Inquilino || 'Sem nome')}</b>
+              <span class="suave pequeno">${dataBR(h.Inicio)} a ${dataBR(h.Fim)}${h.ValorAluguel !== '' ? ' · ' + esc(dinheiro(h.ValorAluguel)) + ' por mês' : ''}${h.Telefone ? ' · ' + esc(h.Telefone) : ''}</span>
+              ${h.QtdEmAberto ? `<span class="st st--sem-prazo">Saiu devendo ${h.QtdEmAberto} ${h.QtdEmAberto === 1 ? 'aluguel' : 'aluguéis'} (${esc(dinheiro(h.ValorEmAberto))})</span>` : '<span class="st st--ok">Saiu em dia</span>'}
+            </div>`).join('')}</div></div>` : ''}
         </section>
+
+        ${!novo && i.Cobrar ? `<section class="painel" id="bloco-pagamentos" aria-labelledby="titulo-pagamentos-imovel">
+          <div class="painel-topo"><h2 id="titulo-pagamentos-imovel">Pagamentos</h2>
+            <span class="suave pequeno">Os 12 aluguéis mais recentes deste inquilino</span></div>
+          <div id="lista-pagamentos-imovel">${listaPagamentosImovel(estado.form.cobrancas)}</div>
+        </section>` : ''}
 
         <section class="painel">
           <h2>Anexos</h2>
@@ -1347,33 +2168,97 @@
     document.querySelectorAll('#form-imovel [data-mascara]').forEach(c => { c.dataset.digitos = c.value.replace(/\D/g, ''); conferirDocumento(c); });
     desenharAnexos();
     atualizarCobranca();
+    atualizarMapa();
     if (novo) document.getElementById('f-Nome').focus();
+  }
+
+  /* ---------- Mapa da localização (Google Maps incorporado) ----------
+   * Um iframe com o modo "embed" do Google Maps: gratuito e sem chave de API.
+   * Atualiza 1 segundo depois que a pessoa para de digitar (debounce), ou ao sair do campo. */
+  function agendarMapa() {
+    clearTimeout(estado.timerMapa);
+    estado.timerMapa = setTimeout(atualizarMapa, 1000);
+  }
+
+  function atualizarMapa() {
+    clearTimeout(estado.timerMapa);
+    const campo = document.getElementById('f-Localizacao');
+    const area = document.getElementById('mapa-local');
+    if (!campo || !area) return;
+    const endereco = campo.value.trim();
+    if (endereco === area.dataset.endereco) return; // o mesmo endereço: não recarrega o mapa
+    area.dataset.endereco = endereco;
+    if (endereco.length < 5) { area.innerHTML = ''; return; }
+    const q = encodeURIComponent(endereco);
+    area.innerHTML = `
+      <iframe src="https://www.google.com/maps?q=${q}&output=embed&hl=pt-BR" title="Mapa: ${esc(endereco)}"
+        loading="lazy" referrerpolicy="no-referrer-when-downgrade" allowfullscreen></iframe>
+      <div class="acoes">
+        <a class="pr-btn pr-btn--sec pr-btn--pequeno" href="https://www.google.com/maps/search/?api=1&query=${q}" target="_blank" rel="noopener">Abrir no Google Maps</a>
+        <a class="pr-btn pr-btn--sec pr-btn--pequeno" href="https://www.google.com/maps/dir/?api=1&destination=${q}" target="_blank" rel="noopener">Como chegar</a>
+        <span class="suave pequeno">Confira se o marcador está no lugar certo.</span>
+      </div>`;
   }
 
   // Mostra ou esconde os campos de cobrança e calcula as próximas datas na hora
   function atualizarCobranca() {
+    const f = estado.form, i = f.imovel || {};
     const sim = document.getElementById('f-Cobrar').value === 'Sim';
     document.querySelectorAll('.so-cobranca').forEach(el => { el.hidden = !sim; });
+    document.getElementById('aviso-vago').hidden = sim || !i.Cobrar; // estava alugado e vai ficar vago
     if (!sim) return;
-    const tipo = document.getElementById('f-TipoCobranca').value;
-    const inicio = document.getElementById('f-InicioCobranca').value;
-    document.getElementById('dica-tipo').textContent = tipo === 'A cada 30 dias'
-      ? 'Conta 30 dias corridos: o dia do mês vai mudando.'
-      : 'Sempre no mesmo dia. Em mês mais curto, cai no último dia.';
+    const dia = Number(document.getElementById('f-DiaVencimento').value);
     const previa = document.getElementById('previa-cobranca');
-    if (!inicio) {
-      previa.innerHTML = `<span class="pr-alert__ic">${ICONE.agenda}</span><div><b>Próxima cobrança</b>Escolha o dia em que a cobrança começa.</div>`;
+    if (!dia) {
+      previa.innerHTML = `<span class="pr-alert__ic">${ICONE.agenda}</span><div><b>Vencimento</b>Escolha o dia do vencimento.</div>`;
       return;
     }
     const hoje = hojeISO();
-    const datas = [proximaCobranca(tipo, inicio, hoje)];
-    for (let n = 0; n < 2; n++) datas.push(proximaCobranca(tipo, inicio, somarDias(datas[datas.length - 1], 1)));
+    // Mesmo dia de antes: a cobrança continua de onde estava. Dia novo (ou imóvel que estava vago): começa no próximo vencimento.
+    const continua = i.Cobrar && Number(i.DiaVencimento) === dia && i.proximoVencimento;
+    const primeira = continua ? i.proximoVencimento : proximoDiaDoMes(dia, hoje);
+    const depois = [proximaCobranca('Todo mês no mesmo dia', primeira, somarDias(primeira, 1))];
+    depois.push(proximaCobranca('Todo mês no mesmo dia', primeira, somarDias(depois[0], 1)));
     const valor = lerValor(document.getElementById('f-ValorAluguel').value);
+    const titulo = continua ? (i.situacao === 'vencido' ? 'Aluguel atrasado desde' : 'Próximo vencimento') : 'Primeira cobrança';
     previa.innerHTML = `<span class="pr-alert__ic">${ICONE.agenda}</span><div>
-      <b>Próxima cobrança: ${dataComDia(datas[0])} (${quandoCobrar(diasEntre(hoje, datas[0])).toLowerCase()})${valor ? ' · ' + esc(dinheiro(valor)) : ''}</b>
-      Depois: ${datas.slice(1).map(dataBR).join(' e ')}.
+      <b>${titulo}: ${dataComDia(primeira)}${primeira >= hoje ? ` (${quandoCobrar(diasEntre(hoje, primeira)).toLowerCase()})` : ''}${valor ? ' · ' + esc(dinheiro(valor)) : ''}</b>
+      Depois: ${depois.map(dataBR).join(' e ')}.
       ${Number.isNaN(valor) ? '<br><span class="aviso-campo">Valor inválido. Use, por exemplo, 1.500,00.</span>' : ''}</div>`;
   }
+
+  /* ---------- Inquilino saiu ---------- */
+  function abrirSaidaInquilino() {
+    const i = estado.form.imovel;
+    const hoje = hojeISO();
+    const desde = i.AlugadoDesde ? String(i.AlugadoDesde).slice(0, 10) : '';
+    abrirJanela('Inquilino saiu', `
+      <p><b>${esc(i.Inquilino || 'O inquilino')}</b> vai para o histórico do imóvel e o imóvel fica <b>vago</b>.
+        Nenhuma cobrança é gerada depois da saída.</p>
+      <div class="pr-field"><label for="data-saida">Data da saída</label>
+        <input id="data-saida" type="date" value="${hoje}" max="${hoje}"${desde ? ` min="${desde}"` : ''}></div>
+      ${i.qtdAtrasadas ? `<div class="pr-alert pr-alert--atencao"><span class="pr-alert__ic">!</span><div><b>Ficou em aberto: ${i.qtdAtrasadas} ${i.qtdAtrasadas === 1 ? 'aluguel' : 'aluguéis'} (${esc(dinheiro(i.valorAtrasado))})</b>
+        Isso não fica como vencido no portal; fica anotado no histórico do inquilino.</div></div>` : ''}`, '',
+      `<button type="button" class="pr-btn pr-btn--sec" onclick="fecharJanela()">Cancelar</button>
+       <button type="button" class="pr-btn pr-btn--pri" id="btn-saida" onclick="registrarSaidaInquilino()">Registrar saída</button>`);
+  }
+
+  async function registrarSaidaInquilino() {
+    const data = document.getElementById('data-saida').value;
+    if (!data) return mostrarMensagem('Informe a data da saída.', 'erro');
+    const botao = document.getElementById('btn-saida');
+    botao.disabled = true; botao.textContent = 'Registrando…';
+    try {
+      const r = await chamar('encerrarLocacao', estado.form.imovel.ID_Imovel, data, auth());
+      fecharJanela();
+      mostrarMensagem(r.avisoAgenda || 'Saída registrada. O imóvel agora está vago.', r.avisoAgenda ? 'erro' : undefined);
+      irPara(location.hash); // reabre o cadastro já vago, com o histórico
+    } catch (erro) {
+      botao.disabled = false; botao.textContent = 'Registrar saída';
+      mostrarErro(erro);
+    }
+  }
+
 
   function formatarValor(campo) {
     const v = lerValor(campo.value);
@@ -1400,22 +2285,8 @@
         <button type="button" class="tirar" onclick="tirarFotoNova(${n})" aria-label="Não enviar ${esc(foto.arquivo.name)}">${ICONE.x}</button>
         ${botaoCapa(foto, `escolherCapa('nova', ${n})`)}
       </div>`).join('');
-    const linhaArquivo = (nome, extra, acoes) => f.renomeando ? `
-      <div class="arquivo renomear">
-        <label for="novo-nome-contrato" class="sr">Novo nome do contrato</label>
-        <input id="novo-nome-contrato" class="campo-renomear" onkeydown="if (event.key === 'Enter') { event.preventDefault(); salvarNomeContrato(); }" value="${esc(nomeLegivel(nome).replace(/\.pdf$/i, '').replace(/\uFFFD/g, ''))}" maxlength="120" autocomplete="off">
-        <span class="suave pequeno">.pdf</span>
-        <button type="button" class="pr-btn pr-btn--pri pr-btn--pequeno" id="btn-nome-contrato" onclick="salvarNomeContrato()">Salvar nome</button>
-        <button type="button" class="pr-btn pr-btn--texto pr-btn--pequeno" onclick="estado.form.renomeando = false; desenharAnexos()">Cancelar</button>
-      </div>` : `
-      <div class="arquivo">${ICONE.arquivo}<span class="arquivo-nome" title="${esc(nomeLegivel(nome))}">${esc(nomeLegivel(nome))}</span>${extra}
-        <button type="button" class="pr-btn pr-btn--texto pr-btn--pequeno" onclick="estado.form.renomeando = true; desenharAnexos(); document.getElementById('novo-nome-contrato').select()"
-          aria-label="Renomear o contrato" title="Renomear">${ICONE.lapis}</button>
-        <button type="button" class="pr-btn pr-btn--sec pr-btn--pequeno" onclick="verContrato()">Ver</button>${acoes}</div>`;
-    const contratoSalvo = i.ContratoUrl && !f.contratoNovo ? linhaArquivo(i.ContratoNome || 'contrato.pdf', '',
-      `<button type="button" class="pr-btn pr-btn--texto pr-btn--pequeno" onclick="tirarContratoSalvo()" aria-label="Remover o contrato">${ICONE.x}</button>`) : '';
-    const contratoNovo = f.contratoNovo ? linhaArquivo(f.contratoNovo.name, '<span class="etiqueta" style="flex:none">Novo</span>',
-      `<button type="button" class="pr-btn pr-btn--texto pr-btn--pequeno" onclick="estado.form.contratoNovo = null; desenharAnexos()" aria-label="Não enviar o contrato">${ICONE.x}</button>`) : '';
+    const documentos = (i.Documentos || []).map((doc, n) => linhaDocumento(doc.nome, 's' + n, false))
+      .concat(f.documentosNovos.map((doc, n) => linhaDocumento(doc.arquivo.name, 'n' + n, true))).join('');
 
     document.getElementById('anexos').innerHTML = `
       <div class="pr-field">
@@ -1427,10 +2298,11 @@
         ${f.fotosNovas.length ? `<small>${f.fotosNovas.length === 1 ? 'A foto com borda laranja é enviada' : 'As fotos com borda laranja são enviadas'} ao salvar.</small>` : ''}
       </div>
       <div class="pr-field">
-        <span style="font:600 14px/20px var(--font-sans)">Contrato (PDF)</span>
-        <label class="area-envio" for="campo-contrato">${ICONE.pdf}${i.ContratoUrl || f.contratoNovo ? 'Trocar contrato' : 'Enviar contrato'}<span>Fica guardado no Google Drive</span></label>
-        <input id="campo-contrato" type="file" accept="application/pdf" class="sr" onchange="escolherContrato(this)">
-        ${contratoSalvo}${contratoNovo}
+        <span style="font:600 14px/20px var(--font-sans)">Documentos</span>
+        <label class="area-envio" for="campo-documentos">${ICONE.pdf}Adicionar documentos<span>RG, comprovante de endereço, recibos… (foto ou PDF)</span></label>
+        <input id="campo-documentos" type="file" accept="image/*,.heic,.heif,application/pdf" multiple class="sr" onchange="escolherDocumentos(this)">
+        ${documentos}
+        ${f.documentosNovos.length ? `<small>${f.documentosNovos.length === 1 ? 'O documento marcado como Novo é enviado' : 'Os documentos marcados como Novo são enviados'} ao salvar.</small>` : ''}
       </div>`;
     carregarMiniaturas();
   }
@@ -1553,63 +2425,65 @@
     }
   }
 
-  /* ---------- Visualizador do contrato (PDF) ----------
-   * As páginas são desenhadas dentro do portal (no tablet, abrir o PDF em outra aba às vezes só baixa). */
+  /* ---------- Visualizador de documento (foto ou PDF) ----------
+   * As páginas do PDF são desenhadas dentro do portal (no tablet, abrir o PDF em outra aba às vezes só baixa). */
   const PAGINAS_MAXIMAS = 40;
 
-  async function verContrato() {
-    const f = estado.form;
-    const nome = f.contratoNovo ? f.contratoNovo.name : (f.imovel.ContratoNome || 'contrato.pdf');
-    abrirJanela(esc(nomeLegivel(nome)), `<div class="paginas-pdf" id="paginas-pdf"><div class="carregando"><div class="girando"></div>Abrindo o contrato…</div></div>`,
-      'janela--larga', `<button type="button" class="pr-btn pr-btn--sec" onclick="baixarContrato()">Baixar o PDF</button>
+  async function verDocumento(chave) {
+    const doc = documentoDaChave(chave);
+    estado.docAberto = doc;
+    abrirJanela(esc(nomeLegivel(doc.nome)), '<div class="paginas-pdf" id="paginas-pdf"><div class="carregando"><div class="girando"></div>Abrindo o documento…</div></div>',
+      'janela--larga', `<button type="button" class="pr-btn pr-btn--sec" onclick="baixarDocumento()">Baixar</button>
       <button type="button" class="pr-btn pr-btn--pri" onclick="fecharJanela()">Fechar</button>`);
     let ativo = true;
     estado.aoFecharJanela = () => { ativo = false; };
     try {
-      let bytes;
-      if (f.contratoNovo) bytes = new Uint8Array(await f.contratoNovo.arrayBuffer());
-      else {
-        const a = await chamar('baixarArquivo', f.imovel.ContratoUrl, auth());
-        bytes = new Uint8Array(await base64ParaBlob(a.base64, a.tipo).arrayBuffer());
-      }
-      await carregarScript('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js');
-      pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-      const pdf = await pdfjsLib.getDocument({ data: bytes }).promise;
+      let blob;
+      if (doc.novo) blob = doc.arquivo;
+      else { const a = await chamar('baixarArquivo', doc.url, auth()); blob = base64ParaBlob(a.base64, a.tipo); }
       const area = document.getElementById('paginas-pdf');
       if (!ativo || !area) return;
-      area.innerHTML = '';
-      const total = Math.min(pdf.numPages, PAGINAS_MAXIMAS);
-      for (let p = 1; p <= total && ativo; p++) {
-        const pagina = await pdf.getPage(p);
-        const base = pagina.getViewport({ scale: 1 });
-        const largura = Math.min(area.clientWidth || 800, 900);
-        const vp = pagina.getViewport({ scale: largura / base.width * Math.min(window.devicePixelRatio || 1, 2) });
-        const canvas = document.createElement('canvas');
-        canvas.width = Math.round(vp.width); canvas.height = Math.round(vp.height);
-        canvas.setAttribute('aria-label', `Página ${p} de ${pdf.numPages}`);
-        area.appendChild(canvas);
-        await pagina.render({ canvasContext: canvas.getContext('2d'), viewport: vp }).promise;
-      }
-      if (ativo && pdf.numPages > PAGINAS_MAXIMAS) {
-        area.insertAdjacentHTML('beforeend', `<p class="suave">Mostrando as ${PAGINAS_MAXIMAS} primeiras de ${pdf.numPages} páginas. Baixe o PDF para ver tudo.</p>`);
-      }
+      if (/pdf/i.test(blob.type)) await desenharPdf(new Uint8Array(await blob.arrayBuffer()), area, () => ativo);
+      else area.innerHTML = `<img class="visor-img" src="${URL.createObjectURL(blob)}" alt="${esc(nomeLegivel(doc.nome))}">`;
     } catch (erro) {
       const area = document.getElementById('paginas-pdf');
-      if (area) area.innerHTML = `<p>Não deu para mostrar o contrato aqui (${esc(erro.message || erro)}). Use "Baixar o PDF".</p>`;
+      if (area) area.innerHTML = `<p>Não deu para mostrar o documento aqui (${esc(erro.message || erro)}). Use "Baixar".</p>`;
     }
   }
 
-  async function baixarContrato() {
-    const f = estado.form;
-    if (f.contratoNovo) {
-      const endereco = URL.createObjectURL(f.contratoNovo);
-      const link = document.createElement('a');
-      link.href = endereco; link.download = f.contratoNovo.name;
-      document.body.appendChild(link); link.click(); link.remove();
-      setTimeout(() => URL.revokeObjectURL(endereco), 60000);
-      return;
+  // Desenha as páginas de um PDF (bytes) dentro de "area", uma embaixo da outra (pdf.js)
+  async function desenharPdf(bytes, area, continua) {
+    await carregarScript('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js');
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    const pdf = await pdfjsLib.getDocument({ data: bytes }).promise;
+    if (!continua() || !area) return;
+    area.innerHTML = '';
+    const total = Math.min(pdf.numPages, PAGINAS_MAXIMAS);
+    for (let p = 1; p <= total && continua(); p++) {
+      const pagina = await pdf.getPage(p);
+      const base = pagina.getViewport({ scale: 1 });
+      const largura = Math.min(area.clientWidth || 800, 900);
+      const vp = pagina.getViewport({ scale: largura / base.width * Math.min(window.devicePixelRatio || 1, 2) });
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.round(vp.width); canvas.height = Math.round(vp.height);
+      canvas.setAttribute('aria-label', `Página ${p} de ${pdf.numPages}`);
+      area.appendChild(canvas);
+      await pagina.render({ canvasContext: canvas.getContext('2d'), viewport: vp }).promise;
     }
-    abrirAnexo({ preventDefault() {} }, f.imovel.ContratoUrl);
+    if (continua() && pdf.numPages > PAGINAS_MAXIMAS) {
+      area.insertAdjacentHTML('beforeend', `<p class="suave">Mostrando as ${PAGINAS_MAXIMAS} primeiras de ${pdf.numPages} páginas. Baixe o PDF para ver tudo.</p>`);
+    }
+  }
+
+  function baixarDocumento() {
+    const doc = estado.docAberto;
+    if (!doc) return;
+    if (!doc.novo) return abrirAnexo({ preventDefault() {} }, doc.url);
+    const endereco = URL.createObjectURL(doc.arquivo);
+    const link = document.createElement('a');
+    link.href = endereco; link.download = doc.arquivo.name;
+    document.body.appendChild(link); link.click(); link.remove();
+    setTimeout(() => URL.revokeObjectURL(endereco), 60000);
   }
 
   /* ---------- Escolher e enquadrar a foto de capa ----------
@@ -1745,14 +2619,89 @@
     f.imovel = await chamar('definirCapa', id, url, f.capa.miniatura, auth());
   }
 
-  function escolherContrato(campo) {
-    const arquivo = campo.files[0];
+  /* ---------- Documentos ----------
+   * Chave de cada documento na tela: "s0", "s1"... (já salvos) e "n0", "n1"... (novos, enviados ao salvar) */
+  function linhaDocumento(nome, chave, novo) {
+    const legivel = nomeLegivel(nome);
+    if (estado.form.renomeandoDoc === chave) {
+      const extensao = (legivel.match(/\.[A-Za-z0-9]{2,5}$/) || [''])[0];
+      return `<div class="arquivo renomear">
+        <label for="novo-nome-doc" class="sr">Novo nome do documento</label>
+        <input id="novo-nome-doc" class="campo-renomear" maxlength="120" autocomplete="off"
+          value="${esc(legivel.slice(0, legivel.length - extensao.length).replace(/\uFFFD/g, ''))}"
+          onkeydown="if (event.key === 'Enter') { event.preventDefault(); salvarNomeDocumento(); }">
+        <span class="suave pequeno">${esc(extensao)}</span>
+        <button type="button" class="pr-btn pr-btn--pri pr-btn--pequeno" id="btn-nome-doc" onclick="salvarNomeDocumento()">Salvar nome</button>
+        <button type="button" class="pr-btn pr-btn--texto pr-btn--pequeno" onclick="estado.form.renomeandoDoc = null; desenharAnexos()">Cancelar</button>
+      </div>`;
+    }
+    return `<div class="arquivo">${ICONE.arquivo}<span class="arquivo-nome" title="${esc(legivel)}">${esc(legivel)}</span>
+      ${novo ? '<span class="etiqueta" style="flex:none">Novo</span>' : ''}
+      <button type="button" class="pr-btn pr-btn--texto pr-btn--pequeno" onclick="renomearDocumentoTela('${chave}')" aria-label="Renomear ${esc(legivel)}" title="Renomear">${ICONE.lapis}</button>
+      <button type="button" class="pr-btn pr-btn--sec pr-btn--pequeno" onclick="verDocumento('${chave}')">Ver</button>
+      <button type="button" class="pr-btn pr-btn--texto pr-btn--pequeno" onclick="tirarDocumento('${chave}')" aria-label="Remover ${esc(legivel)}">${ICONE.x}</button></div>`;
+  }
+
+  function documentoDaChave(chave) {
+    const f = estado.form, n = Number(chave.slice(1));
+    return chave[0] === 'n' ? { novo: true, n, arquivo: f.documentosNovos[n].arquivo, nome: f.documentosNovos[n].arquivo.name }
+      : { novo: false, n, url: f.imovel.Documentos[n].url, nome: f.imovel.Documentos[n].nome };
+  }
+
+  async function escolherDocumentos(campo) {
+    const arquivos = [...campo.files];
     campo.value = '';
-    if (!arquivo) return;
-    if (arquivo.type !== 'application/pdf') return mostrarMensagem('O contrato precisa ser um arquivo PDF.', 'erro');
-    estado.form.contratoNovo = arquivo;
-    estado.form.renomeando = false;
+    for (let arquivo of arquivos) {
+      const pdf = arquivo.type === 'application/pdf';
+      if (!pdf && !ehHeic(arquivo) && !arquivo.type.startsWith('image/')) { mostrarMensagem(`${arquivo.name} não é foto nem PDF.`, 'erro'); continue; }
+      if (ehHeic(arquivo)) {
+        mostrarAvisoFixo(`Convertendo ${arquivo.name} para JPG…`);
+        try { arquivo = await converterHeic(arquivo, arquivo.name); } catch (e) { mostrarMensagem(`Não deu para converter ${arquivo.name}.`, 'erro'); continue; }
+      }
+      estado.form.documentosNovos.push({ arquivo });
+    }
+    document.getElementById('progresso-envio')?.remove();
+    estado.form.renomeandoDoc = null;
     desenharAnexos();
+  }
+
+  function renomearDocumentoTela(chave) {
+    estado.form.renomeandoDoc = chave;
+    desenharAnexos();
+    document.getElementById('novo-nome-doc').select();
+  }
+
+  // Novo: muda o nome só aqui (sobe com o nome novo). Salvo: muda no portal e no Drive. A extensão (.pdf, .jpg) continua.
+  async function salvarNomeDocumento() {
+    const f = estado.form;
+    const doc = documentoDaChave(f.renomeandoDoc);
+    const extensao = (nomeLegivel(doc.nome).match(/\.[A-Za-z0-9]{2,5}$/) || [''])[0];
+    const nome = document.getElementById('novo-nome-doc').value.replace(/[\\/:*?"<>|\uFFFD]/g, '').trim();
+    if (!nome) return mostrarMensagem('Digite o nome do documento.', 'erro');
+    if (doc.novo) {
+      f.documentosNovos[doc.n].arquivo = new File([doc.arquivo], nome + extensao, { type: doc.arquivo.type });
+    } else {
+      const botao = document.getElementById('btn-nome-doc');
+      botao.disabled = true; botao.textContent = 'Salvando…';
+      try { f.imovel = await chamar('renomearDocumento', f.imovel.ID_Imovel, doc.url, nome, auth()); }
+      catch (erro) { botao.disabled = false; botao.textContent = 'Salvar nome'; return mostrarErro(erro); }
+      mostrarMensagem('Nome do documento salvo!');
+    }
+    f.renomeandoDoc = null;
+    desenharAnexos();
+  }
+
+  async function tirarDocumento(chave) {
+    const f = estado.form;
+    const doc = documentoDaChave(chave);
+    if (doc.novo) { f.documentosNovos.splice(doc.n, 1); f.renomeandoDoc = null; return desenharAnexos(); }
+    if (!confirm(`Remover "${nomeLegivel(doc.nome)}"? Ele vai para a lixeira do Google Drive.`)) return;
+    try {
+      f.imovel = await chamar('removerDocumento', f.imovel.ID_Imovel, doc.url, auth());
+      f.renomeandoDoc = null;
+      desenharAnexos();
+      mostrarMensagem('Documento removido.');
+    } catch (erro) { mostrarErro(erro); }
   }
 
   async function tirarFotoSalva(url) {
@@ -1762,33 +2711,6 @@
       if (estado.form.capa && estado.form.capa.url === url) estado.form.capa = null;
       desenharAnexos();
       mostrarMensagem('Foto removida.');
-    } catch (erro) { mostrarErro(erro); }
-  }
-
-  // Renomear: contrato novo muda só aqui (vai com o nome novo); contrato salvo muda no portal e no Drive
-  async function salvarNomeContrato() {
-    const f = estado.form;
-    const nome = document.getElementById('novo-nome-contrato').value.replace(/[\\/:*?"<>|\uFFFD]/g, '').trim().replace(/\.pdf$/i, '');
-    if (!nome) return mostrarMensagem('Digite o nome do contrato.', 'erro');
-    if (f.contratoNovo) {
-      f.contratoNovo = new File([f.contratoNovo], nome + '.pdf', { type: 'application/pdf' });
-    } else {
-      const botao = document.getElementById('btn-nome-contrato');
-      botao.disabled = true; botao.textContent = 'Salvando…';
-      try { f.imovel = await chamar('renomearContrato', f.imovel.ID_Imovel, nome, auth()); }
-      catch (erro) { botao.disabled = false; botao.textContent = 'Salvar nome'; return mostrarErro(erro); }
-      mostrarMensagem('Nome do contrato salvo!');
-    }
-    f.renomeando = false;
-    desenharAnexos();
-  }
-
-  async function tirarContratoSalvo() {
-    if (!confirm('Remover o contrato? Ele vai para a lixeira do Google Drive.')) return;
-    try {
-      estado.form.imovel = await chamar('removerContrato', estado.form.imovel.ID_Imovel, auth());
-      desenharAnexos();
-      mostrarMensagem('Contrato removido.');
     } catch (erro) { mostrarErro(erro); }
   }
 
@@ -1815,10 +2737,9 @@
     const f = estado.form;
     const dados = lerFormulario('form-imovel');
     if (!dados.Nome) return mostrarMensagem('Informe o nome do imóvel.', 'erro');
-    if (dados.DataVigente && dados.DataPrazo && dados.DataPrazo < dados.DataVigente) {
-      return mostrarMensagem('A data prazo não pode ser antes da data vigente.', 'erro');
-    }
-    if (dados.Cobrar === 'Sim' && !dados.InicioCobranca) return mostrarMensagem('Informe o dia em que a cobrança começa.', 'erro');
+    if (dados.Cobrar === 'Sim' && !dados.Inquilino) return mostrarMensagem('Informe o nome do inquilino.', 'erro');
+    if (dados.Cobrar === 'Sim' && !dados.DiaVencimento) return mostrarMensagem('Escolha o dia do vencimento.', 'erro');
+    if (dados.Cobrar === 'Sim' && !lerValor(dados.ValorAluguel)) return mostrarMensagem('Informe o valor do aluguel por mês.', 'erro');
     if (dados.Cobrar === 'Sim' && Number.isNaN(lerValor(dados.ValorAluguel))) return mostrarMensagem('Valor do aluguel inválido. Use, por exemplo, 1.500,00.', 'erro');
     const botao = document.getElementById('btn-salvar');
     const textoBotao = botao.textContent;
@@ -1838,10 +2759,11 @@
         if (!(f.capa && f.capa.foto === foto)) URL.revokeObjectURL(foto.previa);
         f.fotosNovas.shift();
       }
-      if (f.contratoNovo) {
-        mostrarAvisoFixo('Enviando o contrato…');
-        f.imovel = await chamar('anexarContrato', id, await lerArquivo(f.contratoNovo), auth());
-        f.contratoNovo = null;
+      const totalDocs = f.documentosNovos.length;
+      while (f.documentosNovos.length) {
+        mostrarAvisoFixo(`Enviando documento ${totalDocs - f.documentosNovos.length + 1} de ${totalDocs}…`);
+        f.imovel = await chamar('anexarDocumento', id, await lerArquivo(f.documentosNovos[0].arquivo), auth());
+        f.documentosNovos.shift();
       }
       await salvarCapa(id);
       document.getElementById('progresso-envio')?.remove();
@@ -1864,7 +2786,7 @@
 
   async function excluirImovelAtual() {
     const i = estado.form.imovel;
-    if (!confirm(`Excluir "${i.Nome}"? Os eventos da agenda são apagados, e as fotos e o contrato vão para a lixeira do Google Drive.`)) return;
+    if (!confirm(`Excluir "${i.Nome}"? Os eventos da agenda são apagados, e as fotos e os documentos vão para a lixeira do Google Drive.`)) return;
     try {
       await chamar('excluirImovel', i.ID_Imovel, auth());
       mostrarMensagem('Imóvel excluído.');
@@ -1986,6 +2908,14 @@
   }
 
   const scriptsCarregados = {};
+  // Folha de estilo de uma biblioteca (ex.: a do Leaflet), carregada uma vez só
+  function carregarEstilo(href) {
+    if (document.querySelector(`link[href="${href}"]`)) return;
+    const tag = document.createElement('link');
+    tag.rel = 'stylesheet'; tag.href = href;
+    document.head.appendChild(tag);
+  }
+
   function carregarScript(src) {
     if (!scriptsCarregados[src]) {
       scriptsCarregados[src] = new Promise((resolve, reject) => {
@@ -2031,6 +2961,83 @@
   }
 
   /* =========================================================
+   * Mapa geral dos imóveis (Leaflet + OpenStreetMap: gratuito, sem chave)
+   * Cada imóvel vira um marcador com o avatar e a borda na cor da situação do pagamento.
+   * ========================================================= */
+  const LEAFLET = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/';
+
+  async function telaMapa() {
+    try {
+      carregarEstilo(LEAFLET + 'leaflet.min.css');
+      const biblioteca = carregarScript(LEAFLET + 'leaflet.min.js');
+      await carregarTela('mapa', () => chamar('abrirMapa', auth()), async dados => { await biblioteca; desenharMapaTela(dados); }, 'Abrindo o mapa…');
+    } catch (erro) { telaErro(erro, '#/mapa'); }
+  }
+
+  function desenharMapaTela(dados) {
+    if (paginaAtual() !== 'mapa') return;
+    if (estado.mapaGeral) { estado.mapaGeral.remove(); estado.mapaGeral = null; }
+    estado.dadosMapa = dados;
+    estado.filtroMapa = estado.filtroMapa || 'todos';
+    const conta = s => dados.imoveis.filter(i => s === 'todos' || i.situacao === s).length;
+    tela(`
+      <div class="titulo-pagina"><div>
+        <span class="rotulo">${dados.imoveis.length} ${dados.imoveis.length === 1 ? 'imóvel' : 'imóveis'} no mapa</span>
+        <h1>Mapa dos imóveis</h1>
+      </div></div>
+      <div class="filtros" role="group" aria-label="Filtrar o mapa pela situação do pagamento">
+        ${['todos', 'ok', 'aviso', 'vencido'].map(f => `<button class="filtro" aria-pressed="${estado.filtroMapa === f}"
+          onclick="filtrarMapa('${f}')">${NOMES_SITUACAO[f]}<span class="mono">${conta(f)}</span></button>`).join('')}
+      </div>
+      <div id="mapa-geral" class="mapa-geral" aria-label="Mapa com os imóveis"></div>
+      <div class="legenda"><span class="rotulo">Legenda</span>
+        <span class="st st--ok">Em dia</span><span class="st st--aviso">Vence em breve</span>
+        <span class="st st--vencido">Atrasado</span><span class="st st--sem-prazo">Vago</span></div>
+      ${dados.pendentes ? `<div class="pr-alert pr-alert--info"><span class="pr-alert__ic">i</span><div><b>Localizando endereços…</b>
+        Ainda faltam ${dados.pendentes}. Abra o mapa de novo daqui a pouco para ver todos.</div></div>` : ''}
+      ${dados.semLocal.length ? `<section class="painel"><h2>Fora do mapa</h2>
+        <p class="suave pequeno">Estes imóveis não têm endereço, ou o endereço não foi encontrado. Abra e confira a localização (com número e cidade).</p>
+        <div class="rolagem">${dados.semLocal.map(i => `<a class="aviso-item" href="#/imovel/${esc(i.ID_Imovel)}"><span class="bolinha" aria-hidden="true"></span>
+          ${avatarImovel(i.Nome, '')}<div><b>${esc(i.Nome)}</b>${esc(i.Localizacao || 'Sem endereço')}</div></a>`).join('')}</div></section>` : ''}`);
+    desenharMapaGeral();
+  }
+
+  function filtrarMapa(f) {
+    estado.filtroMapa = f;
+    document.querySelectorAll('.filtros .filtro').forEach(b => b.setAttribute('aria-pressed', String(b.getAttribute('onclick').includes(`'${f}'`))));
+    desenharMapaGeral();
+  }
+
+  function desenharMapaGeral() {
+    const area = document.getElementById('mapa-geral');
+    if (!area || !window.L) return;
+    if (estado.mapaGeral) { estado.mapaGeral.remove(); estado.mapaGeral = null; }
+    const mapa = estado.mapaGeral = L.map(area, { scrollWheelZoom: true });
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19, attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+    }).addTo(mapa);
+    const lista = estado.dadosMapa.imoveis.filter(i => estado.filtroMapa === 'todos' || i.situacao === estado.filtroMapa);
+    const pontos = lista.map(i => {
+      const icone = L.divIcon({ className: 'pin-imovel', iconSize: [48, 48], iconAnchor: [24, 24], popupAnchor: [0, -22],
+        html: `<div class="pin pin--${esc(i.situacao)}">${avatarImovel(i.Nome, i.Capa)}</div>` });
+      const q = encodeURIComponent(i.Localizacao || '');
+      L.marker([i.Lat, i.Lng], { icon: icone, title: i.Nome, alt: i.Nome }).addTo(mapa).bindPopup(`
+        <div class="popup-imovel">
+          <div class="com-capa">${avatarImovel(i.Nome, i.Capa)}<div><b>${esc(i.Nome)}</b>
+            <div class="suave pequeno">${esc(i.Localizacao || '')}</div></div></div>
+          <div>${etiquetaSituacao(i)} ${textoAluguel(i) ? `<span class="valor-aluguel">${esc(textoAluguel(i))}</span>` : ''}</div>
+          <div class="acoes"><a class="pr-btn pr-btn--pri pr-btn--pequeno" href="#/imovel/${esc(i.ID_Imovel)}">Abrir imóvel</a>
+            <a class="pr-btn pr-btn--sec pr-btn--pequeno" href="https://www.google.com/maps/dir/?api=1&destination=${q}" target="_blank" rel="noopener">Como chegar</a></div>
+        </div>`, { minWidth: 220, maxWidth: 300 });
+      return [i.Lat, i.Lng];
+    });
+    // Enquadra todos os marcadores; sem nenhum, mostra o Brasil
+    if (pontos.length > 1) mapa.fitBounds(pontos, { padding: [40, 40], maxZoom: 16 });
+    else if (pontos.length === 1) mapa.setView(pontos[0], 15);
+    else mapa.setView([-15.8, -47.9], 4);
+  }
+
+  /* =========================================================
    * Usuários (só administrador)
    * ========================================================= */
   async function telaUsuarios() {
@@ -2053,12 +3060,12 @@
           <a class="pr-btn pr-btn--sec pr-btn--pequeno" href="#/usuario/${esc(u.ID_Usuario)}">Editar</a>
         </div>
       </div>`;
-    tela(`
+    tela(`<div class="tela-fixa">
       <div class="titulo-pagina"><div><span class="rotulo">${us.length} ${us.length === 1 ? 'pessoa' : 'pessoas'}</span><h1>Usuários</h1></div></div>
       ${pendentes.length ? `<section class="painel"><h2>Pedidos de acesso</h2>
         <p class="suave pequeno">Quem for aprovado entra como Equipe: vê, inclui e edita imóveis. Só o Administrador exclui imóveis e cuida dos usuários.</p>
-        <div>${pendentes.map(linha).join('')}</div></section>` : ''}
-      <section class="painel"><h2>Equipe</h2><div>${outros.map(linha).join('')}</div></section>`, true);
+        <div class="rolagem">${pendentes.map(linha).join('')}</div></section>` : ''}
+      <section class="painel crescer"><h2>Equipe</h2><div class="rolagem">${outros.map(linha).join('')}</div></section></div>`, true);
   }
 
   async function decidirCadastro(id, situacao) {
@@ -2114,7 +3121,7 @@
    * ========================================================= */
   let pedidoInstalar = null;
   window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); pedidoInstalar = e; });
-  window.addEventListener('appinstalled', () => { pedidoInstalar = null; mostrarMensagem('App instalado! Procure o ícone "Locação" na tela inicial.'); });
+  window.addEventListener('appinstalled', () => { pedidoInstalar = null; mostrarMensagem('App instalado! Procure o ícone "Az Gestão" na tela inicial.'); });
 
   function appInstalado() {
     return !!(window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true;
